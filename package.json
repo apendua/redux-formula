@@ -1,0 +1,51 @@
+{
+  "name": "spreadsheet",
+  "version": "0.1.0",
+  "description": "An advanced selectors generator library",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "mocha --require babel-core/register 'src/**/*.test.*'",
+    "test-watch": "mocha --watch --require babel-core/register 'src/**/*.test.*'",
+    "test-lib": "mocha 'lib/**/*.test.*'",
+    "coverage": "babel-node $(npm bin)/isparta cover _mocha -- 'src/**/*.test.js'",
+    "coverage-report": "http-server ./coverage/lcov-report",
+    "build": "babel src/ -d lib/",
+    "build-watch": "watch 'npm run build' ./src",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apendua/spreadsheet.git"
+  },
+  "keywords": [
+    "selector",
+    "reselect",
+    "redux"
+  ],
+  "author": "apendua",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/apendua/spreadsheet/issues"
+  },
+  "homepage": "https://github.com/apendua/spreadsheet#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.1.2",
+    "babel-plugin-syntax-trailing-function-commas": "^6.22.0",
+    "babel-preset-flow": "^6.23.0",
+    "babel-preset-latest": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "chai": "^4.1.2",
+    "eslint": "^4.14.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "isparta": "^4.0.0",
+    "mocha": "^4.1.0",
+    "sinon": "^4.1.3",
+    "sinon-chai": "^2.14.0"
+  },
+  "dependencies": {
+    "reselect": "^3.0.1"
+  }
+}
