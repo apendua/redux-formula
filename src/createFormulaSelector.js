@@ -14,15 +14,17 @@ import {
 const constant = x => () => x;
 
 class Manager {
-  constructor(modules) {
-    this.modules = mapValues(modules, value => ({
+  constructor(library = {}) {
+    this.modules = mapValues(library, (value, name) => ({
+      name,
       value,
       state: 'resolved',
     }));
+    this.library = Object.create(library);
   }
 
   define(name, deps, factory) {
-    if (this.modules[name]) {
+    if (this.modules[name] && this.modules[name].factory) {
       throw new Error(`${name} defined multiple times`);
     }
     this.modules[name] = {
@@ -39,7 +41,7 @@ class Manager {
       throw new Error(`Unknown dependency: ${moduleName}`);
     }
     if (module.state === 'resolving') {
-      throw new Error(`Circular dependency: ${[stack, ...moduleName].join(' -> ')}`);
+      throw new Error(`Circular dependency: ${[...stack, moduleName].join(' -> ')}`);
     }
     if (module.state === 'resolved') {
       return module.value;
@@ -48,6 +50,7 @@ class Manager {
     const params = mapValues(module.deps, name => this.resolve(name, [...stack, name]));
     module.value = module.factory(params);
     module.state = 'resolved';
+    this.library[moduleName] = module.value;
     return module.value;
   }
 
@@ -92,6 +95,24 @@ const createSelectorCreator = (expression) => {
       );
       return {
         createSelector: constant(selector),
+      };
+    }
+    if (expression.$ref) {
+      const refCreator = createSelectorCreator(expression.$ref);
+      return {
+        dependencies: {
+          ...refCreator.dependencies,
+        },
+        createSelector: (selectors) => {
+          const selectRef = refCreator.createSelector(selectors);
+          return (...args) => {
+            const ref = selectRef(...args);
+            if (ref && selectors[ref]) {
+              return selectors[ref](...args);
+            }
+            return null;
+          };
+        },
       };
     }
     if (expression.$filter) {
@@ -197,7 +218,7 @@ const createSelectorCreator = (expression) => {
         createSelector: (selectors) => {
           const conditionSelector = conditionCreator.createSelector(selectors);
           const thenSelector = thenCreator.createSelector(selectors);
-          const elseSelector = thenCreator.createSelector(selectors);
+          const elseSelector = elseCreator.createSelector(selectors);
           return (...args) => {
             const condition = conditionSelector(...args);
             if (condition) {
@@ -224,8 +245,8 @@ const createSelectorCreator = (expression) => {
         const manager = new Manager(externalSelectors);
         const fieldsSelectors = {};
         forEach(selectorCreators, (field, name) => {
-          manager.define(name, field.dependencies, (...args) => {
-            const selector = field.createSelector(...args);
+          manager.define(name, field.dependencies, () => {
+            const selector = field.createSelector(manager.library);
             fieldsSelectors[name] = selector;
             return selector;
           });

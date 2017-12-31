@@ -199,7 +199,20 @@ describe('Test createFormulaSelector', function () {
     });
     const result = sheet();
     result.min(1, 2).should.deep.equal(1);
-    result.min(2, 1).should.deep.equal(2);
+    result.min(2, 1).should.deep.equal(1);
+  });
+
+  it('should evaluate indirect reference', function () {
+    const sheet = createFormulaSelector({
+      name: 'a',
+      a: 1,
+      b: { $ref: '$name' },
+    });
+    sheet().should.deep.equal({
+      name: 'a',
+      a: 1,
+      b: 1,
+    });
   });
 
   it.skip('should evaluate a recursive function', function () {
@@ -210,7 +223,7 @@ describe('Test createFormulaSelector', function () {
           $if: [
             { $lt: ['$x', 1] },
             0,
-            { $add: ['$x', { $evaluate: ['$triangle', { $add: ['$x', -1] }] }] },
+            { $add: ['$x', { $evaluate: [{ $ref: 'triangle' }, { $add: ['$x', -1] }] }] },
           ],
         },
       },
