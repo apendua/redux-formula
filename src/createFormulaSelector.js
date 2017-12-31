@@ -1,4 +1,5 @@
 import get from 'lodash/get';
+import omit from 'lodash/omit';
 import isEmpty from 'lodash/isEmpty';
 import filter from 'lodash/filter';
 import values from 'lodash/values';
@@ -55,6 +56,8 @@ class Manager {
   }
 }
 
+const ignoreInitialArguments = n => selector => (...args) => selector(args.slice(n));
+
 const split = (path) => {
   const index = path.indexOf('.');
   if (index < 0) {
@@ -104,6 +107,65 @@ const createSelectorCreator = (expression) => {
           predicateCreator.createSelector(selectors),
           (input, predicate) => filter(input, predicate),
         ),
+      };
+    }
+    if (expression.$add) {
+      const argumentsCreators = expression.$add.map(createSelectorCreator);
+      const dependencies = {};
+      argumentsCreators.forEach(x => Object.assign(dependencies, x.dependencies));
+      return {
+        dependencies,
+        createSelector: (selectors) => {
+          const argumentsSelectors = argumentsCreators.map(x => x.createSelector(selectors));
+          return createSelector(
+            ...argumentsSelectors,
+            (...args) => args.reduce((x, y) => x + y, 0),
+          );
+        },
+      };
+    }
+    if (expression.$formula) {
+      const declaredVariables = expression.$variables || [];
+      const formulaCreator = createSelectorCreator(expression.$formula);
+      return {
+        dependencies: omit(formulaCreator.dependencies, declaredVariables),
+        createSelector: (selectors) => {
+          const variables = {};
+          const variablesSelectors = {};
+          declaredVariables.forEach((name, i) => {
+            variablesSelectors[name] = (...args) => args[i];
+          });
+          const selectValue = formulaCreator.createSelector({
+            ...mapValues(selectors, ignoreInitialArguments(declaredVariables.length)),
+            ...variablesSelectors,
+          });
+          return (...args) => (...params) => {
+            declaredVariables.forEach((name, i) => {
+              variables[name] = params[i];
+            });
+            return selectValue(...params, ...args);
+          };
+        },
+      };
+    }
+    if (expression.$evaluate) {
+      const formulaCreator = createSelectorCreator(expression.$evaluate[0]);
+      const argsCreators = expression.$evaluate.slice(1).map(createSelectorCreator);
+      const dependencies = {
+        ...formulaCreator.dependencies,
+      };
+      argsCreators.forEach(x => Object.assign(dependencies, x.dependencies));
+      return {
+        dependencies,
+        createSelector: (selectors) => {
+          const funcSelector = formulaCreator.createSelector(selectors);
+          const argsSelectors = argsCreators.map(x => x.createSelector(selectors));
+          return createSelector(
+            funcSelector,
+            ...argsSelectors,
+            (func, ...args) => func(...args),
+          );
+        },
       };
     }
     // TODO: Ensure it also works when expression is an array

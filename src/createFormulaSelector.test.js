@@ -142,4 +142,34 @@ describe('Test createFormulaSelector', function () {
       b: [{ x: 1 }],
     });
   });
+
+  it('should create a function based on a formula', function () {
+    const sheet = createFormulaSelector({
+      a: {
+        $variables: ['x', 'y'],
+        $formula: {
+          $add: ['$x', '$y'],
+        },
+      },
+    });
+    const result = sheet();
+    result.a(1, 2).should.deep.equal(3);
+    result.a(3, 4).should.deep.equal(7);
+  });
+
+  it('should evaluate a predefined formula', function () {
+    const sheet = createFormulaSelector({
+      a: {
+        $variables: ['x', 'y'],
+        $formula: {
+          $add: ['$x', '$y'],
+        },
+      },
+      b: {
+        $evaluate: ['$a', 2, 3],
+      },
+    });
+    const result = sheet();
+    result.b.should.deep.equal(5);
+  });
 });
