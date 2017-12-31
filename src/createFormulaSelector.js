@@ -39,7 +39,7 @@ class Manager {
       throw new Error(`Unknown dependency: ${moduleName}`);
     }
     if (module.state === 'resolving') {
-      throw new Error(`Circular dependency: ${stack.join('->')}`);
+      throw new Error(`Circular dependency: ${[stack, ...moduleName].join(' -> ')}`);
     }
     if (module.state === 'resolved') {
       return module.value;
@@ -109,6 +109,21 @@ const createSelectorCreator = (expression) => {
         ),
       };
     }
+    if (expression.$lt) {
+      const argumentsCreators = expression.$lt.map(createSelectorCreator);
+      const dependencies = {};
+      argumentsCreators.forEach(x => Object.assign(dependencies, x.dependencies));
+      return {
+        dependencies,
+        createSelector: (selectors) => {
+          const argumentsSelectors = argumentsCreators.map(x => x.createSelector(selectors));
+          return createSelector(
+            ...argumentsSelectors,
+            (...args) => args[0] < args[1],
+          );
+        },
+      };
+    }
     if (expression.$add) {
       const argumentsCreators = expression.$add.map(createSelectorCreator);
       const dependencies = {};
@@ -165,6 +180,31 @@ const createSelectorCreator = (expression) => {
             ...argsSelectors,
             (func, ...args) => func(...args),
           );
+        },
+      };
+    }
+    if (expression.$if) {
+      const conditionCreator = createSelectorCreator(expression.$if[0]);
+      const thenCreator = createSelectorCreator(expression.$if[1]);
+      const elseCreator = createSelectorCreator(expression.$if[2]);
+      const dependencies = {
+        ...conditionCreator.dependencies,
+        ...thenCreator.dependencies,
+        ...elseCreator.dependencies,
+      };
+      return {
+        dependencies,
+        createSelector: (selectors) => {
+          const conditionSelector = conditionCreator.createSelector(selectors);
+          const thenSelector = thenCreator.createSelector(selectors);
+          const elseSelector = thenCreator.createSelector(selectors);
+          return (...args) => {
+            const condition = conditionSelector(...args);
+            if (condition) {
+              return thenSelector(...args);
+            }
+            return elseSelector(...args);
+          };
         },
       };
     }

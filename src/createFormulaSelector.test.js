@@ -172,4 +172,50 @@ describe('Test createFormulaSelector', function () {
     const result = sheet();
     result.b.should.deep.equal(5);
   });
+
+  it('should evaluate comparision operator', function () {
+    const sheet = createFormulaSelector({
+      a: {
+        $lt: [1, 2],
+      },
+      b: {
+        $lt: [2, 1],
+      },
+    });
+    sheet().should.deep.equal({
+      a: true,
+      b: false,
+    });
+  });
+
+  it('should evaluate conditional formula', function () {
+    const sheet = createFormulaSelector({
+      min: {
+        $variables: ['x', 'y'],
+        $formula: {
+          $if: [{ $lt: ['$x', '$y'] }, '$x', '$y'],
+        },
+      },
+    });
+    const result = sheet();
+    result.min(1, 2).should.deep.equal(1);
+    result.min(2, 1).should.deep.equal(2);
+  });
+
+  it.skip('should evaluate a recursive function', function () {
+    const sheet = createFormulaSelector({
+      triangle: {
+        $variables: ['x'],
+        $formula: {
+          $if: [
+            { $lt: ['$x', 1] },
+            0,
+            { $add: ['$x', { $evaluate: ['$triangle', { $add: ['$x', -1] }] }] },
+          ],
+        },
+      },
+    });
+    const result = sheet();
+    result.triangle(2).should.deep.equal(3);
+  });
 });
