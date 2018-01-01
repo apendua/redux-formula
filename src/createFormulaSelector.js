@@ -13,49 +13,71 @@ import {
 
 const constant = x => () => x;
 
-class Manager {
-  constructor(library = {}) {
-    this.modules = mapValues(library, (value, name) => ({
-      name,
-      value,
-      state: 'resolved',
-    }));
-    this.library = Object.create(library);
+class Scope {
+  constructor(parent) {
+    this.parent = parent;
+    this.variables = {};
+  }
+
+  create(props) {
+    const newScope = new this.constructor(this);
+    return Object.assign(newScope, props);
+  }
+
+  lookup(name) {
+    let scope = this;
+    while (scope) {
+      if (scope.variables[name]) {
+        return scope.variables[name];
+      }
+      scope = scope.parent;
+    }
+    return null;
   }
 
   define(name, deps, factory) {
-    if (this.modules[name] && this.modules[name].factory) {
+    if (this.variables[name]) {
       throw new Error(`${name} defined multiple times`);
     }
-    this.modules[name] = {
+    this.variables[name] = {
       name,
       deps,
       factory,
       state: 'initial',
+      scope: this,
     };
   }
 
-  resolve(moduleName, stack = [moduleName]) {
-    const module = this.modules[moduleName];
-    if (!module) {
-      throw new Error(`Unknown dependency: ${moduleName}`);
+  resolve(name, stack = [name]) {
+    const variable = this.lookup(name);
+    if (!variable) {
+      throw new Error(`Unknown dependency: ${name}`);
     }
-    if (module.state === 'resolving') {
-      throw new Error(`Circular dependency: ${[...stack, moduleName].join(' -> ')}`);
+    if (variable.state === 'resolving') {
+      throw new Error(`Circular dependency: ${[...stack, name].join(' -> ')}`);
     }
-    if (module.state === 'resolved') {
-      return module.value;
+    if (variable.state === 'initial') {
+      variable.state = 'resolving';
+      const params = mapValues(
+        variable.deps,
+        depName => this.getValue(depName, [...stack, depName]),
+      );
+      variable.value = variable.factory(params);
+      variable.state = 'resolved';
     }
-    module.state = 'resolving';
-    const params = mapValues(module.deps, name => this.resolve(name, [...stack, name]));
-    module.value = module.factory(params);
-    module.state = 'resolved';
-    this.library[moduleName] = module.value;
-    return module.value;
+    return variable;
   }
 
-  resolveAll() {
-    forEach(this.modules, (module, name) => this.resolve(name, module));
+  getValue(name) {
+    const variable = this.resolve(name);
+    if (!variable) {
+      return null;
+    }
+    return variable.value;
+  }
+
+  getAllValues() {
+    return mapValues(this.variables, (variable, name) => this.getValue(name));
   }
 }
 
@@ -79,8 +101,8 @@ const createSelectorCreator = (expression) => {
     const [name, dataKey] = split(expression.substr(1));
     return {
       dependencies: { [name]: name },
-      createSelector: ({ [name]: selectValue }) => createSelector(
-        selectValue,
+      createSelector: scope => createSelector(
+        scope.getValue(name),
         value => (dataKey ? get(value, dataKey) : value),
       ),
     };
@@ -103,12 +125,15 @@ const createSelectorCreator = (expression) => {
         dependencies: {
           ...refCreator.dependencies,
         },
-        createSelector: (selectors) => {
-          const selectRef = refCreator.createSelector(selectors);
+        createSelector: (scope) => {
+          const selectRef = refCreator.createSelector(scope);
           return (...args) => {
             const ref = selectRef(...args);
-            if (ref && selectors[ref]) {
-              return selectors[ref](...args);
+            if (ref) {
+              const selector = scope.getValue(ref);
+              if (selector) {
+                return selector(...args);
+              }
             }
             return null;
           };
@@ -123,9 +148,9 @@ const createSelectorCreator = (expression) => {
           ...inputCreator.dependencies,
           ...predicateCreator.dependencies,
         },
-        createSelector: selectors => createSelector(
-          inputCreator.createSelector(selectors),
-          predicateCreator.createSelector(selectors),
+        createSelector: scope => createSelector(
+          inputCreator.createSelector(scope),
+          predicateCreator.createSelector(scope),
           (input, predicate) => filter(input, predicate),
         ),
       };
@@ -136,8 +161,8 @@ const createSelectorCreator = (expression) => {
       argumentsCreators.forEach(x => Object.assign(dependencies, x.dependencies));
       return {
         dependencies,
-        createSelector: (selectors) => {
-          const argumentsSelectors = argumentsCreators.map(x => x.createSelector(selectors));
+        createSelector: (scope) => {
+          const argumentsSelectors = argumentsCreators.map(x => x.createSelector(scope));
           return createSelector(
             ...argumentsSelectors,
             (...args) => args[0] < args[1],
@@ -151,8 +176,8 @@ const createSelectorCreator = (expression) => {
       argumentsCreators.forEach(x => Object.assign(dependencies, x.dependencies));
       return {
         dependencies,
-        createSelector: (selectors) => {
-          const argumentsSelectors = argumentsCreators.map(x => x.createSelector(selectors));
+        createSelector: (scope) => {
+          const argumentsSelectors = argumentsCreators.map(x => x.createSelector(scope));
           return createSelector(
             ...argumentsSelectors,
             (...args) => args.reduce((x, y) => x + y, 0),
@@ -163,24 +188,27 @@ const createSelectorCreator = (expression) => {
     if (expression.$formula) {
       const declaredVariables = expression.$variables || [];
       const formulaCreator = createSelectorCreator(expression.$formula);
+      const mapValue = ignoreInitialArguments(declaredVariables.length);
       return {
         dependencies: omit(formulaCreator.dependencies, declaredVariables),
-        createSelector: (selectors) => {
-          const variables = {};
-          const variablesSelectors = {};
+        createSelector: (scope) => {
+          const newScope = scope.create({
+            getValue(name) {
+              const variable = this.resolve(name);
+              if (variable) {
+                if (variable.scope === this) {
+                  return variable.value;
+                }
+                return mapValue(variable.value);
+              }
+              return null;
+            },
+          });
           declaredVariables.forEach((name, i) => {
-            variablesSelectors[name] = (...args) => args[i];
+            newScope.define(name, [], () => (...args) => args[i]);
           });
-          const selectValue = formulaCreator.createSelector({
-            ...mapValues(selectors, ignoreInitialArguments(declaredVariables.length)),
-            ...variablesSelectors,
-          });
-          return (...args) => (...params) => {
-            declaredVariables.forEach((name, i) => {
-              variables[name] = params[i];
-            });
-            return selectValue(...params, ...args);
-          };
+          const selectValue = formulaCreator.createSelector(newScope);
+          return (...args) => (...params) => selectValue(...params, ...args);
         },
       };
     }
@@ -193,9 +221,9 @@ const createSelectorCreator = (expression) => {
       argsCreators.forEach(x => Object.assign(dependencies, x.dependencies));
       return {
         dependencies,
-        createSelector: (selectors) => {
-          const funcSelector = formulaCreator.createSelector(selectors);
-          const argsSelectors = argsCreators.map(x => x.createSelector(selectors));
+        createSelector: (scope) => {
+          const funcSelector = formulaCreator.createSelector(scope);
+          const argsSelectors = argsCreators.map(x => x.createSelector(scope));
           return createSelector(
             funcSelector,
             ...argsSelectors,
@@ -215,10 +243,10 @@ const createSelectorCreator = (expression) => {
       };
       return {
         dependencies,
-        createSelector: (selectors) => {
-          const conditionSelector = conditionCreator.createSelector(selectors);
-          const thenSelector = thenCreator.createSelector(selectors);
-          const elseSelector = elseCreator.createSelector(selectors);
+        createSelector: (scope) => {
+          const conditionSelector = conditionCreator.createSelector(scope);
+          const thenSelector = thenCreator.createSelector(scope);
+          const elseSelector = elseCreator.createSelector(scope);
           return (...args) => {
             const condition = conditionSelector(...args);
             if (condition) {
@@ -241,18 +269,12 @@ const createSelectorCreator = (expression) => {
     });
     return {
       dependencies: externalDependencies,
-      createSelector: (externalSelectors) => {
-        const manager = new Manager(externalSelectors);
-        const fieldsSelectors = {};
+      createSelector: (parentScope) => {
+        const scope = parentScope.create();
         forEach(selectorCreators, (field, name) => {
-          manager.define(name, field.dependencies, () => {
-            const selector = field.createSelector(manager.library);
-            fieldsSelectors[name] = selector;
-            return selector;
-          });
+          scope.define(name, field.dependencies, () => field.createSelector(scope));
         });
-        manager.resolveAll();
-        return createStructuredSelector(fieldsSelectors);
+        return createStructuredSelector(scope.getAllValues());
       },
     };
   }
@@ -266,7 +288,7 @@ const createFormulaSelector = (expression) => {
   if (!isEmpty(formula.dependencies)) {
     throw new Error(`Unknown dependencies: ${values(formula.dependencies).join(', ')}`);
   }
-  return formula.createSelector();
+  return formula.createSelector(new Scope());
 };
 
 export default createFormulaSelector;

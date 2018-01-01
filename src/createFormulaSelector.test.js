@@ -215,7 +215,7 @@ describe('Test createFormulaSelector', function () {
     });
   });
 
-  it.skip('should evaluate a recursive function', function () {
+  it('should evaluate a recursive function', function () {
     const sheet = createFormulaSelector({
       triangle: {
         $variables: ['x'],
