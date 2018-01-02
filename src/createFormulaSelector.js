@@ -10,76 +10,9 @@ import {
   createSelector,
   createStructuredSelector,
 } from 'reselect';
+import Scope from './Scope';
 
 const constant = x => () => x;
-
-class Scope {
-  constructor(parent) {
-    this.parent = parent;
-    this.variables = {};
-  }
-
-  create(props) {
-    const newScope = new this.constructor(this);
-    return Object.assign(newScope, props);
-  }
-
-  lookup(name) {
-    let scope = this;
-    while (scope) {
-      if (scope.variables[name]) {
-        return scope.variables[name];
-      }
-      scope = scope.parent;
-    }
-    return null;
-  }
-
-  define(name, deps, factory) {
-    if (this.variables[name]) {
-      throw new Error(`${name} defined multiple times`);
-    }
-    this.variables[name] = {
-      name,
-      deps,
-      factory,
-      state: 'initial',
-      scope: this,
-    };
-  }
-
-  resolve(name, stack = [name]) {
-    const variable = this.lookup(name);
-    if (!variable) {
-      throw new Error(`Unknown dependency: ${name}`);
-    }
-    if (variable.state === 'resolving') {
-      throw new Error(`Circular dependency: ${[...stack, name].join(' -> ')}`);
-    }
-    if (variable.state === 'initial') {
-      variable.state = 'resolving';
-      const params = mapValues(
-        variable.deps,
-        depName => this.getValue(depName, [...stack, depName]),
-      );
-      variable.value = variable.factory(params);
-      variable.state = 'resolved';
-    }
-    return variable;
-  }
-
-  getValue(name) {
-    const variable = this.resolve(name);
-    if (!variable) {
-      return null;
-    }
-    return variable.value;
-  }
-
-  getAllValues() {
-    return mapValues(this.variables, (variable, name) => this.getValue(name));
-  }
-}
 
 const ignoreInitialArguments = n => selector => (...args) => selector(args.slice(n));
 
@@ -193,15 +126,11 @@ const createSelectorCreator = (expression) => {
         dependencies: omit(formulaCreator.dependencies, declaredVariables),
         createSelector: (scope) => {
           const newScope = scope.create({
-            getValue(name) {
-              const variable = this.resolve(name);
-              if (variable) {
-                if (variable.scope === this) {
-                  return variable.value;
-                }
-                return mapValue(variable.value);
+            getVariableValue(variable) {
+              if (variable.scope === this) {
+                return variable.value;
               }
-              return null;
+              return mapValue(variable.value);
             },
           });
           declaredVariables.forEach((name, i) => {

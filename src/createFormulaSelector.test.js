@@ -157,6 +157,21 @@ describe('Test createFormulaSelector', function () {
     result.a(3, 4).should.deep.equal(7);
   });
 
+  it.skip('should create a function parametrized by input', function () {
+    const sheet = createFormulaSelector({
+      incValue: {
+        $field: 'value',
+      },
+      inc: {
+        $variables: ['x'],
+        $formula: {
+          $add: ['$x', '$incValue'],
+        },
+      },
+    });
+    sheet({ value: 2 }).inc(1).should.equal(3);
+  });
+
   it('should evaluate a predefined formula', function () {
     const sheet = createFormulaSelector({
       a: {
