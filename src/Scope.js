@@ -6,9 +6,8 @@ class Scope {
     this.variables = {};
   }
 
-  create(props) {
-    const newScope = new this.constructor(this);
-    return Object.assign(newScope, props);
+  create() {
+    return new this.constructor(this);
   }
 
   lookup(name) {
@@ -58,24 +57,16 @@ class Scope {
     return variable;
   }
 
-  getVariableValue(variable) {
-    return this.constructor.defaultGetVariableValue(variable);
-  }
-
   getValue(name, stack) {
     const variable = this.resolve(name, stack);
     if (!variable) {
       return null;
     }
-    return this.getVariableValue(variable);
+    return variable.value;
   }
 
   getAllValues() {
     return mapValues(this.variables, (variable, name) => this.getValue(name));
-  }
-
-  static defaultGetVariableValue(variable) {
-    return variable.value;
   }
 }
 

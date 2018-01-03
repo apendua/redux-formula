@@ -14,8 +14,6 @@ import Scope from './Scope';
 
 const constant = x => () => x;
 
-const ignoreInitialArguments = n => selector => (...args) => selector(args.slice(n));
-
 const split = (path) => {
   const index = path.indexOf('.');
   if (index < 0) {
@@ -103,6 +101,21 @@ const createSelectorCreator = (expression) => {
         },
       };
     }
+    if (expression.$sub) {
+      const argumentsCreators = expression.$sub.map(createSelectorCreator);
+      const dependencies = {};
+      argumentsCreators.forEach(x => Object.assign(dependencies, x.dependencies));
+      return {
+        dependencies,
+        createSelector: (scope) => {
+          const argumentsSelectors = argumentsCreators.map(x => x.createSelector(scope));
+          return createSelector(
+            ...argumentsSelectors,
+            (...args) => args[0] - args[1],
+          );
+        },
+      };
+    }
     if (expression.$add) {
       const argumentsCreators = expression.$add.map(createSelectorCreator);
       const dependencies = {};
@@ -121,24 +134,22 @@ const createSelectorCreator = (expression) => {
     if (expression.$formula) {
       const declaredVariables = expression.$variables || [];
       const formulaCreator = createSelectorCreator(expression.$formula);
-      const mapValue = ignoreInitialArguments(declaredVariables.length);
       return {
         dependencies: omit(formulaCreator.dependencies, declaredVariables),
-        createSelector: (scope) => {
-          const newScope = scope.create({
-            getVariableValue(variable) {
-              if (variable.scope === this) {
-                return variable.value;
-              }
-              return mapValue(variable.value);
+        createSelector: scope => createSelector(
+          createSelector(
+            (...args) => args.length,
+            (nArgs) => {
+              const newScope = scope.create();
+              declaredVariables.forEach((name, i) => {
+                newScope.define(name, [], () => (...a) => a[i + nArgs]);
+              });
+              return formulaCreator.createSelector(newScope);
             },
-          });
-          declaredVariables.forEach((name, i) => {
-            newScope.define(name, [], () => (...args) => args[i]);
-          });
-          const selectValue = formulaCreator.createSelector(newScope);
-          return (...args) => (...params) => selectValue(...params, ...args);
-        },
+          ),
+          (...args) => args,
+          (selectValue, args) => (...params) => selectValue(...args, ...params),
+        ),
       };
     }
     if (expression.$evaluate) {

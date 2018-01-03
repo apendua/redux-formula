@@ -157,7 +157,7 @@ describe('Test createFormulaSelector', function () {
     result.a(3, 4).should.deep.equal(7);
   });
 
-  it.skip('should create a function parametrized by input', function () {
+  it('should create a function parametrized by input', function () {
     const sheet = createFormulaSelector({
       incValue: {
         $field: 'value',
@@ -245,5 +245,35 @@ describe('Test createFormulaSelector', function () {
     });
     const result = sheet();
     result.triangle(2).should.deep.equal(3);
+  });
+
+  it('should evaluate a complex functions composition', function () {
+    const sheet = createFormulaSelector({
+      subtract: {
+        $variables: ['x', 'y'],
+        $formula: { $sub: ['$x', '$y'] },
+      },
+      swap: {
+        $variables: ['f'],
+        $formula: {
+          $variables: ['a', 'b'],
+          $formula: {
+            $evaluate: ['$f', '$b', '$a'],
+          },
+        },
+      },
+      value: {
+        $evaluate: [
+          { $evaluate: ['$swap', '$subtract'] },
+          1,
+          2,
+        ],
+      },
+    });
+    const result = sheet();
+    result.value.should.equal(1);
+    result.subtract(1, 2).should.equal(-1);
+    // NOTE: I don't believe this one works :)
+    result.swap((x, y) => x / y)(5, 10).should.equal(2);
   });
 });
