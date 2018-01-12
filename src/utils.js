@@ -21,7 +21,7 @@ export const destructure = (expression) => {
   let operator;
   let operatorArgs;
   forEach(expression, (value, key) => {
-    if (key[0] === '$') {
+    if (key[0] === '$' || key === '=' || key === '()') {
       if (operator) {
         throw new Error(`Multiple operators used in one scope: ${operator}, ${key}`);
       } else {

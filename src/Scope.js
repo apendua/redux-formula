@@ -1,3 +1,5 @@
+import filter from 'lodash/filter';
+import forEach from 'lodash/forEach';
 import mapValues from 'lodash/mapValues';
 
 class Scope {
@@ -25,12 +27,15 @@ class Scope {
     if (this.variables[name]) {
       throw new Error(`${name} defined multiple times`);
     }
+    if (deps && deps.length > 0 && !factory) {
+      throw new Error(`Unknown "${name}" cannot have any dependencies`);
+    }
     this.variables[name] = {
       name,
       deps,
       factory,
       scope: this,
-      state: 'initial',
+      state: factory ? 'initial' : 'resolved',
     };
   }
 
@@ -65,8 +70,36 @@ class Scope {
     return variable.value;
   }
 
+  getUnknownNames() {
+    const inherited = filter(
+      this.parent &&
+      this.parent.getUnknownNames(),
+      name => !this.variables[name],
+    );
+    return [
+      ...inherited,
+      ...Object.keys(this.variables).filter(name => !this.variables[name].factory),
+    ];
+  }
+
+  isUnknown(name) {
+    const variable = this.resolve(name);
+    return !variable.factory;
+  }
+
+  hasUnknowns() {
+    const unknowns = this.getUnknownNames();
+    return unknowns.length > 0;
+  }
+
   getAllValues() {
-    return mapValues(this.variables, (variable, name) => this.getValue(name));
+    const values = {};
+    forEach(this.variables, (variable, name) => {
+      if (!this.isUnknown(name)) {
+        values[name] = this.getValue(name);
+      }
+    });
+    return values;
   }
 }
 

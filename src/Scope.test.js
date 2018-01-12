@@ -7,7 +7,7 @@ import chai from 'chai';
 import sinonChai from 'sinon-chai';
 import Scope from './Scope';
 
-chai.should();
+const should = chai.should();
 chai.use(sinonChai);
 
 const constant = x => () => x;
@@ -27,6 +27,12 @@ describe('Test Scope', function () {
       (() => {
         this.scope.getValue('a');
       }).should.throw('Unknown');
+    });
+
+    it('should define an unknown', function () {
+      this.scope.define('a');
+      should.not.exist(this.scope.getValue('a'));
+      this.scope.isUnknown('a').should.be.true;
     });
 
     it('should throw if circular dependency is detected', function () {
