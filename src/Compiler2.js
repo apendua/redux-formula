@@ -28,6 +28,7 @@ class Compiler {
     this.operators = {
       ...this.constructor.defaultOperators,
       '=': defaultOperators.$value,
+      '()': defaultOperators.$evaluate,
     };
   }
 
@@ -36,34 +37,31 @@ class Compiler {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  compileLiteral(expression) {
+  compileLiteral(value) {
     return {
-      createSelector: (scope) => {
-        if (scope.hasUnknowns()) {
-          return constant(constant(constant(expression.$literal)));
-        }
-        return constant(constant(expression.$literal));
-      },
+      createSelector: scope => (scope.hasUnknowns()
+        ? constant(constant(value))
+        : constant(value)
+      ),
     };
   }
 
   // eslint-disable-next-line class-methods-use-this
-  compileCopyOperator(expression) {
-    const [name, dataKey] = split(expression.$copy);
+  compileCopyOperator(key) {
+    const [name, dataKey] = split(key);
     return {
       dependencies: { [name]: name },
       createSelector: (scope) => {
         if (scope.hasUnknowns()) {
-          if (scope.isUnknown(name)) {
-            return constant(constant(object => object[name]));
-          }
-          return stack => createSelector(
-            scope.getValue(name)(stack),
-            value => (dataKey ? constant(get(value, dataKey)) : constant(value)),
-          );
+          return scope.isUnknown(name)
+            ? constant(object => object[name])
+            : createSelector(
+              scope.getValue(name),
+              value => (dataKey ? constant(get(value, dataKey)) : constant(value)),
+            );
         }
-        return stack => createSelector(
-          scope.getValue(name)(stack),
+        return createSelector(
+          scope.getValue(name),
           value => (dataKey ? get(value, dataKey) : value),
         );
       },
@@ -77,38 +75,43 @@ class Compiler {
       dependencies: omit(valueCreator.dependencies, params),
       // eslint-disable-next-line
       createSelector: (scope) => {
-        return (stack) => {
-          const newScope = scope.create();
-          let argsOffset = 0;
-          newScope.define('this', [], null);
-          if (isArray(stack)) {
-            argsOffset = params.length - stack.length;
-            if (argsOffset < 0) {
-              throw new Error('To many arguments passed');
-            }
-            forEach(params, (name, i) => {
-              newScope.define(name, [], constant(stack[i]));
-            });
+        const newScope = scope.create();
+        let selector;
+
+        forEach(params, name => newScope.define(name, [], null));
+
+        if (!scope.hasUnknowns()) {
+          if (!newScope.hasUnknowns()) { // e.g. when params = []
+            selector = createSelector(
+              valueCreator.createSelector(newScope),
+              value => constant(value),
+            );
           } else {
-            forEach(params, (name) => {
-              newScope.define(name, [], null);
-            });
+            selector = createSelector(
+              valueCreator.createSelector(newScope),
+              evaluate => (...args) => {
+                const context = {};
+                forEach(args, (value, i) => {
+                  context[params[i]] = value;
+                });
+                return evaluate(context);
+              },
+            );
           }
-          const selectEvaluate = valueCreator.createSelector(newScope)();
-          if (!newScope.hasUnknowns()) {
-            return selectEvaluate;
-          }
-          return createSelector(
-            selectEvaluate,
-            evaluate => (...args) => {
-              const context = {};
+        } else {
+          selector = createSelector(
+            valueCreator.createSelector(newScope),
+            evaluate => object => (...args) => {
+              const context = Object.create(object);
               forEach(args, (value, i) => {
-                context[params[i + argsOffset]] = value;
+                context[params[i]] = value;
               });
               return evaluate(context);
             },
           );
-        };
+        }
+        newScope.define('this', [], constant(selector));
+        return selector;
       },
     };
   }
@@ -138,57 +141,37 @@ class Compiler {
           newScope.define(name, x.dependencies, () => x.createSelector(newScope));
         });
         let selectorCreators;
-        if (operator === '()' || operatorCreateSelector) {
+        if (operatorCreateSelector) {
           selectorCreators = map(operatorArgsCreators, x => x.createSelector(newScope));
         } else {
           selectorCreators = newScope.getAllValues();
         }
-        if (operator === '()') {
-          return () => {
-            let selector;
-            if (newScope.hasUnknowns()) {
-              // console.log(newScope.getUnknownNames());
-              selector = createSelector(
-                selectorCreators[0](selectorCreators.slice(1)),
-                func => object => func(object),
-              );
-            } else {
-              selector = selectorCreators[0](selectorCreators.slice(1));
-            }
-            return createSelector(
-              selector,
-              evaluate => evaluate({}),
-            );
-          };
+        if (operatorCreateSelector) {
+          return operatorCreateSelector(...selectorCreators);
         }
-        return (stack) => {
-          if (operatorCreateSelector) {
-            return operatorCreateSelector(...selectorCreators)(stack);
-          }
-          let selectValues = createStructuredSelector(mapValues(selectorCreators, create => create(stack)));
-          if (isArray(expression)) {
-            const n = expression.length;
-            selectValues = createSelector(
-              selectValues,
-              object => times(n, index => object[index]),
-            );
-          }
-          if (newScope.hasUnknowns()) {
-            return createSelector(
-              selectValues,
-              functions => object => mapValues(functions, f => f(object)),
-            );
-          }
-          return selectValues;
-        };
+        let selectValues = createStructuredSelector(selectorCreators);
+        if (isArray(expression)) {
+          const n = expression.length;
+          selectValues = createSelector(
+            selectValues,
+            object => times(n, index => object[index]),
+          );
+        }
+        if (newScope.hasUnknowns()) {
+          return createSelector(
+            selectValues,
+            functions => object => mapValues(functions, f => f(object)),
+          );
+        }
+        return selectValues;
       },
     };
   }
 
   compile(expression) {
     switch (typeof expression) {
-      // case 'function':
-      //   return { createSelector: constant(expression) };
+      case 'function':
+        return { createSelector: constant(expression) };
       case 'string':
         return this.compile(this.parse(expression));
       case 'number':
@@ -198,10 +181,10 @@ class Compiler {
       case 'object': {
         if (isPlainObject(expression)) {
           if (has(expression, '$literal')) {
-            return this.compileLiteral(expression);
+            return this.compileLiteral(expression.$literal);
           }
           if (has(expression, '$copy')) {
-            return this.compileCopyOperator(expression);
+            return this.compileCopyOperator(expression.$copy);
           }
           if (has(expression, '$')) {
             return this.compileFunctionExpression(expression);
@@ -223,7 +206,7 @@ class Compiler {
       throw new Error(`Unresolved dependencies: ${values(formula.dependencies).join(', ')}`);
     }
     const newScope = this.scope.create();
-    return formula.createSelector(newScope)();
+    return formula.createSelector(newScope);
   }
 
   static defaultParse(text) {

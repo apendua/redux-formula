@@ -141,7 +141,7 @@ describe('Test Compiler2', function () {
   });
 
   describe('Complex formulas', function () {
-    it.skip('should select an indirect property', function () {
+    it('should select an indirect property', function () {
       const formula = this.createFormulaSelector({
         a: constant(1),
       });
@@ -150,7 +150,7 @@ describe('Test Compiler2', function () {
       });
     });
 
-    it.skip('should select nested properties', function () {
+    it('should select nested properties', function () {
       const formula = this.createFormulaSelector({
         a: {
           b: 1,
@@ -301,7 +301,7 @@ describe('Test Compiler2', function () {
       });
     });
 
-    it.skip('should evaluate conditional formula', function () {
+    it('should evaluate conditional formula', function () {
       const formula = this.createFormulaSelector({
         min: {
           $: ['x', 'y'],
@@ -318,21 +318,21 @@ describe('Test Compiler2', function () {
     it.skip('should evaluate a recursive function', function () {
       const formula = this.createFormulaSelector({
         triangle: {
-          $: ['f', 'x'],
+          $: ['x'],
           '=': {
             $if: [
               { $lt: ['$x', 1] },
               0,
-              { $add: ['$x', { '()': ['$f', '$f', { $add: ['$x', -1] }] }] },
+              { $add: ['$x', { '()': ['$this', { $add: ['$x', -1] }] }] },
             ],
           },
         },
       });
       const result = formula();
-      result.triangle(result.triangle, 2).should.deep.equal(3);
+      result.triangle(2).should.deep.equal(3);
     });
 
-    it.skip('should evaluate a complex functions composition', function () {
+    it('should evaluate a complex functions composition', function () {
       const formula = this.createFormulaSelector({
         subtract: {
           $: ['x', 'y'],
@@ -340,12 +340,7 @@ describe('Test Compiler2', function () {
         },
         swap: {
           $: ['f'],
-          '=': {
-            $: ['a', 'b'],
-            '=': {
-              '()': ['$f', '$b', '$a'],
-            },
-          },
+          '=': { $: ['a', 'b'], '()': ['$f', '$b', '$a'] },
         },
         value: {
           '()': [

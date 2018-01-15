@@ -7,43 +7,43 @@ import {
   identity,
 } from './utils';
 
-export const createUnary = op => scope => createSelectX => (stack) => {
+export const createUnary = op => scope => (selectX) => {
   if (!scope.hasUnknowns()) {
     return createSelector(
-      createSelectX(stack),
+      selectX,
       x => op(x),
     );
   }
   return createSelector(
-    createSelectX(stack),
+    selectX,
     x => (...args) => op(x(...args)),
   );
 };
 
-export const createBinary = op => scope => (createSelectX, createSelectY) => (stack) => {
+export const createBinary = op => scope => (selectX, selectY) => {
   if (!scope.hasUnknowns()) {
     return createSelector(
-      createSelectX(),
-      createSelectY(),
+      selectX,
+      selectY,
       (x, y) => op(x, y),
     );
   }
   return createSelector(
-    createSelectX(stack),
-    createSelectY(stack),
+    selectX,
+    selectY,
     (x, y) => (...args) => op(x(...args), y(...args)),
   );
 };
 
-export const createAssociative = (op, initial) => scope => (...selectArgsCreators) => (stack) => {
+export const createAssociative = (op, initial) => scope => (...argsSelectors) => {
   if (!scope.hasUnknowns()) {
     return createSelector(
-      ...selectArgsCreators.map(create => create(scope)),
+      ...argsSelectors,
       (...args) => args.reduce((x, y) => x + y, initial),
     );
   }
   return createSelector(
-    ...selectArgsCreators.map(create => create(stack)),
+    ...argsSelectors,
     (...args) => ((...a) => args.reduce((total, x) => op(total, x(...a)), initial)),
   );
 };
@@ -53,30 +53,58 @@ export const $sub = createBinary((x, y) => x - y);
 export const $lt = createBinary((x, y) => x < y);
 export const $gt = createBinary((x, y) => x < y);
 
-// export const $if = (selectX, selectY, selectZ) => (...args) => {
-//   const condition = selectX(...args);
-//   if (condition) {
-//     return selectY(...args);
-//   }
-//   return selectZ(...args);
-// };
+export const $if = scope => (selectX, selectY, selectZ) => {
+  if (!scope.hasUnknowns()) {
+    return (...args) => {
+      const condition = selectX(...args);
+      if (condition) {
+        return selectY(...args);
+      }
+      return selectZ(...args);
+    };
+  }
+  return (...args) => {
+    const condition = selectX(...args);
+    return (...a) => {
+      if (condition(...a)) {
+        return selectY(...args)(...a);
+      }
+      return selectZ(...args)(...a);
+    };
+  };
+};
 
 export const $filter = createBinary((x, y) => filter(x, y));
 export const $value = createUnary(identity);
 
-export const $arg = scope => (createSelectX, createSelectY) => (stack) => {
+export const $arg = scope => (selectX, selectY) => {
   if (!scope.hasUnknowns()) {
     return createSelector(
       (...args) => args,
-      createSelectX(),
-      createSelectY(),
+      selectX,
+      selectY,
       (args, x, y) => (y ? get(args[x], y) : args[x]),
     );
   }
   return createSelector(
     (...args) => args,
-    createSelectX(stack),
-    createSelectY(stack),
+    selectX,
+    selectY,
     (args, x, y) => (...a) => (y ? get(args[x(...a)], y(...a)) : args[x(...a)]),
+  );
+};
+
+export const $evaluate = scope => (selectFunc, ...argsSelectors) => {
+  if (!scope.hasUnknowns()) {
+    return createSelector(
+      selectFunc,
+      ...argsSelectors,
+      (f, ...args) => f(...args),
+    );
+  }
+  return createSelector(
+    selectFunc,
+    ...argsSelectors,
+    (f, ...args) => (...a) => f(...a)(...args.map(arg => arg(...a))),
   );
 };
