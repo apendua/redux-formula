@@ -28,7 +28,7 @@ class Compiler {
     this.operators = {
       ...this.constructor.defaultOperators,
       '=': defaultOperators.$value,
-      '()': defaultOperators.$evaluate,
+      '(': defaultOperators.$evaluate,
     };
   }
 
@@ -37,7 +37,7 @@ class Compiler {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  compileLiteral(value) {
+  createListeral(value) {
     return {
       createSelector: scope => (scope.hasUnknowns()
         ? constant(constant(value))
@@ -47,7 +47,19 @@ class Compiler {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  compileCopyOperator(key) {
+  createArgReference(key) {
+    return {
+      createSelector: (scope) => {
+        if (!scope.hasUnknowns()) {
+          return (...args) => get(args, key);
+        }
+        return (...args) => constant(get(args, key));
+      },
+    };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  createReference(key) {
     const [name, dataKey] = split(key);
     return {
       dependencies: { [name]: name },
@@ -68,88 +80,92 @@ class Compiler {
     };
   }
 
-  compileFunctionExpression(expression) {
-    const valueCreator = this.compile(omit(expression, '$'));
-    const params = expression.$;
+  createFunction(params, valueExpr) {
+    const valueCreator = this.compile(valueExpr);
     return {
-      dependencies: omit(valueCreator.dependencies, params),
+      dependencies: omit(valueCreator.dependencies, [...params, 'this']),
       // eslint-disable-next-line
       createSelector: (scope) => {
         const newScope = scope.create();
-        let selector;
 
         forEach(params, name => newScope.define(name, [], null));
+        newScope.define('this', [], null);
 
         if (!scope.hasUnknowns()) {
           if (!newScope.hasUnknowns()) { // e.g. when params = []
-            selector = createSelector(
+            return createSelector(
               valueCreator.createSelector(newScope),
               value => constant(value),
             );
-          } else {
-            selector = createSelector(
-              valueCreator.createSelector(newScope),
-              evaluate => (...args) => {
-                const context = {};
+          }
+          return createSelector(
+            valueCreator.createSelector(newScope),
+            (evaluate) => {
+              const func = (...args) => {
+                const context = {
+                  this: func,
+                };
                 forEach(args, (value, i) => {
                   context[params[i]] = value;
                 });
                 return evaluate(context);
-              },
-            );
-          }
-        } else {
-          selector = createSelector(
-            valueCreator.createSelector(newScope),
-            evaluate => object => (...args) => {
+              };
+              return func;
+            },
+          );
+        }
+        return createSelector(
+          valueCreator.createSelector(newScope),
+          evaluate => (object) => {
+            const func = (...args) => {
               const context = Object.create(object);
+              context.this = func;
               forEach(args, (value, i) => {
                 context[params[i]] = value;
               });
               return evaluate(context);
-            },
-          );
-        }
-        newScope.define('this', [], constant(selector));
-        return selector;
+            };
+            return func;
+          },
+        );
       },
     };
   }
 
-  compileScopedExpression(expression) {
+  createScope(expression) {
     const {
       operator,
       operatorArgs,
       variables,
     } = destructure(expression);
-    const variablesCreators = mapValues(variables, this.compile);
-    const operatorArgsCreators = operatorArgs
+    const compiledVariables = mapValues(variables, this.compile);
+    const compiledOperatorArgs = operatorArgs
       ? map(operatorArgs, this.compile)
       : null;
     const dependencies = Object.assign(
       {},
-      ...map(variablesCreators, 'dependencies'),
-      ...map(operatorArgsCreators, 'dependencies'),
+      ...map(compiledVariables, 'dependencies'),
+      ...map(compiledOperatorArgs, 'dependencies'),
     );
     return {
-      dependencies: omit(dependencies, Object.keys(variablesCreators)),
+      dependencies: omit(dependencies, Object.keys(compiledVariables)),
       createSelector: (scope) => {
         const newScope = scope.create();
         const operatorCreateSelector = this.operators[operator] &&
                                        this.operators[operator](newScope);
-        forEach(variablesCreators, (x, name) => {
-          newScope.define(name, x.dependencies, () => x.createSelector(newScope));
+        forEach(compiledVariables, (variable, name) => {
+          newScope.define(name, variable.dependencies, () => variable.createSelector(newScope));
         });
-        let selectorCreators;
+        let selectors;
         if (operatorCreateSelector) {
-          selectorCreators = map(operatorArgsCreators, x => x.createSelector(newScope));
+          selectors = map(compiledOperatorArgs, arg => arg.createSelector(newScope));
         } else {
-          selectorCreators = newScope.getAllValues();
+          selectors = newScope.getAllValues();
         }
         if (operatorCreateSelector) {
-          return operatorCreateSelector(...selectorCreators);
+          return operatorCreateSelector(...selectors);
         }
-        let selectValues = createStructuredSelector(selectorCreators);
+        let selectValues = createStructuredSelector(selectors);
         if (isArray(expression)) {
           const n = expression.length;
           selectValues = createSelector(
@@ -171,32 +187,36 @@ class Compiler {
   compile(expression) {
     switch (typeof expression) {
       case 'function':
-        return { createSelector: constant(expression) };
+        return { createSelector: constant(expression) }; // explicit seletor
       case 'string':
         return this.compile(this.parse(expression));
       case 'number':
       case 'boolean':
       case 'undefined':
-        return this.compile({ $literal: expression });
+        return this.compile({ '!': expression });
       case 'object': {
+        if (!expression) {
+          return this.compile({ '!': expression });
+        }
         if (isPlainObject(expression)) {
-          if (has(expression, '$literal')) {
-            return this.compileLiteral(expression.$literal);
-          }
-          if (has(expression, '$copy')) {
-            return this.compileCopyOperator(expression.$copy);
+          if (has(expression, '!')) {
+            return this.createListeral(expression['!']);
           }
           if (has(expression, '$')) {
-            return this.compileFunctionExpression(expression);
+            return this.createReference(expression.$);
+          }
+          if (has(expression, ':')) {
+            return this.createArgReference(expression[':']);
+          }
+          if (has(expression, '?')) {
+            const { '?': params, ...valueExpr } = expression;
+            return this.createFunction(params, valueExpr);
           }
         }
-        if (isPlainObject(expression) || isArray(expression)) {
-          return this.compileScopedExpression(expression);
-        }
-        return this.compile({ $literal: expression });
+        return this.createScope(expression); // array or any other type of object
       }
       default:
-        return this.compile({ $literal: expression });
+        return this.compile({ '!': expression });
     }
   }
 
@@ -205,15 +225,15 @@ class Compiler {
     if (!isEmpty(formula.dependencies)) {
       throw new Error(`Unresolved dependencies: ${values(formula.dependencies).join(', ')}`);
     }
-    const newScope = this.scope.create();
-    return formula.createSelector(newScope);
+    return formula.createSelector(this.scope.create());
   }
 
   static defaultParse(text) {
-    if (text[0] === '$') {
-      return { $copy: text.substr(1) };
+    switch (text[0]) {
+      case ':': return { ':': text.substr(1) };
+      case '$': return { $: text.substr(1) };
+      default: return { '!': text };
     }
-    return { $literal: text };
   }
 }
 

@@ -26,14 +26,14 @@ describe('Test Compiler2', function () {
 
     it('should select a plain literal', function () {
       const formula = this.createFormulaSelector({
-        $literal: 1,
+        '!': 1,
       });
       formula().should.deep.equal(1);
     });
 
     it('should select a literal inside an object', function () {
       const formula = this.createFormulaSelector({
-        a: { $literal: 1 },
+        a: { '!': 1 },
         b: 2,
       });
       formula().should.deep.equal({
@@ -104,7 +104,7 @@ describe('Test Compiler2', function () {
 
     it('should select a constant function', function () {
       const formula = this.createFormulaSelector({
-        $: [],
+        '?': [],
         '=': 1,
       });
       formula()().should.deep.equal(1);
@@ -112,7 +112,7 @@ describe('Test Compiler2', function () {
 
     it('should select an identity function', function () {
       const formula = this.createFormulaSelector({
-        $: ['x'],
+        '?': ['x'],
         '=': '$x',
       });
       formula()(13).should.deep.equal(13);
@@ -121,11 +121,11 @@ describe('Test Compiler2', function () {
     it('should evaluate a function', function () {
       const formula = this.createFormulaSelector({
         identity: {
-          $: ['x'],
+          '?': ['x'],
           '=': '$x',
         },
         a: {
-          '()': ['$identity', 2],
+          '(': ['$identity', 2],
         },
       });
       formula().a.should.deep.equal(2);
@@ -133,7 +133,7 @@ describe('Test Compiler2', function () {
 
     it('should select a "property" function', function () {
       const formula = this.createFormulaSelector({
-        $: ['y'],
+        '?': ['y'],
         x: '$y',
       });
       formula()(13).should.deep.equal({ x: 13 });
@@ -141,9 +141,19 @@ describe('Test Compiler2', function () {
   });
 
   describe('Complex formulas', function () {
-    it('should select an indirect property', function () {
+    it('should use an explicit selector', function () {
       const formula = this.createFormulaSelector({
         a: constant(1),
+      });
+      formula().should.deep.equal({
+        a: 1,
+      });
+    });
+
+    it('should ignore comments', function () {
+      const formula = this.createFormulaSelector({
+        '#': 'This text should be ignored',
+        a: 1,
       });
       formula().should.deep.equal({
         a: 1,
@@ -210,18 +220,18 @@ describe('Test Compiler2', function () {
       });
     });
 
-    it.skip('should extract field from the first argument', function () {
+    it('should extract field from the first argument', function () {
       const formula = this.createFormulaSelector({
-        a: { $arg: [0, 'x'] },
+        a: ':0.x',
       });
       formula({ x: 1 }).should.deep.equal({
         a: 1,
       });
     });
 
-    it.skip('should extract second argument', function () {
+    it('should extract second argument', function () {
       const formula = this.createFormulaSelector({
-        a: { $arg: 1 },
+        a: ':1',
       });
       formula(null, 1).should.deep.equal({
         a: 1,
@@ -244,7 +254,7 @@ describe('Test Compiler2', function () {
     it('should create a function based on a formula', function () {
       const formula = this.createFormulaSelector({
         a: {
-          $: ['x', 'y'],
+          '?': ['x', 'y'],
           '=': {
             $add: ['$x', '$y'],
           },
@@ -261,7 +271,7 @@ describe('Test Compiler2', function () {
           $arg: [0, 'value'],
         },
         inc: {
-          $: ['x'],
+          '?': ['x'],
           '=': {
             $add: ['$x', '$incValue'],
           },
@@ -273,13 +283,13 @@ describe('Test Compiler2', function () {
     it('should evaluate a predefined formula', function () {
       const formula = this.createFormulaSelector({
         a: {
-          $: ['x', 'y'],
+          '?': ['x', 'y'],
           '=': {
             $add: ['$x', '$y'],
           },
         },
         b: {
-          '()': ['$a', 2, 3],
+          '(': ['$a', 2, 3],
         },
       });
       const result = formula();
@@ -304,7 +314,7 @@ describe('Test Compiler2', function () {
     it('should evaluate conditional formula', function () {
       const formula = this.createFormulaSelector({
         min: {
-          $: ['x', 'y'],
+          '?': ['x', 'y'],
           '=': {
             $if: [{ $lt: ['$x', '$y'] }, '$x', '$y'],
           },
@@ -315,15 +325,15 @@ describe('Test Compiler2', function () {
       result.min(2, 1).should.deep.equal(1);
     });
 
-    it.skip('should evaluate a recursive function', function () {
+    it('should evaluate a recursive function', function () {
       const formula = this.createFormulaSelector({
         triangle: {
-          $: ['x'],
+          '?': ['x'],
           '=': {
             $if: [
               { $lt: ['$x', 1] },
               0,
-              { $add: ['$x', { '()': ['$this', { $add: ['$x', -1] }] }] },
+              { $add: ['$x', { '(': ['$this', { $add: ['$x', -1] }] }] },
             ],
           },
         },
@@ -335,16 +345,16 @@ describe('Test Compiler2', function () {
     it('should evaluate a complex functions composition', function () {
       const formula = this.createFormulaSelector({
         subtract: {
-          $: ['x', 'y'],
+          '?': ['x', 'y'],
           '=': { $sub: ['$x', '$y'] },
         },
         swap: {
-          $: ['f'],
-          '=': { $: ['a', 'b'], '()': ['$f', '$b', '$a'] },
+          '?': ['f'],
+          '=': { '?': ['a', 'b'], '(': ['$f', '$b', '$a'] },
         },
         value: {
-          '()': [
-            { '()': ['$swap', '$subtract'] },
+          '(': [
+            { '(': ['$swap', '$subtract'] },
             1,
             2,
           ],

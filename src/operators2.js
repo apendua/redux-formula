@@ -16,7 +16,7 @@ export const createUnary = op => scope => (selectX) => {
   }
   return createSelector(
     selectX,
-    x => (...args) => op(x(...args)),
+    x => unknowns => op(x(unknowns)),
   );
 };
 
@@ -44,7 +44,7 @@ export const createAssociative = (op, initial) => scope => (...argsSelectors) =>
   }
   return createSelector(
     ...argsSelectors,
-    (...args) => ((...a) => args.reduce((total, x) => op(total, x(...a)), initial)),
+    (...args) => (unknowns => args.reduce((total, x) => op(total, x(unknowns)), initial)),
   );
 };
 
@@ -65,11 +65,11 @@ export const $if = scope => (selectX, selectY, selectZ) => {
   }
   return (...args) => {
     const condition = selectX(...args);
-    return (...a) => {
-      if (condition(...a)) {
-        return selectY(...args)(...a);
+    return (unknowns) => {
+      if (condition(unknowns)) {
+        return selectY(...args)(unknowns);
       }
-      return selectZ(...args)(...a);
+      return selectZ(...args)(unknowns);
     };
   };
 };
@@ -90,7 +90,7 @@ export const $arg = scope => (selectX, selectY) => {
     (...args) => args,
     selectX,
     selectY,
-    (args, x, y) => (...a) => (y ? get(args[x(...a)], y(...a)) : args[x(...a)]),
+    (args, x, y) => unknowns => (y ? get(args[x(unknowns)], y(unknowns)) : args[x(unknowns)]),
   );
 };
 
@@ -105,6 +105,6 @@ export const $evaluate = scope => (selectFunc, ...argsSelectors) => {
   return createSelector(
     selectFunc,
     ...argsSelectors,
-    (f, ...args) => (...a) => f(...a)(...args.map(arg => arg(...a))),
+    (f, ...args) => unknowns => f(unknowns)(...args.map(arg => arg(unknowns))),
   );
 };
