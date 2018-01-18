@@ -138,6 +138,14 @@ describe('Test Compiler2', function () {
       });
       formula()(13).should.deep.equal({ x: 13 });
     });
+
+    it('should resolve a nested key from function argument', function () {
+      const formula = this.createFormulaSelector({
+        '?': ['y'],
+        x: '$y.x',
+      });
+      formula()({ x: 2 }).should.deep.equal({ x: 2 });
+    });
   });
 
   describe('Complex formulas', function () {
@@ -267,9 +275,7 @@ describe('Test Compiler2', function () {
 
     it('should create a function parametrized by input', function () {
       const formula = this.createFormulaSelector({
-        incValue: {
-          $arg: [0, 'value'],
-        },
+        incValue: ':0.value',
         inc: {
           '?': ['x'],
           '=': {
@@ -365,6 +371,101 @@ describe('Test Compiler2', function () {
       result.subtract(1, 2).should.equal(-1);
       // NOTE: I don't believe this one works :)
       result.swap((x, y) => x / y)(5, 10).should.equal(2);
+    });
+
+    it('should process a tree data structure', function () {
+      const formula = this.createFormulaSelector({
+        map: {
+          '?': ['node'],
+          '=': {
+            $if: [
+              '$node',
+              {
+                name: '$node.name',
+                left: { '(': ['$this', '$node.left'] },
+                right: { '(': ['$this', '$node.right'] },
+              },
+              '[unknown]',
+            ],
+          },
+        },
+        '=': {
+          '(': ['$map', ':0'],
+        },
+      });
+      const result = formula({
+        name: 'A',
+        left: {
+          name: 'B',
+          left: {
+            name: 'C',
+          },
+          right: {
+            name: 'D',
+          },
+        },
+      });
+      result.should.deep.equal({
+        name: 'A',
+        left: {
+          name: 'B',
+          left: {
+            name: 'C',
+            left: '[unknown]',
+            right: '[unknown]',
+          },
+          right: {
+            name: 'D',
+            left: '[unknown]',
+            right: '[unknown]',
+          },
+        },
+        right: '[unknown]',
+      });
+    });
+  });
+
+  describe('Selector persistance', function () {
+    it('should persist on constant formula', function () {
+      const formula = this.createFormulaSelector({
+        a: 1,
+      });
+      formula({}).should.equal(formula({}));
+    });
+
+    it('should persist if dependencies do not change', function () {
+      const formula = this.createFormulaSelector({
+        a: ':0.x',
+      });
+      formula({ x: 1, y: 1 }).should.equal(formula({ x: 1, y: 2 }));
+    });
+
+    it('should persist a function call', function () {
+      const formula = this.createFormulaSelector({
+        map: {
+          '?': ['x'],
+          v: '$x',
+        },
+        a: { '(': ['$map', ':0.x'] },
+      });
+      formula({ x: 1, y: 1 }).should.equal(formula({ x: 1, y: 2 }));
+    });
+
+    it.skip('should persist map values', function () {
+      const formula = this.createFormulaSelector({
+        $map: [':0', {
+          '?': ['value', 'index'],
+          v: '$value',
+          i: '$index',
+        }],
+      });
+      const out1 = formula([1, 2]);
+      const out2 = formula([1, 2]);
+      out1.should.deep.equal([
+        { v: 1, i: 0 },
+        { v: 2, i: 1 },
+      ]);
+      out1[0].should.equal(out2[0]);
     });
   });
 });

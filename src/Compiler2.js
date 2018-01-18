@@ -66,7 +66,7 @@ class Compiler {
       createSelector: (scope) => {
         if (scope.hasUnknowns()) {
           return scope.isUnknown(name)
-            ? constant(object => object[name])
+            ? constant(dataKey ? (unknowns => get(unknowns[name], dataKey)) : (unknowns => unknowns[name]))
             : createSelector(
               scope.getValue(name),
               value => (dataKey ? constant(get(value, dataKey)) : constant(value)),
@@ -116,9 +116,9 @@ class Compiler {
         }
         return createSelector(
           valueCreator.createSelector(newScope),
-          evaluate => (object) => {
+          evaluate => scope.createSelector((unknowns) => {
             const func = (...args) => {
-              const context = Object.create(object);
+              const context = Object.create(unknowns);
               context.this = func;
               forEach(args, (value, i) => {
                 context[params[i]] = value;
@@ -126,7 +126,7 @@ class Compiler {
               return evaluate(context);
             };
             return func;
-          },
+          }),
         );
       },
     };
@@ -176,7 +176,7 @@ class Compiler {
         if (newScope.hasUnknowns()) {
           return createSelector(
             selectValues,
-            functions => object => mapValues(functions, f => f(object)),
+            functions => scope.createSelector(unknowns => mapValues(functions, f => f(unknowns))),
           );
         }
         return selectValues;

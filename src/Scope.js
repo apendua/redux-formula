@@ -1,6 +1,10 @@
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import mapValues from 'lodash/mapValues';
+import {
+  createSelector,
+  createStructuredSelector,
+} from 'reselect';
 
 class Scope {
   constructor(parent) {
@@ -80,6 +84,17 @@ class Scope {
       ...inherited,
       ...Object.keys(this.variables).filter(name => !this.variables[name].factory),
     ];
+  }
+
+  createSelector(mapUnknowns) {
+    const selectors = {};
+    this.getUnknownNames().forEach((name) => {
+      selectors[name] = unknowns => unknowns[name];
+    });
+    return createSelector(
+      createStructuredSelector(selectors),
+      mapUnknowns,
+    );
   }
 
   isUnknown(name) {

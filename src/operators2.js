@@ -1,4 +1,4 @@
-import get from 'lodash/get';
+import map from 'lodash/map';
 import filter from 'lodash/filter';
 import {
   createSelector,
@@ -75,24 +75,8 @@ export const $if = scope => (selectX, selectY, selectZ) => {
 };
 
 export const $filter = createBinary((x, y) => filter(x, y));
+export const $map = createBinary((x, y) => map(x, y));
 export const $value = createUnary(identity);
-
-export const $arg = scope => (selectX, selectY) => {
-  if (!scope.hasUnknowns()) {
-    return createSelector(
-      (...args) => args,
-      selectX,
-      selectY,
-      (args, x, y) => (y ? get(args[x], y) : args[x]),
-    );
-  }
-  return createSelector(
-    (...args) => args,
-    selectX,
-    selectY,
-    (args, x, y) => unknowns => (y ? get(args[x(unknowns)], y(unknowns)) : args[x(unknowns)]),
-  );
-};
 
 export const $evaluate = scope => (selectFunc, ...argsSelectors) => {
   if (!scope.hasUnknowns()) {
