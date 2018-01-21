@@ -1,19 +1,15 @@
 import has from 'lodash/has';
 import get from 'lodash/get';
 import map from 'lodash/map';
-import times from 'lodash/times';
+// import times from 'lodash/times';
 import omit from 'lodash/omit';
 import isEmpty from 'lodash/isEmpty';
 import values from 'lodash/values';
 import forEach from 'lodash/forEach';
-import isArray from 'lodash/isArray';
+// import isArray from 'lodash/isArray';
 import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
-import {
-  createSelector,
-  createStructuredSelector,
-} from 'reselect';
-import Scope from './Scope';
+import Scope from './Scope2';
 import * as defaultOperators from './operators2';
 import {
   constant,
@@ -39,22 +35,17 @@ class Compiler {
   // eslint-disable-next-line class-methods-use-this
   createListeral(value) {
     return {
-      createSelector: scope => (scope.hasUnknowns()
-        ? constant(constant(value))
-        : constant(value)
-      ),
+      createSelector: scope => scope.createSelector2(constant(value)),
     };
   }
 
   // eslint-disable-next-line class-methods-use-this
   createArgReference(key) {
     return {
-      createSelector: (scope) => {
-        if (!scope.hasUnknowns()) {
-          return (...args) => get(args, key);
-        }
-        return (...args) => constant(get(args, key));
-      },
+      createSelector: scope => scope.createSelector2(
+        (...args) => args,
+        args => get(args, key),
+      ),
     };
   }
 
@@ -63,20 +54,10 @@ class Compiler {
     const [name, dataKey] = split(key);
     return {
       dependencies: { [name]: name },
-      createSelector: (scope) => {
-        if (scope.hasUnknowns()) {
-          return scope.isUnknown(name)
-            ? constant(dataKey ? (unknowns => get(unknowns[name], dataKey)) : (unknowns => unknowns[name]))
-            : createSelector(
-              scope.getValue(name),
-              value => (dataKey ? constant(get(value, dataKey)) : constant(value)),
-            );
-        }
-        return createSelector(
-          scope.getValue(name),
-          value => (dataKey ? get(value, dataKey) : value),
-        );
-      },
+      createSelector: scope => scope.createSelector2(
+        scope.getSelector(name),
+        value => (dataKey ? get(value, dataKey) : value),
+      ),
     };
   }
 
@@ -91,42 +72,20 @@ class Compiler {
         forEach(params, name => newScope.define(name, [], null));
         newScope.define('this', [], null);
 
-        if (!scope.hasUnknowns()) {
-          if (!newScope.hasUnknowns()) { // e.g. when params = []
-            return createSelector(
-              valueCreator.createSelector(newScope),
-              value => constant(value),
-            );
-          }
-          return createSelector(
-            valueCreator.createSelector(newScope),
-            (evaluate) => {
-              const func = (...args) => {
-                const context = {
-                  this: func,
-                };
-                forEach(args, (value, i) => {
-                  context[params[i]] = value;
-                });
-                return evaluate(context);
-              };
-              return func;
-            },
-          );
-        }
-        return createSelector(
+        return scope.createSelector2(
           valueCreator.createSelector(newScope),
-          evaluate => scope.createSelector((unknowns) => {
+          (evaluate) => {
             const func = (...args) => {
-              const context = Object.create(unknowns);
-              context.this = func;
+              const unknowns = {
+                this: func,
+              };
               forEach(args, (value, i) => {
-                context[params[i]] = value;
+                unknowns[params[i]] = value;
               });
-              return evaluate(context);
+              return evaluate(unknowns);
             };
             return func;
-          }),
+          },
         );
       },
     };
@@ -147,6 +106,7 @@ class Compiler {
       ...map(compiledVariables, 'dependencies'),
       ...map(compiledOperatorArgs, 'dependencies'),
     );
+    const variablesNames = Object.keys(variables);
     return {
       dependencies: omit(dependencies, Object.keys(compiledVariables)),
       createSelector: (scope) => {
@@ -156,30 +116,23 @@ class Compiler {
         forEach(compiledVariables, (variable, name) => {
           newScope.define(name, variable.dependencies, () => variable.createSelector(newScope));
         });
-        let selectors;
         if (operatorCreateSelector) {
-          selectors = map(compiledOperatorArgs, arg => arg.createSelector(newScope));
-        } else {
-          selectors = newScope.getAllValues();
-        }
-        if (operatorCreateSelector) {
+          const selectors = map(compiledOperatorArgs, arg => arg.createSelector(newScope));
           return operatorCreateSelector(...selectors);
         }
-        let selectValues = createStructuredSelector(selectors);
-        if (isArray(expression)) {
-          const n = expression.length;
-          selectValues = createSelector(
-            selectValues,
-            object => times(n, index => object[index]),
-          );
-        }
-        if (newScope.hasUnknowns()) {
-          return createSelector(
-            selectValues,
-            functions => scope.createSelector(unknowns => mapValues(functions, f => f(unknowns))),
-          );
-        }
-        return selectValues;
+        // TODO: Optimize this!
+        const selectors = map(variablesNames, name => newScope.getSelector(name));
+        return newScope.createSelector2(
+          ...selectors,
+          (...args) => {
+            const object = {};
+            forEach(args, (value, i) => {
+              const name = variablesNames[i];
+              object[name] = value;
+            });
+            return object;
+          },
+        );
       },
     };
   }
