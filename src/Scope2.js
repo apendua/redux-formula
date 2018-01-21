@@ -7,14 +7,20 @@ import {
 
 const constant = x => () => x;
 
+const upgrade = g => (...args) => {
+  const v = g(...args);
+  return unknowns => () => v()(unknowns);
+};
+
 class Scope {
-  constructor(parent) {
+  constructor(parent, unknowns = []) {
     this.parent = parent;
     this.variables = {};
+    forEach(unknowns, name => this.define(name));
   }
 
-  create() {
-    return new this.constructor(this);
+  create(unknowns) {
+    return new this.constructor(this, unknowns);
   }
 
   lookup(name) {
@@ -39,8 +45,10 @@ class Scope {
       name,
       deps,
       factory,
+      unknown: !factory,
       scope: this,
       state: factory ? 'initial' : 'resolved',
+      value: factory ? null : this.createUnknownSelector(name),
     };
   }
 
@@ -58,7 +66,7 @@ class Scope {
     }
     if (variable.state === 'initial') {
       variable.state = 'resolving';
-      variable.value = variable.factory(mapValues(
+      variable.value = variable.factory(this, mapValues(
         variable.deps,
         depName => this.getSelector(depName, [...stack, depName]),
       ));
@@ -67,63 +75,59 @@ class Scope {
     return variable;
   }
 
+  createUnknownSelector(name) {
+    let selector = constant(unknowns => unknowns[name]);
+    let scope = this.parent;
+    while (scope) {
+      if (scope.hasOwnUnknowns()) {
+        selector = constant(selector);
+      }
+      scope = scope.parent;
+    }
+    return selector;
+  }
+
   getSelector(name, stack) {
     const variable = this.resolve(name, stack);
     if (!variable) {
       return null;
     }
     if (variable.scope === this) {
-      if (variable.factory) {
-        return variable.value;
-      }
-      let selector = constant(unknowns => unknowns[name]);
-      let scope = this.parent;
-      while (scope) {
-        if (scope.hasOwnUnknowns()) {
-          selector = constant(selector);
-        }
-        scope = scope.parent;
-      }
-      return selector;
+      return variable.value;
     }
     const selector = this.parent.getSelector(name, stack);
-    // TODO: Refactor this to "this.createSelector2"
     if (!this.hasOwnUnknowns()) {
       return selector;
     }
-    return this.createSelector3(
+    // TODO: Try to understand why "perent bound" and not simply "bound"
+    return this.createParentBoundSelector(
       selector,
       value => constant(value),
     );
   }
 
-  createSelector3(...args) {
+  createParentBoundSelector(...args) {
     if (this.parent) {
-      return this.parent.createSelector2(...args);
+      return this.parent.createBoundSelector(...args);
     }
     return createSelector(...args);
   }
 
-  createSelector2(...args) {
+  createBoundSelector(...args) {
     if (this.hasOwnUnknowns()) {
-      const funcSelectors = args.slice(0, args.length - 1);
-      const generateValue = args[args.length - 1];
-      return this.createSelector3(
-        ...funcSelectors,
-        (...functions) => unknowns => generateValue(...functions.map(f => f(unknowns))),
+      const selectors = args.slice(0, args.length - 1);
+      const evaluate = args[args.length - 1];
+      return this.createParentBoundSelector(
+        ...selectors,
+        (...values) => unknowns => evaluate(...values.map(f => f(unknowns))),
       );
     }
-    return this.createSelector3(...args);
+    return this.createParentBoundSelector(...args);
   }
 
   invert(selector) {
     let f = (...args) => () => selector(...args);
     let scope = this;
-
-    const upgrade = g => (...args) => {
-      const v = g(...args);
-      return unknowns => () => v()(unknowns);
-    };
 
     while (scope) {
       if (scope.hasOwnUnknowns()) {
@@ -135,17 +139,7 @@ class Scope {
   }
 
   hasOwnUnknowns() {
-    return some(this.variables, variable => !variable.factory);
-  }
-
-  getAllValues() {
-    const values = {};
-    forEach(this.variables, (variable, name) => {
-      if (variable.factory) {
-        values[name] = this.getSelector(name);
-      }
-    });
-    return values;
+    return some(this.variables, variable => variable.unknown);
   }
 }
 

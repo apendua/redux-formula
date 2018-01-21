@@ -33,16 +33,16 @@ class Compiler {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  createListeral(value) {
+  createLiteral(value) {
     return {
-      createSelector: scope => scope.createSelector2(constant(value)),
+      createSelector: scope => scope.createBoundSelector(constant(value)),
     };
   }
 
   // eslint-disable-next-line class-methods-use-this
   createArgReference(key) {
     return {
-      createSelector: scope => scope.createSelector2(
+      createSelector: scope => scope.createBoundSelector(
         (...args) => args,
         args => get(args, key),
       ),
@@ -54,7 +54,7 @@ class Compiler {
     const [name, dataKey] = split(key);
     return {
       dependencies: { [name]: name },
-      createSelector: scope => scope.createSelector2(
+      createSelector: scope => scope.createBoundSelector(
         scope.getSelector(name),
         value => (dataKey ? get(value, dataKey) : value),
       ),
@@ -62,29 +62,23 @@ class Compiler {
   }
 
   createFunction(params, valueExpr) {
-    const valueCreator = this.compile(valueExpr);
+    const value = this.compile(valueExpr);
+    const unknowns = [...params, 'this'];
     return {
-      dependencies: omit(valueCreator.dependencies, [...params, 'this']),
-      // eslint-disable-next-line
+      dependencies: omit(value.dependencies, unknowns),
       createSelector: (scope) => {
-        const newScope = scope.create();
-
-        forEach(params, name => newScope.define(name, [], null));
-        newScope.define('this', [], null);
-
-        return scope.createSelector2(
-          valueCreator.createSelector(newScope),
+        const newScope = scope.create(unknowns);
+        return scope.createBoundSelector(
+          value.createSelector(newScope),
           (evaluate) => {
-            const func = (...args) => {
-              const unknowns = {
-                this: func,
-              };
-              forEach(args, (value, i) => {
-                unknowns[params[i]] = value;
+            const f = (...args) => {
+              const data = { this: f };
+              forEach(args, (v, i) => {
+                data[params[i]] = v;
               });
-              return evaluate(unknowns);
+              return evaluate(data);
             };
-            return func;
+            return f;
           },
         );
       },
@@ -114,7 +108,11 @@ class Compiler {
         const operatorCreateSelector = this.operators[operator] &&
                                        this.operators[operator](newScope);
         forEach(compiledVariables, (variable, name) => {
-          newScope.define(name, variable.dependencies, () => variable.createSelector(newScope));
+          newScope.define(
+            name,
+            variable.dependencies,
+            variable.createSelector,
+          );
         });
         if (operatorCreateSelector) {
           const selectors = map(compiledOperatorArgs, arg => arg.createSelector(newScope));
@@ -122,7 +120,7 @@ class Compiler {
         }
         // TODO: Optimize this!
         const selectors = map(variablesNames, name => newScope.getSelector(name));
-        return newScope.createSelector2(
+        return newScope.createBoundSelector(
           ...selectors,
           (...args) => {
             const object = {};
@@ -153,7 +151,7 @@ class Compiler {
         }
         if (isPlainObject(expression)) {
           if (has(expression, '!')) {
-            return this.createListeral(expression['!']);
+            return this.createLiteral(expression['!']);
           }
           if (has(expression, '$')) {
             return this.createReference(expression.$);
