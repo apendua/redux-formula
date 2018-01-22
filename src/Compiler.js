@@ -38,37 +38,30 @@ class Compiler {
     if (typeof value === 'function' && params) {
       const compiled = map(params, this.compile);
       return {
-        dependencies: Object.assign(
+        deps: Object.assign(
           {},
-          ...map(compiled, 'dependencies'),
+          ...map(compiled, 'deps'),
         ),
-        createSelector: scope => scope.createBoundSelector(
-          ...map(compiled, x => x.createSelector(scope)),
+        bindTo: scope => scope.boundSelector(
+          ...map(compiled, x => x.bindTo(scope)),
           (...args) => value(...args),
         ),
       };
     }
-    return {
-      createSelector: scope => scope.createBoundSelector(constant(value)),
-    };
+    return { bindTo: scope => scope.bind(constant(value)) };
   }
 
   // eslint-disable-next-line class-methods-use-this
   createArgReference(key) {
-    return {
-      createSelector: scope => scope.createBoundSelector(
-        (...args) => args,
-        args => get(args, key),
-      ),
-    };
+    return { bindTo: scope => scope.bind((...args) => get(args, key)) };
   }
 
   // eslint-disable-next-line class-methods-use-this
   createReference(key) {
     const [name, dataKey] = split(key);
     return {
-      dependencies: { [name]: name },
-      createSelector: scope => scope.createBoundSelector(
+      deps: { [name]: name },
+      bindTo: scope => scope.boundSelector(
         scope.getSelector(name),
         value => (dataKey ? get(value, dataKey) : value),
       ),
@@ -79,11 +72,11 @@ class Compiler {
     const value = this.compile(valueExpr);
     const unknowns = [...params, 'this'];
     return {
-      dependencies: omit(value.dependencies, unknowns),
-      createSelector: (scope) => {
+      deps: omit(value.deps, unknowns),
+      bindTo: (scope) => {
         const newScope = scope.create(unknowns);
-        return scope.createBoundSelector(
-          value.createSelector(newScope),
+        return scope.boundSelector(
+          value.bindTo(newScope),
           (evaluate) => {
             const f = (...args) => {
               const data = { this: f };
@@ -103,18 +96,18 @@ class Compiler {
     const input = this.compile(inputExpr);
     const mapValue = this.compile(mapValueExpr);
     return {
-      dependencies: Object.assign(
+      deps: Object.assign(
         {},
-        input.dependencies,
-        mapValue.dependencies,
+        input.deps,
+        mapValue.deps,
       ),
-      createSelector(scope) {
-        const selectMapping = scope.createBoundSelector(
-          mapValue.createSelector(scope),
+      bindTo: (scope) => {
+        const selectMapping = scope.boundSelector(
+          mapValue.bindTo(scope),
           mapOneValue => memoizeMapValues(mapOneValue),
         );
-        const selectInput = input.createSelector(scope);
-        return scope.createBoundSelector(
+        const selectInput = input.bindTo(scope);
+        return scope.boundSelector(
           selectMapping,
           selectInput,
           (x, y) => x(y),
@@ -123,46 +116,44 @@ class Compiler {
     };
   }
 
-  createScope(expression) {
+  createNewScope(expression) {
     const {
       operator,
-      operatorArgs,
-      variables,
+      argsExpr,
+      variablesExpr,
     } = destructure(expression);
-    const compiledVariables = mapValues(variables, this.compile);
-    const compiledOperatorArgs = operatorArgs
-      ? map(operatorArgs, this.compile)
+    const variables = mapValues(variablesExpr, this.compile);
+    const args = argsExpr
+      ? map(argsExpr, this.compile)
       : null;
-    const dependencies = Object.assign(
+    const deps = Object.assign(
       {},
-      ...map(compiledVariables, 'dependencies'),
-      ...map(compiledOperatorArgs, 'dependencies'),
+      ...map(variables, 'deps'),
+      ...map(args, 'deps'),
     );
-    const variablesNames = Object.keys(variables);
+    const variablesNames = Object.keys(variablesExpr);
     return {
-      dependencies: omit(dependencies, Object.keys(compiledVariables)),
-      createSelector: (scope) => {
+      deps: omit(deps, Object.keys(variables)),
+      bindTo: (scope) => {
         const newScope = scope.create();
-        const operatorCreateSelector = this.operators[operator] &&
-                                       this.operators[operator](newScope);
-        forEach(compiledVariables, (variable, name) => {
+        const bindOperator = this.operators[operator];
+        forEach(variables, (variable, name) => {
           newScope.define(
             name,
-            variable.dependencies,
-            variable.createSelector,
+            variable.deps,
+            variable.bindTo,
           );
         });
-        if (operatorCreateSelector) {
-          const selectors = map(compiledOperatorArgs, arg => arg.createSelector(newScope));
-          return operatorCreateSelector(...selectors);
+        if (bindOperator) {
+          return bindOperator(newScope)(...map(args, arg => arg.bindTo(newScope)));
         }
         // TODO: Optimize this!
         const selectors = map(variablesNames, name => newScope.getSelector(name));
-        return newScope.createBoundSelector(
+        return newScope.boundSelector(
           ...selectors,
-          (...args) => {
+          (...funcArgs) => {
             const object = {};
-            forEach(args, (value, i) => {
+            forEach(funcArgs, (value, i) => {
               const name = variablesNames[i];
               object[name] = value;
             });
@@ -176,7 +167,7 @@ class Compiler {
   compile(expression) {
     switch (typeof expression) {
       case 'function':
-        return { createSelector: constant(expression) }; // explicit seletor
+        return { bindTo: scope => scope.bind(expression) };
       case 'string':
         return this.compile(this.parse(expression));
       case 'number':
@@ -206,7 +197,7 @@ class Compiler {
             return this.createMapping(inputExpr, mapValueExpr);
           }
         }
-        return this.createScope(expression); // array or any other type of object
+        return this.createNewScope(expression); // array or any other type of object
       }
       default:
         return this.compile({ '!': expression });
@@ -215,10 +206,10 @@ class Compiler {
 
   createFormulaSelector(expression) {
     const formula = this.compile(expression);
-    if (!isEmpty(formula.dependencies)) {
-      throw new Error(`Unresolved dependencies: ${values(formula.dependencies).join(', ')}`);
+    if (!isEmpty(formula.deps)) {
+      throw new Error(`Unresolved deps: ${values(formula.deps).join(', ')}`);
     }
-    return formula.createSelector(this.scope.create());
+    return formula.bindTo(this.scope.create());
   }
 
   static defaultParse(text) {

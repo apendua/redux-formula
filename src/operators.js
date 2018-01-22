@@ -5,13 +5,13 @@ import {
 } from './utils';
 
 export const createUnary = op => scope =>
-  selectX => scope.createBoundSelector(selectX, op);
+  selectX => scope.boundSelector(selectX, op);
 
 export const createBinary = op => scope =>
-  (selectX, selectY) => scope.createBoundSelector(selectX, selectY, op);
+  (selectX, selectY) => scope.boundSelector(selectX, selectY, op);
 
 export const createAssociative = op => scope =>
-  (...selectors) => scope.createBoundSelector(
+  (...selectors) => scope.boundSelector(
     ...selectors,
     (...args) => args.reduce(op),
   );
@@ -21,7 +21,7 @@ export const $sub = createBinary((x, y) => x - y);
 export const $lt = createBinary((x, y) => x < y);
 export const $gt = createBinary((x, y) => x < y);
 
-export const $if = scope => (selectX, selectY, selectZ) => scope.createBoundSelector(
+export const $if = scope => (selectX, selectY, selectZ) => scope.boundSelector(
   scope.indirect(selectX),
   scope.indirect(selectY),
   scope.indirect(selectZ),
@@ -32,7 +32,7 @@ export const $filter = createBinary((x, y) => filter(x, y));
 export const $map = createBinary((x, y) => map(x, y));
 export const $value = createUnary(identity);
 
-export const $evaluate = scope => (...selectors) => scope.createBoundSelector(
+export const $evaluate = scope => (...selectors) => scope.boundSelector(
   ...selectors,
   (f, ...args) => f(...args),
 );

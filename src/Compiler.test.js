@@ -6,6 +6,7 @@
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 import Compiler from './Compiler';
+import { identity } from './utils';
 
 chai.should();
 chai.use(sinonChai);
@@ -151,11 +152,20 @@ describe('Test Compiler', function () {
   describe('Complex formulas', function () {
     it('should use an explicit selector', function () {
       const formula = this.createFormulaSelector({
-        a: constant(1),
+        a: identity,
       });
-      formula().should.deep.equal({
+      formula(1).should.deep.equal({
         a: 1,
       });
+    });
+
+    it('should use an explicit selector inside a function', function () {
+      const formula = this.createFormulaSelector({
+        '?': ['x'],
+        y: identity,
+        '=': { $add: ['$x', '$y'] },
+      });
+      formula(1)(2).should.equal(3);
     });
 
     it('should ignore comments', function () {

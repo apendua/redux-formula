@@ -15,26 +15,26 @@ export const split = (path) => {
 
 export const destructure = (expression) => {
   if (isArray(expression)) {
-    return { variables: mapValues(expression, identity) };
+    return { variablesExpr: mapValues(expression, identity) };
   }
-  const variables = {};
+  const variablesExpr = {};
   let operator;
-  let operatorArgs;
+  let argsExpr;
   forEach(expression, (value, key) => {
     if (key[0] === '$' || key === '=' || key === '(') {
       if (operator) {
         throw new Error(`Multiple operators used in one scope: ${operator}, ${key}`);
       } else {
         operator = key;
-        operatorArgs = (isArray(value) ? value : [value]);
+        argsExpr = (isArray(value) ? value : [value]);
       }
     } else if (key[0] !== '#') {
-      variables[key] = value;
+      variablesExpr[key] = value;
     }
   });
   return {
     operator,
-    operatorArgs,
-    variables,
+    argsExpr,
+    variablesExpr,
   };
 };

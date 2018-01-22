@@ -12,11 +12,17 @@ const upgrade = g => (...args) => {
   return unknowns => () => v()(unknowns);
 };
 
+const upgrade2 = g => (...args) => constant(g(...args));
+
 class Scope {
   constructor(parent, unknowns = []) {
     this.parent = parent;
     this.variables = {};
     forEach(unknowns, name => this.define(name));
+  }
+
+  hasOwnUnknowns() {
+    return some(this.variables, variable => variable.unknown);
   }
 
   create(unknowns) {
@@ -32,6 +38,18 @@ class Scope {
       scope = scope.parent;
     }
     return null;
+  }
+
+  indirect(selector) {
+    let f = (...args) => () => selector(...args);
+    let scope = this;
+    while (scope) {
+      if (scope.hasOwnUnknowns()) {
+        f = upgrade(f);
+      }
+      scope = scope.parent;
+    }
+    return f;
   }
 
   define(name, deps, factory) {
@@ -75,6 +93,18 @@ class Scope {
     return variable;
   }
 
+  bind(originalSelector) {
+    let selector = originalSelector;
+    let scope = this;
+    while (scope) {
+      if (scope.hasOwnUnknowns()) {
+        selector = upgrade2(selector);
+      }
+      scope = scope.parent;
+    }
+    return selector;
+  }
+
   createUnknownSelector(name) {
     let selector = constant(unknowns => unknowns[name]);
     let scope = this.parent;
@@ -85,6 +115,25 @@ class Scope {
       scope = scope.parent;
     }
     return selector;
+  }
+
+  parentBoundSelector(...args) {
+    if (this.parent) {
+      return this.parent.boundSelector(...args);
+    }
+    return createSelector(...args);
+  }
+
+  boundSelector(...args) {
+    if (this.hasOwnUnknowns()) {
+      const selectors = args.slice(0, args.length - 1);
+      const evaluate = args[args.length - 1];
+      return this.parentBoundSelector(
+        ...selectors,
+        (...values) => unknowns => evaluate(...values.map(f => f(unknowns))),
+      );
+    }
+    return this.parentBoundSelector(...args);
   }
 
   getSelector(name, stack) {
@@ -99,47 +148,11 @@ class Scope {
     if (!this.hasOwnUnknowns()) {
       return selector;
     }
-    // TODO: Try to understand why "perent bound" and not simply "bound"
-    return this.createParentBoundSelector(
+    // TODO: Try to understand why "parent bound" and not simply "bound"
+    return this.parentBoundSelector(
       selector,
       value => constant(value),
     );
-  }
-
-  createParentBoundSelector(...args) {
-    if (this.parent) {
-      return this.parent.createBoundSelector(...args);
-    }
-    return createSelector(...args);
-  }
-
-  createBoundSelector(...args) {
-    if (this.hasOwnUnknowns()) {
-      const selectors = args.slice(0, args.length - 1);
-      const evaluate = args[args.length - 1];
-      return this.createParentBoundSelector(
-        ...selectors,
-        (...values) => unknowns => evaluate(...values.map(f => f(unknowns))),
-      );
-    }
-    return this.createParentBoundSelector(...args);
-  }
-
-  indirect(selector) {
-    let f = (...args) => () => selector(...args);
-    let scope = this;
-
-    while (scope) {
-      if (scope.hasOwnUnknowns()) {
-        f = upgrade(f);
-      }
-      scope = scope.parent;
-    }
-    return f;
-  }
-
-  hasOwnUnknowns() {
-    return some(this.variables, variable => variable.unknown);
   }
 }
 
