@@ -412,7 +412,26 @@ describe('Test Compiler2', function () {
     });
   });
 
-  describe('Integrations', function () {
+  describe('Value mappings', function () {
+    it('should map object fields', function () {
+      const formula = this.createFormulaSelector({
+        '<-': ':0',
+        '->': {
+          '?': ['value', 'key'],
+          '=': {
+            v: '$value',
+            k: '$key',
+          },
+        },
+      });
+      formula({ a: 1, b: 2 }).should.deep.equal({
+        a: { v: 1, k: 'a' },
+        b: { v: 2, k: 'b' },
+      });
+    });
+  });
+
+  describe('Native functions', function () {
     it('should embed a custom selector', function () {
       const formula = this.createFormulaSelector({
         x: (...args) => args[0],
@@ -520,7 +539,7 @@ describe('Test Compiler2', function () {
     });
   });
 
-  describe('Selector persistance', function () {
+  describe('Value persistance', function () {
     it('should persist on constant formula', function () {
       const formula = this.createFormulaSelector({
         a: 1,
@@ -546,21 +565,20 @@ describe('Test Compiler2', function () {
       formula({ x: 1, y: 1 }).should.equal(formula({ x: 1, y: 2 }));
     });
 
-    it.skip('should persist map values', function () {
+    it('should persist map values', function () {
       const formula = this.createFormulaSelector({
-        $map: [':0', {
+        '<-': ':0',
+        '->': {
           '?': ['value', 'index'],
-          v: '$value',
-          i: '$index',
-        }],
+          '=': {
+            v: '$value',
+            i: '$index',
+          },
+        },
       });
-      const out1 = formula([1, 2]);
-      const out2 = formula([1, 2]);
-      out1.should.deep.equal([
-        { v: 1, i: 0 },
-        { v: 2, i: 1 },
-      ]);
-      out1[0].should.equal(out2[0]);
+      const out1 = formula({ a: 1, b: 2 });
+      const out2 = formula({ a: 1, b: 2 });
+      out1.should.equal(out2);
     });
   });
 });

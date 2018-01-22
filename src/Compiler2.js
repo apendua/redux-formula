@@ -11,6 +11,7 @@ import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
 import Scope from './Scope2';
 import * as defaultOperators from './operators2';
+import memoizeMapValues from './memoizeMapValues';
 import {
   constant,
   split,
@@ -37,6 +38,10 @@ class Compiler {
     if (typeof value === 'function' && params) {
       const compiled = map(params, this.compile);
       return {
+        dependencies: Object.assign(
+          {},
+          ...map(compiled, 'dependencies'),
+        ),
         createSelector: scope => scope.createBoundSelector(
           ...map(compiled, x => x.createSelector(scope)),
           (...args) => value(...args),
@@ -89,6 +94,30 @@ class Compiler {
             };
             return f;
           },
+        );
+      },
+    };
+  }
+
+  createMapping(inputExpr, mapValueExpr) {
+    const input = this.compile(inputExpr);
+    const mapValue = this.compile(mapValueExpr);
+    return {
+      dependencies: Object.assign(
+        {},
+        input.dependencies,
+        mapValue.dependencies,
+      ),
+      createSelector(scope) {
+        const selectMapping = scope.createBoundSelector(
+          mapValue.createSelector(scope),
+          mapOneValue => memoizeMapValues(mapOneValue),
+        );
+        const selectInput = input.createSelector(scope);
+        return scope.createBoundSelector(
+          selectMapping,
+          selectInput,
+          (x, y) => x(y),
         );
       },
     };
@@ -171,6 +200,10 @@ class Compiler {
           if (has(expression, '?')) {
             const { '?': params, ...valueExpr } = expression;
             return this.createFunction(params, valueExpr);
+          }
+          if (has(expression, '->')) {
+            const { '<-': inputExpr, '->': mapValueExpr } = expression;
+            return this.createMapping(inputExpr, mapValueExpr);
           }
         }
         return this.createScope(expression); // array or any other type of object
