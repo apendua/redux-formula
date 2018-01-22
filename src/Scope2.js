@@ -125,7 +125,7 @@ class Scope {
     return this.createParentBoundSelector(...args);
   }
 
-  invert(selector) {
+  indirect(selector) {
     let f = (...args) => () => selector(...args);
     let scope = this;
 

@@ -22,9 +22,9 @@ export const $lt = createBinary((x, y) => x < y);
 export const $gt = createBinary((x, y) => x < y);
 
 export const $if = scope => (selectX, selectY, selectZ) => scope.createBoundSelector(
-  scope.invert(selectX),
-  scope.invert(selectY),
-  scope.invert(selectZ),
+  scope.indirect(selectX),
+  scope.indirect(selectY),
+  scope.indirect(selectZ),
   (x, y, z) => (x() ? y() : z()),
 );
 
