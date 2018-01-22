@@ -131,15 +131,15 @@ class Compiler {
       ...map(variables, 'deps'),
       ...map(args, 'deps'),
     );
-    const variablesNames = Object.keys(variablesExpr);
+    const variablesNames = Object.keys(variablesExpr).filter(name => name[0] !== '~');
     return {
-      deps: omit(deps, Object.keys(variables)),
+      deps: omit(deps, Object.keys(variables).map(name => (name[0] === '~' ? name.substr(1) : name))),
       bindTo: (scope) => {
         const newScope = scope.create();
         const bindOperator = this.operators[operator];
         forEach(variables, (variable, name) => {
           newScope.define(
-            name,
+            name[0] === '~' ? name.substr(1) : name,
             variable.deps,
             variable.bindTo,
           );

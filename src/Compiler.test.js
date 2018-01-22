@@ -178,6 +178,16 @@ describe('Test Compiler', function () {
       });
     });
 
+    it('should exclude hidden variables', function () {
+      const formula = this.createFormulaSelector({
+        a: '$b',
+        '~b': 1,
+      });
+      formula().should.deep.equal({
+        a: 1,
+      });
+    });
+
     it('should select nested properties', function () {
       const formula = this.createFormulaSelector({
         a: {
