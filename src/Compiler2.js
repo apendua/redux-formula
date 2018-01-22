@@ -33,7 +33,16 @@ class Compiler {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  createLiteral(value) {
+  createLiteral(value, params) {
+    if (typeof value === 'function' && params) {
+      const compiled = map(params, this.compile);
+      return {
+        createSelector: scope => scope.createBoundSelector(
+          ...map(compiled, x => x.createSelector(scope)),
+          (...args) => value(...args),
+        ),
+      };
+    }
     return {
       createSelector: scope => scope.createBoundSelector(constant(value)),
     };
@@ -151,7 +160,7 @@ class Compiler {
         }
         if (isPlainObject(expression)) {
           if (has(expression, '!')) {
-            return this.createLiteral(expression['!']);
+            return this.createLiteral(expression['!'], expression['>']);
           }
           if (has(expression, '$')) {
             return this.createReference(expression.$);

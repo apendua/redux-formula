@@ -412,6 +412,41 @@ describe('Test Compiler2', function () {
     });
   });
 
+  describe('Integrations', function () {
+    it('should embed a custom selector', function () {
+      const formula = this.createFormulaSelector({
+        x: (...args) => args[0],
+      });
+      formula(1).should.deep.equal({
+        x: 1,
+      });
+    });
+
+    it('should be able to embed a custom function', function () {
+      const func = x => x + 1;
+      const formula = this.createFormulaSelector({
+        func: { '!': func },
+        x: { '(': ['$func', 2] },
+      });
+      formula(1).should.deep.equal({
+        func,
+        x: 3,
+      });
+    });
+
+    it('should be able to to call a custom function directly', function () {
+      const func = x => x + 1;
+      const formula = this.createFormulaSelector({
+        x: { '(': [{ '!': func }, 2] },
+        y: { '!': func, '>': ['$x'] },
+      });
+      formula(1).should.deep.equal({
+        x: 3,
+        y: 4,
+      });
+    });
+  });
+
   describe('Advanced functions', function () {
     it('should create a function parametrized by input', function () {
       const formula = this.createFormulaSelector({
