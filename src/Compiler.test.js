@@ -5,14 +5,14 @@
 
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-import Compiler from './Compiler2';
+import Compiler from './Compiler';
 
 chai.should();
 chai.use(sinonChai);
 
 const constant = x => () => x;
 
-describe('Test Compiler2', function () {
+describe('Test Compiler', function () {
   beforeEach(function () {
     this.compiler = new Compiler();
     this.createFormulaSelector = this.compiler.createFormulaSelector.bind(this.compiler);

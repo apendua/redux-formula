@@ -1,7 +1,8 @@
 import Compiler from './Compiler';
 import Scope from './Scope';
 
-const formulaSelector = () => null;
+const defaultCompiler = new Compiler();
+const formulaSelector = expression => defaultCompiler.createFormulaSelector(expression);
 
 export {
   Compiler,

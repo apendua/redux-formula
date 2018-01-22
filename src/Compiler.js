@@ -9,8 +9,8 @@ import forEach from 'lodash/forEach';
 // import isArray from 'lodash/isArray';
 import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
-import Scope from './Scope2';
-import * as defaultOperators from './operators2';
+import Scope from './Scope';
+import * as defaultOperators from './operators';
 import memoizeMapValues from './memoizeMapValues';
 import {
   constant,
