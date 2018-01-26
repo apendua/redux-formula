@@ -2,6 +2,7 @@ import has from 'lodash/has';
 import get from 'lodash/get';
 import map from 'lodash/map';
 // import times from 'lodash/times';
+import keyBy from 'lodash/keyBy';
 import omit from 'lodash/omit';
 import isEmpty from 'lodash/isEmpty';
 import values from 'lodash/values';
@@ -17,6 +18,7 @@ import {
   split,
   destructure,
 } from './utils';
+import { createSelector } from 'reselect';
 
 class Compiler {
   constructor() {
@@ -92,19 +94,23 @@ class Compiler {
     };
   }
 
-  createMapping(inputExpr, mapValueExpr) {
+  createMapping(inputExpr, mapValueExpr, keyExpr) {
     const input = this.compile(inputExpr);
     const mapValue = this.compile(mapValueExpr);
+    const key = keyExpr ? this.compile(keyExpr) : null;
     return {
       deps: Object.assign(
         {},
         input.deps,
         mapValue.deps,
+        key && key.deps,
       ),
       bindTo: (scope) => {
+        const selectGetKey = key ? key.bindTo(scope) : scope.bind(constant(null));
         const selectMapping = scope.boundSelector(
           mapValue.bindTo(scope),
-          mapOneValue => memoizeMapValues(mapOneValue),
+          selectGetKey,
+          (mapOneValue, getKey) => memoizeMapValues(mapOneValue, getKey),
         );
         const selectInput = input.bindTo(scope);
         return scope.boundSelector(
@@ -193,8 +199,8 @@ class Compiler {
             return this.createFunction(params, valueExpr);
           }
           if (has(expression, '->')) {
-            const { '<-': inputExpr, '->': mapValueExpr } = expression;
-            return this.createMapping(inputExpr, mapValueExpr);
+            const { '<-': inputExpr, '->': mapValueExpr, '+key': keyExpr } = expression;
+            return this.createMapping(inputExpr, mapValueExpr, keyExpr);
           }
         }
         return this.createNewScope(expression); // array or any other type of object

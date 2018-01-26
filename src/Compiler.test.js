@@ -447,6 +447,43 @@ describe('Test Compiler', function () {
         b: { v: 2, k: 'b' },
       });
     });
+
+    it('should map array elements', function () {
+      const formula = this.createFormulaSelector({
+        '<-': ':0',
+        '->': {
+          '?': ['value', 'key'],
+          '=': {
+            v: '$value',
+            k: '$key',
+          },
+        },
+      });
+      formula([1, 2]).should.deep.equal([
+        { v: 1, k: 0 },
+        { v: 2, k: 1 },
+      ]);
+    });
+
+    it('should map array elements with custom caching key', function () {
+      const formula = this.createFormulaSelector({
+        '<-': ':0',
+        '->': {
+          '?': ['x', 'y'],
+          '=': { v: { $sum: ['$y', ',', '$x.v'] } },
+        },
+        '+key': 'id',
+      });
+      formula([
+        { id: '1', v: 'a' },
+        { id: '2', v: 'b' },
+        { id: '3', v: 'c' },
+      ]).should.deep.equal([
+        { v: '1,a' },
+        { v: '2,b' },
+        { v: '3,c' },
+      ]);
+    });
   });
 
   describe('Native functions', function () {
@@ -597,6 +634,33 @@ describe('Test Compiler', function () {
       const out1 = formula({ a: 1, b: 2 });
       const out2 = formula({ a: 1, b: 2 });
       out1.should.equal(out2);
+    });
+
+    it('should persist map array elements with custom caching key', function () {
+      const formula = this.createFormulaSelector({
+        '<-': ':0',
+        '->': {
+          '?': ['x'],
+          '=': { v: '$x.v' },
+        },
+        '+key': 'id',
+      });
+      const doc1 = { id: '1', v: 'a' };
+      const doc2 = { id: '2', v: 'b' };
+      const doc3 = { id: '3', v: 'c' };
+      const out1 = formula([
+        doc1,
+        doc2,
+        doc3,
+      ]);
+      const out2 = formula([
+        doc3,
+        doc1,
+        doc2,
+      ]);
+      out1[0].should.equal(out2[1]);
+      out1[1].should.equal(out2[2]);
+      out1[2].should.equal(out2[0]);
     });
   });
 });
