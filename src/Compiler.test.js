@@ -364,11 +364,8 @@ describe('Test Compiler', function () {
           '=': { '?': ['a', 'b'], '(': ['$f', '$b', '$a'] },
         },
         value: {
-          '(': [
-            { '(': ['$swap', '$subtract'] },
-            1,
-            2,
-          ],
+          '?:': [1, 2],
+          '=>': { '?:': ['$subtract'], '=>': '$swap' },
         },
       });
       const result = formula();
@@ -513,10 +510,12 @@ describe('Test Compiler', function () {
       const formula = this.createFormulaSelector({
         x: { '(': [{ '!': func }, 2] },
         y: { '!': func, '>': ['$x'] },
+        z: { '?:': ['$y'], '>!': func },
       });
       formula(1).should.deep.equal({
         x: 3,
         y: 4,
+        z: 5,
       });
     });
   });

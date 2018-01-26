@@ -190,6 +190,26 @@ class Compiler {
             const { '?': params, ...valueExpr } = expression;
             return this.createFunction(params, valueExpr);
           }
+          if (has(expression, '?:')) {
+            const {
+              '?:': argsExpr,
+              '>!': func,
+              '=>': funcExpr,
+              ...varsExpr
+            } = expression;
+            if (func && typeof func !== 'function') {
+              throw new Error('Expected a function at "=!"');
+            }
+            if (func && funcExpr) {
+              throw new Error('You cannot use both "=!" and "=>" in the same expression');
+            }
+            return this.createSubExpression(
+              varsExpr,
+              [funcExpr || { '!': func }, ...argsExpr],
+              scope => (...selectors) =>
+                scope.boundSelector(...selectors, (f, ...args) => f(...args)),
+            );
+          }
           if (has(expression, '->')) {
             const { '<-': inputExpr, '->': mapValueExpr, '+key': keyExpr } = expression;
             return this.createMapping(inputExpr, mapValueExpr, keyExpr);
