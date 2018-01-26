@@ -1,7 +1,11 @@
+import pullAt from 'lodash/pullAt';
+import map from 'lodash/map';
 import omit from 'lodash/omit';
 import mapValues from 'lodash/mapValues';
-
-const defaultIsEqual = (a, b) => a === b;
+import isArray from 'lodash/isArray';
+import {
+  defaultIsEqual,
+} from './utils';
 
 /**
  * Like lodash/mapValues, but with more caution, e.g. when new value is the
@@ -12,13 +16,14 @@ const defaultIsEqual = (a, b) => a === b;
  * @param {function} isEqual
  * @returns {object}
  */
-const stableMapValues = (object, mapValue, isEqual = defaultIsEqual) => {
+const stableMapValues = (objectOrArray, mapValue, isEqual = defaultIsEqual) => {
   let modified = false;
 
   const toRemove = [];
   const remove = {};
+  const array = isArray(objectOrArray);
 
-  const newObject = mapValues(object, (v, k) => {
+  const mapOneValue = (v, k) => {
     const newValue = mapValue(v, k, remove);
     if (newValue === remove) {
       toRemove.push(k);
@@ -27,14 +32,23 @@ const stableMapValues = (object, mapValue, isEqual = defaultIsEqual) => {
     }
     modified = true;
     return newValue;
-  });
+  };
+
+  const newObjectOrArray = array
+    ? map(objectOrArray, mapOneValue)
+    : mapValues(objectOrArray, mapOneValue);
+
   if (toRemove.length > 0) {
-    return omit(newObject, toRemove);
+    if (array) {
+      pullAt(newObjectOrArray, toRemove);
+      return newObjectOrArray;
+    }
+    return omit(newObjectOrArray, toRemove);
   }
   if (!modified) {
-    return object;
+    return objectOrArray;
   }
-  return newObject;
+  return newObjectOrArray;
 };
 
 export default stableMapValues;
