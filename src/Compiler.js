@@ -6,7 +6,7 @@ import omit from 'lodash/omit';
 import isEmpty from 'lodash/isEmpty';
 import values from 'lodash/values';
 import forEach from 'lodash/forEach';
-// import isArray from 'lodash/isArray';
+import isArray from 'lodash/isArray';
 import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
 import Scope from './Scope';
@@ -147,12 +147,12 @@ class Compiler {
         if (bindOperator) {
           return bindOperator(newScope)(...map(args, arg => arg.bindTo(newScope)));
         }
-        // TODO: Optimize this!
+        // TODO: Optimize this - if all values equal, do not create a new object.
         const selectors = map(variablesNames, name => newScope.getSelector(name));
         return newScope.boundSelector(
           ...selectors,
           (...funcArgs) => {
-            const object = {};
+            const object = isArray(expression) ? [] : {};
             forEach(funcArgs, (value, i) => {
               const name = variablesNames[i];
               object[name] = value;

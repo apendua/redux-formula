@@ -264,7 +264,7 @@ describe('Test Compiler', function () {
       });
     });
 
-    it.skip('should filter contents of an array', function () {
+    it('should filter contents of an array', function () {
       const formula = this.createFormulaSelector({
         a: [{ x: 1 }, { x: 2 }, { x: 3 }, { x: 4 }],
         b: {
