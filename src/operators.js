@@ -32,18 +32,28 @@ export const $lte = createBinary((x, y) => x <= y);
 export const $gte = createBinary((x, y) => x >= y);
 export const $not = createUnary(x => !x);
 export const $xor = createBinary((x, y) => (x && !y) || (!x && y));
-export const $and = scope => (selectX, selectY) => scope.boundSelector(
+export const $and = scope => (
+  selectX,
+  selectY,
+) => scope.boundSelector(
   scope.indirect(selectX),
   scope.indirect(selectY),
   (x, y) => x() && y(),
 );
-export const $or = scope => (selectX, selectY) => scope.boundSelector(
+export const $or = scope => (
+  selectX,
+  selectY,
+) => scope.boundSelector(
   scope.indirect(selectX),
   scope.indirect(selectY),
   (x, y) => x() || y(),
 );
 
-export const $if = scope => (selectX, selectY, selectZ) => scope.boundSelector(
+export const $if = scope => (
+  selectX,
+  selectY,
+  selectZ,
+) => scope.boundSelector(
   scope.indirect(selectX),
   scope.indirect(selectY),
   scope.indirect(selectZ),

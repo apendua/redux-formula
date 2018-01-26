@@ -1,11 +1,8 @@
 import has from 'lodash/has';
 import get from 'lodash/get';
 import map from 'lodash/map';
-// import times from 'lodash/times';
-import keyBy from 'lodash/keyBy';
 import omit from 'lodash/omit';
 import isEmpty from 'lodash/isEmpty';
-import values from 'lodash/values';
 import forEach from 'lodash/forEach';
 import isArray from 'lodash/isArray';
 import mapValues from 'lodash/mapValues';
@@ -18,7 +15,6 @@ import {
   split,
   destructure,
 } from './utils';
-import { createSelector } from 'reselect';
 
 class Compiler {
   constructor() {
@@ -122,28 +118,24 @@ class Compiler {
     };
   }
 
-  createNewScope(expression) {
-    const {
-      operator,
-      argsExpr,
-      variablesExpr,
-    } = destructure(expression);
-    const variables = mapValues(variablesExpr, this.compile);
+  createSubExpression(varsExpr, argsExpr, bindOperator) {
+    const vars = mapValues(varsExpr, this.compile);
     const args = argsExpr
       ? map(argsExpr, this.compile)
       : null;
     const deps = Object.assign(
       {},
-      ...map(variables, 'deps'),
+      ...map(vars, 'deps'),
       ...map(args, 'deps'),
     );
-    const variablesNames = Object.keys(variablesExpr).filter(name => name[0] !== '~');
+    const allNames = Object.keys(vars);
+    const exportedNames = allNames.filter(name => name[0] !== '~');
+    const localNames = allNames.map(name => (name[0] === '~' ? name.substr(1) : name));
     return {
-      deps: omit(deps, Object.keys(variables).map(name => (name[0] === '~' ? name.substr(1) : name))),
+      deps: omit(deps, localNames),
       bindTo: (scope) => {
         const newScope = scope.create();
-        const bindOperator = this.operators[operator];
-        forEach(variables, (variable, name) => {
+        forEach(vars, (variable, name) => {
           newScope.define(
             name[0] === '~' ? name.substr(1) : name,
             variable.deps,
@@ -154,13 +146,13 @@ class Compiler {
           return bindOperator(newScope)(...map(args, arg => arg.bindTo(newScope)));
         }
         // TODO: Optimize this - if all values equal, do not create a new object.
-        const selectors = map(variablesNames, name => newScope.getSelector(name));
+        const selectors = map(exportedNames, name => newScope.getSelector(name));
         return newScope.boundSelector(
           ...selectors,
-          (...funcArgs) => {
-            const object = isArray(expression) ? [] : {};
-            forEach(funcArgs, (value, i) => {
-              const name = variablesNames[i];
+          (...values) => {
+            const object = isArray(varsExpr) ? [] : {};
+            forEach(values, (value, index) => {
+              const name = exportedNames[index];
               object[name] = value;
             });
             return object;
@@ -203,7 +195,17 @@ class Compiler {
             return this.createMapping(inputExpr, mapValueExpr, keyExpr);
           }
         }
-        return this.createNewScope(expression); // array or any other type of object
+        // expression is either array or an arbitrary object
+        const {
+          varsExpr,
+          operator,
+          argsExpr,
+        } = destructure(expression);
+        return this.createSubExpression(
+          varsExpr,
+          argsExpr,
+          this.operators[operator],
+        );
       }
       default:
         return this.compile({ '!': expression });
@@ -213,7 +215,7 @@ class Compiler {
   createFormulaSelector(expression) {
     const formula = this.compile(expression);
     if (!isEmpty(formula.deps)) {
-      throw new Error(`Unresolved deps: ${values(formula.deps).join(', ')}`);
+      throw new Error(`Unresolved deps: ${Object.keys(formula.deps).join(', ')}`);
     }
     return formula.bindTo(this.scope.create());
   }

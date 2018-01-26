@@ -37,9 +37,9 @@ export const shallowEqual = (a, b) => {
 
 export const destructure = (expression) => {
   if (isArray(expression)) {
-    return { variablesExpr: mapValues(expression, identity) };
+    return { varsExpr: expression };
   }
-  const variablesExpr = {};
+  const varsExpr = {};
   let operator;
   let argsExpr;
   forEach(expression, (value, key) => {
@@ -51,12 +51,12 @@ export const destructure = (expression) => {
         argsExpr = (isArray(value) ? value : [value]);
       }
     } else if (key[0] !== '#') {
-      variablesExpr[key] = value;
+      varsExpr[key] = value;
     }
   });
   return {
     operator,
     argsExpr,
-    variablesExpr,
+    varsExpr,
   };
 };
