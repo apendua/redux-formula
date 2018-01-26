@@ -11,8 +11,6 @@ import { identity } from './utils';
 chai.should();
 chai.use(sinonChai);
 
-const constant = x => () => x;
-
 describe('Test Compiler', function () {
   beforeEach(function () {
     this.compiler = new Compiler();
@@ -534,7 +532,7 @@ describe('Test Compiler', function () {
             '?': ['y'],
             '=': {
               '?': ['z'],
-              '=': { $add: ['$x', '$y', '$z'] },
+              '=': { $sum: ['$x', '$y', '$z'] },
             },
           },
         },
