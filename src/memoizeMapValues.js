@@ -1,23 +1,17 @@
 import stableMapValues from './stableMapValues';
-
-const defaultIsEqual = (a, b) => a === b;
-const shallowEqual = (a, b) => {
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  if (keysA.length !== keysB.length) {
-    return false;
-  }
-  return keysA.every(k => a[k] === b[k]);
-};
+import {
+  shallowEqual,
+  defaultIsEqual,
+} from './utils';
 
 const memoizeMapValues = (mapOneValue, isEqual = defaultIsEqual) => {
   let lastInput = null;
   let lastResult = null;
   return (input) => {
     if (!lastResult) {
-      lastResult = input;
+      lastResult = {};
     }
-    const result = stableMapValues(input, (value, key) => {
+    const newResult = stableMapValues(input, (value, key) => {
       const lastValue = lastResult && lastResult[key];
       if (lastInput && lastInput[key] === value) {
         return lastValue;
@@ -25,8 +19,8 @@ const memoizeMapValues = (mapOneValue, isEqual = defaultIsEqual) => {
       return mapOneValue(value, key);
     }, isEqual);
     lastInput = input;
-    if (!shallowEqual(result, lastResult)) {
-      lastResult = result;
+    if (!shallowEqual(newResult, lastResult)) {
+      lastResult = newResult;
     }
     return lastResult;
   };

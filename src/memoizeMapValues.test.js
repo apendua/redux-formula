@@ -17,12 +17,14 @@ describe('Test utility - memoizeMapValues', () => {
   describe('Given an empty object', () => {
     it('should not be changed by identity mapping', function () {
       const x = {};
-      this.identity(x).should.equal(x);
+      const y = this.identity(x);
+      this.identity(x).should.equal(y);
     });
 
     it('should not be changed by constant mapping', function () {
       const x = {};
-      this.constant(x).should.equal(x);
+      const y = this.constant(x);
+      this.constant(x).should.equal(y);
     });
 
     it('should return the same result when called with similar argument', function () {
