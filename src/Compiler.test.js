@@ -248,7 +248,7 @@ describe('Test Compiler', function () {
 
     it('should extract field from the first argument', function () {
       const formula = this.createFormulaSelector({
-        a: ':0.x',
+        a: '$0.x',
       });
       formula({ x: 1 }).should.deep.equal({
         a: 1,
@@ -257,7 +257,7 @@ describe('Test Compiler', function () {
 
     it('should extract second argument', function () {
       const formula = this.createFormulaSelector({
-        a: ':1',
+        a: '$1',
       });
       formula(null, 1).should.deep.equal({
         a: 1,
@@ -392,7 +392,7 @@ describe('Test Compiler', function () {
           },
         },
         '=': {
-          '(': ['$map', ':0'],
+          '(': ['$map', '$0'],
         },
       });
       const result = formula({
@@ -430,7 +430,7 @@ describe('Test Compiler', function () {
   describe('Value mappings', function () {
     it('should map object fields', function () {
       const formula = this.createFormulaSelector({
-        '<-': ':0',
+        '<-': '$0',
         '->': {
           '?': ['value', 'key'],
           '=': {
@@ -447,7 +447,7 @@ describe('Test Compiler', function () {
 
     it('should map array elements', function () {
       const formula = this.createFormulaSelector({
-        '<-': ':0',
+        '<-': '$0',
         '->': {
           '?': ['value', 'key'],
           '=': {
@@ -464,7 +464,7 @@ describe('Test Compiler', function () {
 
     it('should map array elements with custom caching key', function () {
       const formula = this.createFormulaSelector({
-        '<-': ':0',
+        '<-': '$0',
         '->': {
           '?': ['x', 'y'],
           '=': { v: { $sum: ['$y', ',', '$x.v'] } },
@@ -523,7 +523,7 @@ describe('Test Compiler', function () {
   describe('Advanced functions', function () {
     it('should create a function parametrized by input', function () {
       const formula = this.createFormulaSelector({
-        x: ':0.value',
+        x: '$0.value',
         inc: {
           '?': ['y'],
           '=': {
@@ -603,7 +603,7 @@ describe('Test Compiler', function () {
 
     it('should persist if dependencies do not change', function () {
       const formula = this.createFormulaSelector({
-        a: ':0.x',
+        a: '$0.x',
       });
       formula({ x: 1, y: 1 }).should.equal(formula({ x: 1, y: 2 }));
     });
@@ -614,14 +614,14 @@ describe('Test Compiler', function () {
           '?': ['x'],
           v: '$x',
         },
-        a: { '(': ['$map', ':0.x'] },
+        a: { '(': ['$map', '$0.x'] },
       });
       formula({ x: 1, y: 1 }).should.equal(formula({ x: 1, y: 2 }));
     });
 
     it('should persist map values', function () {
       const formula = this.createFormulaSelector({
-        '<-': ':0',
+        '<-': '$0',
         '->': {
           '?': ['value', 'index'],
           '=': {
@@ -637,7 +637,7 @@ describe('Test Compiler', function () {
 
     it('should persist map array elements with custom caching key', function () {
       const formula = this.createFormulaSelector({
-        '<-': ':0',
+        '<-': '$0',
         '->': {
           '?': ['x'],
           '=': { v: '$x.v' },

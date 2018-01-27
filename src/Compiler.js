@@ -4,6 +4,8 @@ import map from 'lodash/map';
 import omit from 'lodash/omit';
 import isEmpty from 'lodash/isEmpty';
 import forEach from 'lodash/forEach';
+import keys from 'lodash/keys';
+import isNaN from 'lodash/isNaN';
 import isArray from 'lodash/isArray';
 import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
@@ -115,7 +117,7 @@ class Compiler {
       ...map(vars, 'deps'),
       ...map(args, 'deps'),
     );
-    const allNames = Object.keys(vars);
+    const allNames = keys(vars);
     const exportedNames = allNames.filter(name => name[0] !== '~');
     const localNames = allNames.map(name => (name[0] === '~' ? name.substr(1) : name));
     return {
@@ -188,9 +190,6 @@ class Compiler {
           if (has(expression, '$')) {
             return this.createReference(expression.$);
           }
-          if (has(expression, ':')) {
-            return this.createArgReference(expression[':']);
-          }
           if (has(expression, '?')) {
             const { '?': params, ...valueExpr } = expression;
             return this.createFunction(params, valueExpr);
@@ -253,15 +252,21 @@ class Compiler {
 
   createFormulaSelector(expression) {
     const formula = this.compile(expression);
-    if (!isEmpty(formula.deps)) {
-      throw new Error(`Unresolved deps: ${Object.keys(formula.deps).join(', ')}`);
+    const indexes = keys(formula.deps)
+      .map(name => parseInt(name, 10)).filter(index => !isNaN(index));
+    const otherDeps = omit(formula.deps, indexes);
+    if (!isEmpty(otherDeps)) {
+      throw new Error(`Unresolved deps: ${keys(formula.deps).join(', ')}`);
     }
-    return formula.bindTo(this.scope.create());
+    const newScope = this.scope.create();
+    // If there were any dependencies like $0, $1, etc. interpret them
+    // as references to arguments array.
+    indexes.forEach(i => newScope.define(`${i}`, [], scope => scope.bind((...args) => args[i])));
+    return formula.bindTo(newScope);
   }
 
   static defaultParse(text) {
     switch (text[0]) {
-      case ':': return { ':': text.substr(1) };
       case '$': return { $: text.substr(1) };
       default: return { '!': text };
     }
