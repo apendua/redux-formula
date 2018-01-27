@@ -1,6 +1,7 @@
 import has from 'lodash/has';
 import get from 'lodash/get';
 import map from 'lodash/map';
+import invokeMap from 'lodash/invokeMap';
 import omit from 'lodash/omit';
 import isEmpty from 'lodash/isEmpty';
 import forEach from 'lodash/forEach';
@@ -117,11 +118,11 @@ class Compiler {
       ...map(vars, 'deps'),
       ...map(args, 'deps'),
     );
-    const allNames = keys(vars);
-    const exportedNames = allNames.filter(name => name[0] !== '~');
-    const localNames = allNames.map(name => (name[0] === '~' ? name.substr(1) : name));
+    const allKeys = keys(vars);
+    const namesPublic = allKeys.filter(name => name.charAt(0) !== '~');
+    const namesPrivate = invokeMap(allKeys.filter(name => name.charAt(0) === '~'), String.prototype.substr, 1);
     return {
-      deps: omit(deps, localNames),
+      deps: omit(deps, ...namesPublic, ...namesPrivate),
       bindTo: (scope) => {
         const newScope = scope.create();
         forEach(vars, (variable, name) => {
@@ -132,21 +133,9 @@ class Compiler {
           );
         });
         if (bindOperator) {
-          return bindOperator(newScope)(...map(args, arg => arg.bindTo(newScope)));
+          return bindOperator(newScope)(newScope.variablesSelector(namesPrivate))(...invokeMap(args, 'bindTo', newScope));
         }
-        // TODO: Optimize this - if all values equal, do not create a new object.
-        const selectors = map(exportedNames, name => newScope.getSelector(name));
-        return newScope.boundSelector(
-          ...selectors,
-          (...values) => {
-            const object = isArray(varsExpr) ? [] : {};
-            forEach(values, (value, index) => {
-              const name = exportedNames[index];
-              object[name] = value;
-            });
-            return object;
-          },
-        );
+        return newScope.variablesSelector(namesPublic);
       },
     };
   }
@@ -160,7 +149,7 @@ class Compiler {
     return {
       deps,
       bindTo: (scope) => {
-        const selectors = map(array, item => item.bindTo(scope));
+        const selectors = invokeMap(array, 'bindTo', scope);
         return scope.boundSelector(
           ...selectors,
           (...values) => values,
@@ -199,7 +188,7 @@ class Compiler {
             return this.createSubExpression(
               varsExpr,
               [valueExpr],
-              constant(identity),
+              constant(constant(identity)),
             );
           }
           if (has(expression, '?:')) {
@@ -218,7 +207,7 @@ class Compiler {
             return this.createSubExpression(
               varsExpr,
               [funcExpr || { '!': func }, ...argsExpr],
-              scope => (...selectors) =>
+              scope => () => (...selectors) =>
                 scope.boundSelector(...selectors, (f, ...args) => f(...args)),
             );
           }

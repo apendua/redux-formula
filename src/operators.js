@@ -1,17 +1,14 @@
-import map from 'lodash/map';
 import filter from 'lodash/filter';
-import {
-  identity,
-} from './utils';
+import sortBy from 'lodash/sortBy';
 
 export const createUnary = op => scope =>
-  selectX => scope.boundSelector(selectX, op);
+  () => selectX => scope.boundSelector(selectX, op);
 
 export const createBinary = op => scope =>
-  (selectX, selectY) => scope.boundSelector(selectX, selectY, op);
+  () => (selectX, selectY) => scope.boundSelector(selectX, selectY, op);
 
 export const createAssociative = op => scope =>
-  (...selectors) => scope.boundSelector(
+  () => (...selectors) => scope.boundSelector(
     ...selectors,
     (...args) => args.reduce(op),
   );
@@ -32,7 +29,7 @@ export const $lte = createBinary((x, y) => x <= y);
 export const $gte = createBinary((x, y) => x >= y);
 export const $not = createUnary(x => !x);
 export const $xor = createBinary((x, y) => (x && !y) || (!x && y));
-export const $and = scope => (
+export const $and = scope => () => (
   selectX,
   selectY,
 ) => scope.boundSelector(
@@ -40,7 +37,7 @@ export const $and = scope => (
   scope.indirect(selectY),
   (x, y) => x() && y(),
 );
-export const $or = scope => (
+export const $or = scope => () => (
   selectX,
   selectY,
 ) => scope.boundSelector(
@@ -49,7 +46,7 @@ export const $or = scope => (
   (x, y) => x() || y(),
 );
 
-export const $if = scope => (
+export const $if = scope => () => (
   selectX,
   selectY,
   selectZ,
@@ -61,8 +58,13 @@ export const $if = scope => (
 );
 
 export const $filter = createBinary((x, y) => filter(x, y));
+export const $sort = scope => selectOptions => selectX => scope.boundSelector(
+  selectX,
+  selectOptions,
+  (x, options) => sortBy(x, options.key),
+);
 
-export const $evaluate = scope => (...selectors) => scope.boundSelector(
+export const $evaluate = scope => () => (...selectors) => scope.boundSelector(
   ...selectors,
   (f, ...args) => f(...args),
 );

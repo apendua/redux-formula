@@ -1,9 +1,12 @@
 import forEach from 'lodash/forEach';
+import keys from 'lodash/keys';
+import map from 'lodash/map';
 import some from 'lodash/some';
 import mapValues from 'lodash/mapValues';
 import {
   createSelector,
 } from 'reselect';
+import memoizeMapValues from './memoizeMapValues';
 
 const constant = x => () => x;
 
@@ -134,6 +137,23 @@ class Scope {
       );
     }
     return this.parentBoundSelector(...args);
+  }
+
+  variablesSelector(variables) {
+    const selectors = map(variables, name => this.getSelector(name));
+    return this.boundSelector(
+      ...selectors,
+      (...values) => {
+        // NOTE: This function is only re-computed if any of the values changes,
+        //       so we never create a new object if it's not necessary.
+        const object = {};
+        forEach(values, (value, index) => {
+          const name = variables[index];
+          object[name] = value;
+        });
+        return object;
+      },
+    );
   }
 
   getSelector(name, stack) {
