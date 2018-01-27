@@ -36,9 +36,6 @@ export const shallowEqual = (a, b) => {
 };
 
 export const destructure = (expression) => {
-  if (isArray(expression)) {
-    return { varsExpr: expression };
-  }
   const varsExpr = {};
   let operator;
   let argsExpr;

@@ -469,7 +469,7 @@ describe('Test Compiler', function () {
           '?': ['x', 'y'],
           '=': { v: { $sum: ['$y', ',', '$x.v'] } },
         },
-        '+key': 'id',
+        '~key': 'id',
       });
       formula([
         { id: '1', v: 'a' },
@@ -642,7 +642,7 @@ describe('Test Compiler', function () {
           '?': ['x'],
           '=': { v: '$x.v' },
         },
-        '+key': 'id',
+        '~key': 'id',
       });
       const doc1 = { id: '1', v: 'a' };
       const doc2 = { id: '2', v: 'b' };

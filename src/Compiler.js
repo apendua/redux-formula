@@ -149,6 +149,24 @@ class Compiler {
     };
   }
 
+  createArrayExpression(arrayExpr) {
+    const array = map(arrayExpr, this.compile);
+    const deps = Object.assign(
+      {},
+      ...map(array, 'deps'),
+    );
+    return {
+      deps,
+      bindTo: (scope) => {
+        const selectors = map(array, item => item.bindTo(scope));
+        return scope.boundSelector(
+          ...selectors,
+          (...values) => values,
+        );
+      },
+    };
+  }
+
   compile(expression) {
     switch (typeof expression) {
       case 'function':
@@ -209,12 +227,14 @@ class Compiler {
             const {
               '<-': inputExpr,
               '->': mapValueExpr,
-              '+key': keyExpr,
+              '~key': keyExpr,
             } = expression;
             return this.createMapping(inputExpr, mapValueExpr, keyExpr);
           }
         }
-        // expression is either array or an arbitrary object
+        if (isArray(expression)) {
+          return this.createArrayExpression(expression);
+        }
         const {
           varsExpr,
           operator,
