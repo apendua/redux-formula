@@ -138,10 +138,10 @@ describe('Test Operators', function () {
   it('should use short circuit for $and', function () {
     const formula = this.createFormulaSelector({
       $and: [false, {
-        '!': function () {
+        '>!': function () {
           throw new Error('Should not reach this line.');
         },
-        '>': [],
+        '?:': [],
       }],
     });
     formula().should.deep.equal(false);
@@ -150,10 +150,10 @@ describe('Test Operators', function () {
   it('should use short circuit for $or', function () {
     const formula = this.createFormulaSelector({
       $or: [true, {
-        '!': function () {
+        '>!': function () {
           throw new Error('Should not reach this line.');
         },
-        '>': [],
+        '?:': [],
       }],
     });
     formula().should.deep.equal(true);

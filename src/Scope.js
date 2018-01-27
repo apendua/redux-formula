@@ -1,12 +1,10 @@
 import forEach from 'lodash/forEach';
-import keys from 'lodash/keys';
 import map from 'lodash/map';
 import some from 'lodash/some';
 import mapValues from 'lodash/mapValues';
 import {
   createSelector,
 } from 'reselect';
-import memoizeMapValues from './memoizeMapValues';
 
 const constant = x => () => x;
 
