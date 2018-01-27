@@ -534,6 +534,33 @@ describe('Test Compiler', function () {
       formula({ value: 2 }).inc(1).should.equal(3);
     });
 
+    it('should be able to invoke a function with one argument instead of arguments list', function () {
+      const formula = this.createFormulaSelector({
+        inc: {
+          '?': ['x'],
+          '=': {
+            $add: ['$x', 1],
+          },
+        },
+        val: {
+          '?:': 1,
+          '=>': '$inc',
+        },
+      });
+      formula().val.should.equal(2);
+    });
+
+    it('should be able to invoke an operator with one argument instead of arguments list', function () {
+      const formula = this.createFormulaSelector({
+        a: { $not: true },
+        b: { $not: [true] },
+      });
+      formula().should.deep.equal({
+        a: false,
+        b: false,
+      });
+    });
+
     it('should create constant functor', function () {
       const formula = this.createFormulaSelector({
         constant: {

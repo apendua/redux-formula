@@ -206,7 +206,7 @@ class Compiler {
             }
             return this.createSubExpression(
               varsExpr,
-              [funcExpr || { '!': func }, ...argsExpr],
+              [funcExpr || { '!': func }, ...(isArray(argsExpr) ? argsExpr : [argsExpr])],
               scope => () => (...selectors) =>
                 scope.boundSelector(...selectors, (f, ...args) => f(...args)),
             );
@@ -230,7 +230,7 @@ class Compiler {
         } = destructure(expression);
         return this.createSubExpression(
           varsExpr,
-          argsExpr,
+          operator && !isArray(argsExpr) ? [argsExpr] : argsExpr,
           this.operators[operator],
         );
       }
