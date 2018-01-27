@@ -14,6 +14,7 @@ import {
   constant,
   split,
   destructure,
+  identity,
 } from './utils';
 
 class Compiler {
@@ -22,7 +23,6 @@ class Compiler {
     this.compile = this.compile.bind(this);
     this.operators = {
       ...this.constructor.defaultOperators,
-      '=': defaultOperators.$value,
       '(': defaultOperators.$evaluate,
     };
   }
@@ -32,20 +32,7 @@ class Compiler {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  createLiteral(value, params) {
-    if (typeof value === 'function' && params) {
-      const compiled = map(params, this.compile);
-      return {
-        deps: Object.assign(
-          {},
-          ...map(compiled, 'deps'),
-        ),
-        bindTo: scope => scope.boundSelector(
-          ...map(compiled, x => x.bindTo(scope)),
-          (...args) => value(...args),
-        ),
-      };
-    }
+  createLiteral(value) {
     return { bindTo: scope => scope.bind(constant(value)) };
   }
 
@@ -178,7 +165,7 @@ class Compiler {
         }
         if (isPlainObject(expression)) {
           if (has(expression, '!')) {
-            return this.createLiteral(expression['!'], expression['>']);
+            return this.createLiteral(expression['!']);
           }
           if (has(expression, '$')) {
             return this.createReference(expression.$);
@@ -189,6 +176,14 @@ class Compiler {
           if (has(expression, '?')) {
             const { '?': params, ...valueExpr } = expression;
             return this.createFunction(params, valueExpr);
+          }
+          if (has(expression, '=')) {
+            const { '=': valueExpr, ...varsExpr } = expression;
+            return this.createSubExpression(
+              varsExpr,
+              [valueExpr],
+              constant(identity),
+            );
           }
           if (has(expression, '?:')) {
             const {
@@ -210,8 +205,12 @@ class Compiler {
                 scope.boundSelector(...selectors, (f, ...args) => f(...args)),
             );
           }
-          if (has(expression, '->')) {
-            const { '<-': inputExpr, '->': mapValueExpr, '+key': keyExpr } = expression;
+          if (has(expression, '<-')) {
+            const {
+              '<-': inputExpr,
+              '->': mapValueExpr,
+              '+key': keyExpr,
+            } = expression;
             return this.createMapping(inputExpr, mapValueExpr, keyExpr);
           }
         }

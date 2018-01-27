@@ -61,8 +61,6 @@ export const $if = scope => (
 );
 
 export const $filter = createBinary((x, y) => filter(x, y));
-export const $map = createBinary((x, y) => map(x, y));
-export const $value = createUnary(identity);
 
 export const $evaluate = scope => (...selectors) => scope.boundSelector(
   ...selectors,

@@ -509,13 +509,13 @@ describe('Test Compiler', function () {
       const func = x => x + 1;
       const formula = this.createFormulaSelector({
         x: { '(': [{ '!': func }, 2] },
-        y: { '!': func, '>': ['$x'] },
-        z: { '?:': ['$y'], '>!': func },
+        // y: { '!': func, '>': ['$x'] },
+        z: { '?:': ['$x'], '>!': func },
       });
       formula(1).should.deep.equal({
         x: 3,
-        y: 4,
-        z: 5,
+        // y: 4,
+        z: 4,
       });
     });
   });
