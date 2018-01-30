@@ -365,7 +365,7 @@ describe('Test Compiler', function () {
         },
         value: {
           '?:': [1, 2],
-          '=>': { '?:': ['$subtract'], '=>': '$swap' },
+          '=>': { $swap: '$subtract' },
         },
       });
       const result = formula();
@@ -384,8 +384,8 @@ describe('Test Compiler', function () {
               '$node',
               {
                 name: '$node.name',
-                left: { '(': ['$this', '$node.left'] },
-                right: { '(': ['$this', '$node.right'] },
+                left: { $this: '$node.left' },
+                right: { $this: '$node.right' },
               },
               '[unknown]',
             ],
@@ -532,6 +532,19 @@ describe('Test Compiler', function () {
         },
       });
       formula({ value: 2 }).inc(1).should.equal(3);
+    });
+
+    it('should be able to invoke a function via operator notation', function () {
+      const formula = this.createFormulaSelector({
+        inc: {
+          '?': ['x'],
+          '=': {
+            $add: ['$x', 1],
+          },
+        },
+        val: { $inc: [1] },
+      });
+      formula().val.should.equal(2);
     });
 
     it('should be able to invoke a function with one argument instead of arguments list', function () {

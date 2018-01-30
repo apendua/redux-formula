@@ -108,7 +108,7 @@ class Compiler {
     };
   }
 
-  createSubExpression(varsExpr, argsExpr, bindOperator) {
+  createSubExpression(varsExpr, argsExpr, bindOperator, operatorName) {
     const vars = mapValues(varsExpr, this.compile);
     const args = argsExpr
       ? map(argsExpr, this.compile)
@@ -132,6 +132,19 @@ class Compiler {
             variable.bindTo,
           );
         });
+        if (operatorName) {
+          let selectEvaluate;
+          try {
+            selectEvaluate = newScope.getSelector(operatorName);
+            return newScope.boundSelector(
+              selectEvaluate,
+              ...invokeMap(args, 'bindTo', newScope),
+              (evaluate, ...rest) => evaluate(...rest),
+            );
+          } catch (err) {
+            // ignore error
+          }
+        }
         if (bindOperator) {
           return bindOperator(newScope)(newScope.variablesSelector(namesPrivate))(...invokeMap(args, 'bindTo', newScope));
         }
@@ -231,7 +244,8 @@ class Compiler {
         return this.createSubExpression(
           varsExpr,
           operator && !isArray(argsExpr) ? [argsExpr] : argsExpr,
-          this.operators[operator],
+          operator && this.operators[operator],
+          operator && operator.substr(1),
         );
       }
       default:
