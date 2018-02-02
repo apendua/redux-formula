@@ -141,7 +141,12 @@ class Compiler {
               (evaluate, ...rest) => evaluate(...rest),
             );
           } catch (err) {
-            // ignore error
+            const msg = err.toString();
+            if (!/Unknown dependency/.test(msg) &&
+                !/Circular dependency/.test(msg)
+            ) {
+              throw err;
+            }
           }
         }
         if (bindOperator) {
