@@ -14,24 +14,24 @@ chai.use(sinonChai);
 describe('Test Compiler', function () {
   beforeEach(function () {
     this.compiler = new Compiler();
-    this.createFormulaSelector = this.compiler.createFormulaSelector.bind(this.compiler);
+    this.createSelector = this.compiler.createSelector.bind(this.compiler);
   });
 
   describe('Basic formulas', function () {
     it('should select an empty object', function () {
-      const formula = this.createFormulaSelector({});
+      const formula = this.createSelector({});
       formula().should.deep.equal({});
     });
 
     it('should select a plain literal', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '!': 1,
       });
       formula().should.deep.equal(1);
     });
 
     it('should select a literal inside an object', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: { '!': 1 },
         b: 2,
       });
@@ -42,14 +42,14 @@ describe('Test Compiler', function () {
     });
 
     it('should select a unary operator', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '=': 1,
       });
       formula().should.deep.equal(1);
     });
 
     it('should select a unary operator with references to local scope', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: 1,
         '=': '$a',
       });
@@ -57,7 +57,7 @@ describe('Test Compiler', function () {
     });
 
     it('should select a unary operator inside object', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: { '=': 1 },
       });
       formula().should.deep.equal({
@@ -66,14 +66,14 @@ describe('Test Compiler', function () {
     });
 
     it('should select a binary operator', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         $sub: [1, 2],
       });
       formula().should.deep.equal(-1);
     });
 
     it('should select a binary operator with references to local scope', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: 1,
         b: 2,
         $sub: ['$a', '$b'],
@@ -82,7 +82,7 @@ describe('Test Compiler', function () {
     });
 
     it('should select a binary operator inside object', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: { $sub: [1, 2] },
       });
       formula().should.deep.equal({
@@ -91,7 +91,7 @@ describe('Test Compiler', function () {
     });
 
     it('should resolve basic dependency', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: 1,
         b: '$a',
       });
@@ -102,7 +102,7 @@ describe('Test Compiler', function () {
     });
 
     it('should select a constant function', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '?': [],
         '=': 1,
       });
@@ -110,7 +110,7 @@ describe('Test Compiler', function () {
     });
 
     it('should select an identity function', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '?': ['x'],
         '=': '$x',
       });
@@ -118,7 +118,7 @@ describe('Test Compiler', function () {
     });
 
     it('should evaluate a function', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         identity: {
           '?': ['x'],
           '=': '$x',
@@ -131,7 +131,7 @@ describe('Test Compiler', function () {
     });
 
     it('should select a "property" function', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '?': ['y'],
         x: '$y',
       });
@@ -139,7 +139,7 @@ describe('Test Compiler', function () {
     });
 
     it('should resolve a nested key from function argument', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '?': ['y'],
         x: '$y.x',
       });
@@ -149,7 +149,7 @@ describe('Test Compiler', function () {
 
   describe('Complex formulas', function () {
     it('should use an explicit selector', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: identity,
       });
       formula(1).should.deep.equal({
@@ -158,7 +158,7 @@ describe('Test Compiler', function () {
     });
 
     it('should use an explicit selector inside a function', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '?': ['x'],
         y: identity,
         '=': { $add: ['$x', '$y'] },
@@ -167,7 +167,7 @@ describe('Test Compiler', function () {
     });
 
     it('should ignore comments', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '#': 'This text should be ignored',
         a: 1,
       });
@@ -177,7 +177,7 @@ describe('Test Compiler', function () {
     });
 
     it('should exclude hidden variables', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: '$b',
         '~b': 1,
       });
@@ -187,7 +187,7 @@ describe('Test Compiler', function () {
     });
 
     it('should select nested properties', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: {
           b: 1,
         },
@@ -200,7 +200,7 @@ describe('Test Compiler', function () {
     });
 
     it('should resolve dependency with nested key', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: {
           b: 1,
         },
@@ -215,7 +215,7 @@ describe('Test Compiler', function () {
     });
 
     it('should resolve dependency from parent scope', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: 1,
         b: {
           c: '$a',
@@ -230,7 +230,7 @@ describe('Test Compiler', function () {
     });
 
     it('should shadow dependency from parent scope', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: 1,
         b: {
           a: 2,
@@ -247,7 +247,7 @@ describe('Test Compiler', function () {
     });
 
     it('should extract field from the first argument', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: '$0.x',
       });
       formula({ x: 1 }).should.deep.equal({
@@ -256,7 +256,7 @@ describe('Test Compiler', function () {
     });
 
     it('should extract second argument', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: '$1',
       });
       formula(null, 1).should.deep.equal({
@@ -265,7 +265,7 @@ describe('Test Compiler', function () {
     });
 
     it('should filter contents of an array', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: [{ x: 1 }, { x: 2 }, { x: 3 }, { x: 4 }],
         b: {
           $filter: ['$a', { x: 1 }],
@@ -278,7 +278,7 @@ describe('Test Compiler', function () {
     });
 
     it('should create a function based on a formula', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: {
           '?': ['x', 'y'],
           '=': {
@@ -292,7 +292,7 @@ describe('Test Compiler', function () {
     });
 
     it('should evaluate a predefined formula', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: {
           '?': ['x', 'y'],
           '=': {
@@ -308,7 +308,7 @@ describe('Test Compiler', function () {
     });
 
     it('should evaluate comparision operator', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: {
           $lt: [1, 2],
         },
@@ -323,7 +323,7 @@ describe('Test Compiler', function () {
     });
 
     it('should evaluate conditional formula', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         min: {
           '?': ['x', 'y'],
           '=': {
@@ -337,7 +337,7 @@ describe('Test Compiler', function () {
     });
 
     it('should evaluate a recursive function', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         triangle: {
           '?': ['x'],
           '=': {
@@ -354,7 +354,7 @@ describe('Test Compiler', function () {
     });
 
     it('should evaluate a complex functions composition', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         subtract: {
           '?': ['x', 'y'],
           '=': { $sub: ['$x', '$y'] },
@@ -364,8 +364,8 @@ describe('Test Compiler', function () {
           '=': { '?': ['a', 'b'], $f: ['$b', '$a'] },
         },
         value: {
-          '?:': [1, 2],
-          '=>': { $swap: '$subtract' },
+          '<<': [1, 2],
+          '>>': { $swap: '$subtract' },
         },
       });
       const result = formula();
@@ -376,7 +376,7 @@ describe('Test Compiler', function () {
     });
 
     it('should process a tree data structure', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         map: {
           '?': ['node'],
           '=': {
@@ -429,7 +429,7 @@ describe('Test Compiler', function () {
 
   describe('Value mappings', function () {
     it('should map object fields', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '<-': '$0',
         '->': {
           '?': ['value', 'key'],
@@ -446,7 +446,7 @@ describe('Test Compiler', function () {
     });
 
     it('should map array elements', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '<-': '$0',
         '->': {
           '?': ['value', 'key'],
@@ -463,7 +463,7 @@ describe('Test Compiler', function () {
     });
 
     it('should map array elements with custom caching key', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '<-': '$0',
         '->': {
           '?': ['x', 'y'],
@@ -485,7 +485,7 @@ describe('Test Compiler', function () {
 
   describe('Native functions', function () {
     it('should embed a custom selector', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         x: (...args) => args[0],
       });
       formula(1).should.deep.equal({
@@ -495,7 +495,7 @@ describe('Test Compiler', function () {
 
     it('should be able to embed a custom function', function () {
       const func = x => x + 1;
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         func: { '!': func },
         x: { $func: [2] },
       });
@@ -507,10 +507,10 @@ describe('Test Compiler', function () {
 
     it('should be able to to call a custom function directly', function () {
       const func = x => x + 1;
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         x: 3,
         // y: { '!': func, '>': ['$x'] },
-        z: { '?:': ['$x'], '>!': func },
+        z: { '<<': ['$x'], '>!': func },
       });
       formula(1).should.deep.equal({
         x: 3,
@@ -522,7 +522,7 @@ describe('Test Compiler', function () {
 
   describe('Advanced functions', function () {
     it('should create a function parametrized by input', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         x: '$0.value',
         inc: {
           '?': ['y'],
@@ -535,7 +535,7 @@ describe('Test Compiler', function () {
     });
 
     it('should be able to invoke a function via operator notation', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         inc: {
           '?': ['x'],
           '=': {
@@ -548,7 +548,7 @@ describe('Test Compiler', function () {
     });
 
     it('should be able to invoke a function with one argument instead of arguments list', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         inc: {
           '?': ['x'],
           '=': {
@@ -556,15 +556,15 @@ describe('Test Compiler', function () {
           },
         },
         val: {
-          '?:': 1,
-          '=>': '$inc',
+          '<<': 1,
+          '>>': '$inc',
         },
       });
       formula().val.should.equal(2);
     });
 
     it('should be able to invoke an operator with one argument instead of arguments list', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: { $not: true },
         b: { $not: [true] },
       });
@@ -575,7 +575,7 @@ describe('Test Compiler', function () {
     });
 
     it('should create constant functor', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         constant: {
           '?': ['x'],
           '=': {
@@ -588,7 +588,7 @@ describe('Test Compiler', function () {
     });
 
     it('should create a nested function', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         add: {
           '?': ['x'],
           '=': {
@@ -601,7 +601,7 @@ describe('Test Compiler', function () {
     });
 
     it('should create a double nested function', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         add: {
           '?': ['x'],
           '=': {
@@ -617,7 +617,7 @@ describe('Test Compiler', function () {
     });
 
     it('should partially apply a nested function', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         add: {
           '?': ['x'],
           '=': {
@@ -635,21 +635,21 @@ describe('Test Compiler', function () {
 
   describe('Value persistance', function () {
     it('should persist on constant formula', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: 1,
       });
       formula({}).should.equal(formula({}));
     });
 
     it('should persist if dependencies do not change', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         a: '$0.x',
       });
       formula({ x: 1, y: 1 }).should.equal(formula({ x: 1, y: 2 }));
     });
 
     it('should persist a function call', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         map: {
           '?': ['x'],
           v: '$x',
@@ -660,7 +660,7 @@ describe('Test Compiler', function () {
     });
 
     it('should persist map values', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '<-': '$0',
         '->': {
           '?': ['value', 'index'],
@@ -676,7 +676,7 @@ describe('Test Compiler', function () {
     });
 
     it('should persist map array elements with custom caching key', function () {
-      const formula = this.createFormulaSelector({
+      const formula = this.createSelector({
         '<-': '$0',
         '->': {
           '?': ['x'],

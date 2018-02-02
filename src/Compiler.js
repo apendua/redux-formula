@@ -208,11 +208,11 @@ class Compiler {
               constant(constant(identity)),
             );
           }
-          if (has(expression, '?:')) {
+          if (has(expression, '<<')) {
             const {
-              '?:': argsExpr,
+              '<<': argsExpr,
               '>!': func,
-              '=>': funcExpr,
+              '>>': funcExpr,
               ...varsExpr
             } = expression;
             if (func && typeof func !== 'function') {
@@ -257,7 +257,7 @@ class Compiler {
     }
   }
 
-  createFormulaSelector(expression) {
+  createSelector(expression) {
     const formula = this.compile(expression);
     const indexes = keys(formula.deps)
       .map(name => parseInt(name, 10)).filter(index => !isNaN(index));
