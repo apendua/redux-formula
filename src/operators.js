@@ -57,6 +57,17 @@ export const $if = scope => () => (
   (x, y, z) => (x() ? y() : z()),
 );
 
+export const $unless = scope => () => (
+  selectX,
+  selectY,
+  selectZ,
+) => scope.boundSelector(
+  scope.indirect(selectX),
+  scope.indirect(selectY),
+  scope.indirect(selectZ),
+  (x, y, z) => (x() ? z() : y()),
+);
+
 export const $filter = createBinary((x, y) => filter(x, y));
 export const $sort = scope => selectOptions => selectX => scope.boundSelector(
   selectX,

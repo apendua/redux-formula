@@ -20,142 +20,201 @@ describe('Test Operators', function () {
     const formula = this.createFormulaSelector({
       $sum: [1, 2, 3],
     });
-    formula().should.deep.equal(6);
+    formula().should.equal(6);
   });
 
   it('should evaluate $prod', function () {
     const formula = this.createFormulaSelector({
       $prod: [2, 2, 2],
     });
-    formula().should.deep.equal(8);
+    formula().should.equal(8);
   });
 
   it('should evaluate $add', function () {
     const formula = this.createFormulaSelector({
       $add: [1, 2],
     });
-    formula().should.deep.equal(3);
+    formula().should.equal(3);
   });
 
   it('should evaluate $sub', function () {
     const formula = this.createFormulaSelector({
       $sub: [1, 2],
     });
-    formula().should.deep.equal(-1);
+    formula().should.equal(-1);
   });
 
   it('should evaluate $mul', function () {
     const formula = this.createFormulaSelector({
       $mul: [5, 2],
     });
-    formula().should.deep.equal(10);
+    formula().should.equal(10);
   });
 
   it('should evaluate $pow', function () {
     const formula = this.createFormulaSelector({
       $pow: [5, 2],
     });
-    formula().should.deep.equal(25);
+    formula().should.equal(25);
   });
 
   it('should evaluate $div', function () {
     const formula = this.createFormulaSelector({
       $div: [6, 2],
     });
-    formula().should.deep.equal(3);
+    formula().should.equal(3);
   });
 
   it('should evaluate $mod', function () {
     const formula = this.createFormulaSelector({
       $mod: [5, 2],
     });
-    formula().should.deep.equal(1);
+    formula().should.equal(1);
   });
 
   it('should evaluate $eq', function () {
     const formula = this.createFormulaSelector({
-      $eq: [5, 2],
+      $eq: ['$0', '$1'],
     });
-    formula().should.deep.equal(false);
+    formula(1, 2).should.equal(false);
+    formula(2, 2).should.equal(true);
   });
 
   it('should evaluate $neq', function () {
     const formula = this.createFormulaSelector({
-      $neq: [5, 2],
+      $neq: ['$0', '$1'],
     });
-    formula().should.deep.equal(true);
+    formula(1, 2).should.equal(true);
+    formula(2, 2).should.equal(false);
   });
 
   it('should evaluate $lt', function () {
     const formula = this.createFormulaSelector({
-      $lt: [5, 2],
+      $lt: ['$0', '$1'],
     });
-    formula().should.deep.equal(false);
+    formula(1, 2).should.equal(true);
+    formula(2, 2).should.equal(false);
+    formula(3, 2).should.equal(false);
   });
 
   it('should evaluate $gt', function () {
     const formula = this.createFormulaSelector({
-      $gt: [5, 2],
+      $gt: ['$0', '$1'],
     });
-    formula().should.deep.equal(true);
+    formula(1, 2).should.equal(false);
+    formula(2, 2).should.equal(false);
+    formula(3, 2).should.equal(true);
   });
 
   it('should evaluate $lte', function () {
     const formula = this.createFormulaSelector({
-      $lte: [2, 2],
+      $lte: ['$0', '$1'],
     });
-    formula().should.deep.equal(true);
+    formula(1, 2).should.equal(true);
+    formula(2, 2).should.equal(true);
+    formula(3, 2).should.equal(false);
   });
 
   it('should evaluate $gte', function () {
     const formula = this.createFormulaSelector({
-      $gte: [1, 2],
+      $gte: ['$0', '$1'],
     });
-    formula().should.deep.equal(false);
+    formula(1, 2).should.equal(false);
+    formula(2, 2).should.equal(true);
+    formula(3, 2).should.equal(true);
   });
 
   it('should evaluate $not', function () {
     const formula = this.createFormulaSelector({
-      $not: [true],
+      $not: ['$0'],
     });
-    formula().should.deep.equal(false);
+    formula(true).should.equal(false);
+    formula(false).should.equal(true);
   });
 
-  it('should evaluate $xor (1)', function () {
+  it('should evaluate $xor', function () {
     const formula = this.createFormulaSelector({
-      $xor: [true, false],
+      $xor: ['$0', '$1'],
     });
-    formula().should.deep.equal(true);
-  });
-
-  it('should evaluate $xor (2)', function () {
-    const formula = this.createFormulaSelector({
-      $xor: [true, true],
-    });
-    formula().should.deep.equal(false);
+    formula(true, true).should.equal(false);
+    formula(true, false).should.equal(true);
+    formula(false, true).should.equal(true);
+    formula(false, false).should.equal(false);
   });
 
   it('should use short circuit for $and', function () {
     const formula = this.createFormulaSelector({
-      $and: [false, {
+      $and: ['$0', {
         '>!': function () {
           throw new Error('Should not reach this line.');
         },
         '?:': [],
       }],
     });
-    formula().should.deep.equal(false);
+    formula(false).should.equal(false);
+    (() => {
+      formula(true);
+    }).should.throw(/Should not reach this line/);
   });
 
   it('should use short circuit for $or', function () {
     const formula = this.createFormulaSelector({
-      $or: [true, {
+      $or: ['$0', {
         '>!': function () {
           throw new Error('Should not reach this line.');
         },
         '?:': [],
       }],
     });
-    formula().should.deep.equal(true);
+    formula(true).should.equal(true);
+    (() => {
+      formula(false);
+    }).should.throw(/Should not reach this line/);
+  });
+
+  it('should evaluate $if', function () {
+    const formula = this.createFormulaSelector({
+      $if: ['$0', 1, 2],
+    });
+    formula(true).should.equal(1);
+    formula(false).should.equal(2);
+  });
+
+  it('should evaluate $unless', function () {
+    const formula = this.createFormulaSelector({
+      $unless: ['$0', 1, 2],
+    });
+    formula(false).should.equal(1);
+    formula(true).should.equal(2);
+  });
+
+  it('should use short circuit for $if', function () {
+    const formula = this.createFormulaSelector({
+      $if: ['$0', '$1', {
+        '>!': function () {
+          throw new Error('Should not reach this line.');
+        },
+        '?:': [],
+      }],
+    });
+    formula(true, 2).should.equal(2);
+    (() => {
+      formula(false);
+    }).should.throw(/Should not reach this line/);
+  });
+
+  it('should use short circuit for $unless', function () {
+    const formula = this.createFormulaSelector({
+      $unless: ['$0', '$1', {
+        '>!': function () {
+          throw new Error('Should not reach this line.');
+        },
+        '?:': [],
+      }],
+    });
+    formula(false, 2).should.equal(2);
+    (() => {
+      formula(true);
+    }).should.throw(/Should not reach this line/);
   });
 });
