@@ -63,8 +63,3 @@ export const $sort = scope => selectOptions => selectX => scope.boundSelector(
   selectOptions,
   (x, options) => sortBy(x, options.key),
 );
-
-export const $evaluate = scope => () => (...selectors) => scope.boundSelector(
-  ...selectors,
-  (f, ...args) => f(...args),
-);

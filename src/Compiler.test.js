@@ -124,7 +124,7 @@ describe('Test Compiler', function () {
           '=': '$x',
         },
         a: {
-          '(': ['$identity', 2],
+          $identity: 2,
         },
       });
       formula().a.should.deep.equal(2);
@@ -300,7 +300,7 @@ describe('Test Compiler', function () {
           },
         },
         b: {
-          '(': ['$a', 2, 3],
+          $a: [2, 3],
         },
       });
       const result = formula();
@@ -344,7 +344,7 @@ describe('Test Compiler', function () {
             $if: [
               { $lt: ['$x', 1] },
               0,
-              { $add: ['$x', { '(': ['$this', { $add: ['$x', -1] }] }] },
+              { $add: ['$x', { $this: { $add: ['$x', -1] } }] },
             ],
           },
         },
@@ -361,7 +361,7 @@ describe('Test Compiler', function () {
         },
         swap: {
           '?': ['f'],
-          '=': { '?': ['a', 'b'], '(': ['$f', '$b', '$a'] },
+          '=': { '?': ['a', 'b'], $f: ['$b', '$a'] },
         },
         value: {
           '?:': [1, 2],
@@ -392,7 +392,7 @@ describe('Test Compiler', function () {
           },
         },
         '=': {
-          '(': ['$map', '$0'],
+          $map: '$0',
         },
       });
       const result = formula({
@@ -497,7 +497,7 @@ describe('Test Compiler', function () {
       const func = x => x + 1;
       const formula = this.createFormulaSelector({
         func: { '!': func },
-        x: { '(': ['$func', 2] },
+        x: { $func: [2] },
       });
       formula(1).should.deep.equal({
         func,
@@ -508,7 +508,7 @@ describe('Test Compiler', function () {
     it('should be able to to call a custom function directly', function () {
       const func = x => x + 1;
       const formula = this.createFormulaSelector({
-        x: { '(': [{ '!': func }, 2] },
+        x: 3,
         // y: { '!': func, '>': ['$x'] },
         z: { '?:': ['$x'], '>!': func },
       });
@@ -625,8 +625,8 @@ describe('Test Compiler', function () {
             '=': { $add: ['$x', '$y'] },
           },
         },
-        add1: { '(': ['$add', 1] },
-        value: { '(': ['$add1', 4] },
+        add1: { $add: [1] },
+        value: { $add1: [4] },
       });
       formula().add1(2).should.equal(3);
       formula().value.should.equal(5);
@@ -654,7 +654,7 @@ describe('Test Compiler', function () {
           '?': ['x'],
           v: '$x',
         },
-        a: { '(': ['$map', '$0.x'] },
+        a: { $map: '$0.x' },
       });
       formula({ x: 1, y: 1 }).should.equal(formula({ x: 1, y: 2 }));
     });

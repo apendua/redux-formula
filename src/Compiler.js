@@ -26,7 +26,6 @@ class Compiler {
     this.compile = this.compile.bind(this);
     this.operators = {
       ...this.constructor.defaultOperators,
-      '(': defaultOperators.$evaluate,
     };
   }
 
