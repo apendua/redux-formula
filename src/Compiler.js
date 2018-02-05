@@ -1,6 +1,7 @@
 import omit from 'lodash/omit';
 import map from 'lodash/map';
 import isEmpty from 'lodash/isEmpty';
+import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import isNaN from 'lodash/isNaN';
 import Scope from './Scope';
@@ -46,15 +47,20 @@ class Compiler {
       ...this.constructor.defaultOperators,
       operators,
     };
-    const pluginHandle = {
+    const pluginApi = {
       parse: this.parse.bind(this),
       compile: this.compile.bind(this),
       operators: this.operators,
     };
-    this.compilers = map(plugins, plugin => plugin.createCompiler(pluginHandle));
+    forEach(plugins, (plugin) => {
+      if (plugin.createApi) {
+        Object.assign(pluginApi, plugin.createApi({ ...pluginApi }));
+      }
+    });
+    this.compilers = map(plugins, plugin => plugin.createCompiler({ ...pluginApi }));
     this.compileImpl = [
       ...this.compilers,
-      createCompiler(pluginHandle),
+      createCompiler(pluginApi),
     ].reduce((a, b) => next => a(b(next)))(identity);
   }
 

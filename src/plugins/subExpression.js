@@ -15,8 +15,8 @@ const constant = x => () => x;
 const identity = x => x;
 
 const pluginSubExpression = {
-  createCompiler: ({ compile, operators }) => {
-    const createSubExpression = (varsExpr, argsExpr, bindOperator, operatorName) => {
+  createApi: ({ compile }) => ({
+    subExpression: (varsExpr, argsExpr, bindOperator, operatorName) => {
       const vars = mapValues(varsExpr, compile);
       const args = argsExpr
         ? map(argsExpr, compile)
@@ -64,51 +64,51 @@ const pluginSubExpression = {
           return newScope.variablesSelector(namesPublic);
         },
       };
-    };
-    return next => (expression) => {
-      if (!isPlainObject(expression)) {
-        return next(expression);
-      }
-      if (has(expression, '=')) {
-        const { '=': valueExpr, ...varsExpr } = expression;
-        return createSubExpression(
-          varsExpr,
-          [valueExpr],
-          constant(constant(identity)),
-        );
-      }
-      if (has(expression, '<<')) {
-        const {
-          '<<': argsExpr,
-          '>!': func,
-          '>>': funcExpr,
-          ...varsExpr
-        } = expression;
-        if (func && typeof func !== 'function') {
-          throw new Error('Expected a function at ">!"');
-        }
-        if (func && funcExpr) {
-          throw new Error('You cannot use both ">>" and ">!" in the same expression');
-        }
-        return createSubExpression(
-          varsExpr,
-          [funcExpr || { '!': func }, ...(isArray(argsExpr) ? argsExpr : [argsExpr])],
-          scope => () => (...selectors) =>
-            scope.boundSelector(...selectors, (f, ...args) => f(...args)),
-        );
-      }
-      const {
+    },
+  }),
+  createCompiler: ({ subExpression, operators }) => next => (expression) => {
+    if (!isPlainObject(expression)) {
+      return next(expression);
+    }
+    if (has(expression, '=')) {
+      const { '=': valueExpr, ...varsExpr } = expression;
+      return subExpression(
         varsExpr,
-        operator,
-        argsExpr,
-      } = destructure(expression);
-      return createSubExpression(
-        varsExpr,
-        operator && !isArray(argsExpr) ? [argsExpr] : argsExpr,
-        operator && operators[operator],
-        operator && operator.substr(1),
+        [valueExpr],
+        constant(constant(identity)),
       );
-    };
+    }
+    if (has(expression, '<<')) {
+      const {
+        '<<': argsExpr,
+        '>!': func,
+        '>>': funcExpr,
+        ...varsExpr
+      } = expression;
+      if (func && typeof func !== 'function') {
+        throw new Error('Expected a function at ">!"');
+      }
+      if (func && funcExpr) {
+        throw new Error('You cannot use both ">>" and ">!" in the same expression');
+      }
+      return subExpression(
+        varsExpr,
+        [funcExpr || { '!': func }, ...(isArray(argsExpr) ? argsExpr : [argsExpr])],
+        scope => () => (...selectors) =>
+          scope.boundSelector(...selectors, (f, ...args) => f(...args)),
+      );
+    }
+    const {
+      varsExpr,
+      operator,
+      argsExpr,
+    } = destructure(expression);
+    return subExpression(
+      varsExpr,
+      operator && !isArray(argsExpr) ? [argsExpr] : argsExpr,
+      operator && operators[operator],
+      operator && operator.substr(1),
+    );
   },
 };
 
