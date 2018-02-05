@@ -5,6 +5,7 @@ const defaultCompiler = new Compiler();
 const formulaSelector = expression => defaultCompiler.createSelector(expression);
 
 export {
+  defaultCompiler,
   Compiler,
   Scope,
 };
