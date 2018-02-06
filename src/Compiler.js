@@ -72,19 +72,28 @@ class Compiler {
     return this.constructor.defaultParse(text);
   }
 
-  createSelector(expression) {
+  createFormula(expression) {
     const formula = this.compile(expression);
     const indexes = keys(formula.deps)
       .map(name => parseInt(name, 10)).filter(index => !isNaN(index));
     const otherDeps = omit(formula.deps, indexes);
+    // TODO: Allow importing from external sources.
     if (!isEmpty(otherDeps)) {
       throw new Error(`Unresolved deps: ${keys(formula.deps).join(', ')}`);
     }
-    const newScope = this.scope.create();
-    // If there were any dependencies like $0, $1, etc. interpret them
-    // as references to arguments array.
-    indexes.forEach(i => newScope.define(`${i}`, [], scope => scope.bind((...args) => args[i])));
-    return formula.bindTo(newScope);
+    return {
+      bindTo: (parentScope = this.scope) => {
+        const newScope = parentScope.create();
+        // If there were any dependencies like $0, $1, etc. interpret them
+        // as references to arguments array.
+        indexes.forEach(i => newScope.define(`${i}`, [], scope => scope.bind((...args) => args[i])));
+        return formula.bindTo(newScope);
+      },
+    };
+  }
+
+  createSelector(expression) {
+    return this.createFormula(expression).bindTo();
   }
 
   static defaultParse(text) {
