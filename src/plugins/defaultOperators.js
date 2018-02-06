@@ -75,7 +75,7 @@ export const $sort = scope => selectOptions => selectX => scope.boundSelector(
   (x, options) => sortBy(x, options.key),
 );
 
-const defaultOperators = {
+const pluginDefaultOperators = {
   createOperators: ({ opearatos }) => ({
     $sum,
     $prod,
@@ -103,4 +103,4 @@ const defaultOperators = {
   }),
 };
 
-export default defaultOperators;
+export default pluginDefaultOperators;

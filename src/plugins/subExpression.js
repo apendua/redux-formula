@@ -1,18 +1,34 @@
 import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
-import has from 'lodash/has';
 import mapValues from 'lodash/mapValues';
 import invokeMap from 'lodash/invokeMap';
 import keys from 'lodash/keys';
 import omit from 'lodash/omit';
 import forEach from 'lodash/forEach';
 import isArray from 'lodash/isArray';
-import {
-  destructure,
-} from '../utils';
 
-const constant = x => () => x;
-const identity = x => x;
+const destructure = (expression) => {
+  const varsExpr = {};
+  let operator;
+  let argsExpr;
+  forEach(expression, (value, key) => {
+    if (key.charAt(0) === '$') {
+      if (operator) {
+        throw new Error(`Multiple operators used in one scope: ${operator}, ${key}`);
+      } else {
+        operator = key;
+        argsExpr = (isArray(value) ? value : [value]);
+      }
+    } else if (key[0] !== '#') {
+      varsExpr[key] = value;
+    }
+  });
+  return {
+    operator,
+    argsExpr,
+    varsExpr,
+  };
+};
 
 const pluginSubExpression = {
   createApi: ({ compile }) => ({
@@ -69,34 +85,6 @@ const pluginSubExpression = {
   createCompiler: ({ subExpression, operators }) => next => (expression) => {
     if (!isPlainObject(expression)) {
       return next(expression);
-    }
-    if (has(expression, '=')) {
-      const { '=': valueExpr, ...varsExpr } = expression;
-      return subExpression(
-        varsExpr,
-        [valueExpr],
-        constant(constant(identity)),
-      );
-    }
-    if (has(expression, '<<')) {
-      const {
-        '<<': argsExpr,
-        '>!': func,
-        '>>': funcExpr,
-        ...varsExpr
-      } = expression;
-      if (func && typeof func !== 'function') {
-        throw new Error('Expected a function at ">!"');
-      }
-      if (func && funcExpr) {
-        throw new Error('You cannot use both ">>" and ">!" in the same expression');
-      }
-      return subExpression(
-        varsExpr,
-        [funcExpr || { '!': func }, ...(isArray(argsExpr) ? argsExpr : [argsExpr])],
-        scope => () => (...selectors) =>
-          scope.boundSelector(...selectors, (f, ...args) => f(...args)),
-      );
     }
     const {
       varsExpr,

@@ -9,6 +9,8 @@ import pluginArray from './plugins/array';
 import pluginMapping from './plugins/mapping';
 import pluginReference from './plugins/reference';
 import pluginFunction from './plugins/function';
+import pluginEvaluate from './plugins/evaluate';
+import pluginOverwrite from './plugins/overwrite';
 import pluginSubExpression from './plugins/subExpression';
 import pluginDefaultOperators from './plugins/defaultOperators';
 
@@ -34,6 +36,8 @@ class Compiler {
       pluginMapping,
       pluginReference,
       pluginFunction,
+      pluginOverwrite,
+      pluginEvaluate,
       pluginSubExpression,
       pluginDefaultOperators,
     ],
@@ -47,25 +51,29 @@ class Compiler {
       ...operators,
     };
     this.compilers = [];
-    const pluginApi = {
+    this.pluginApi = {
       parse: this.parse.bind(this),
       compile: this.compile.bind(this),
       operators: this.operators,
     };
     forEach(plugins, (plugin) => {
       if (plugin.createApi) {
-        Object.assign(pluginApi, plugin.createApi({ ...pluginApi }));
+        Object.assign(this.pluginApi, plugin.createApi({ ...this.pluginApi }));
       }
+    });
+    forEach(plugins, (plugin) => {
       if (plugin.createOperators) {
-        Object.assign(this.operators, plugin.createOperators({ ...pluginApi }));
+        Object.assign(this.operators, plugin.createOperators({ ...this.pluginApi }));
       }
+    });
+    forEach(plugins, (plugin) => {
       if (plugin.createCompiler) {
-        this.compilers.push(plugin.createCompiler({ ...pluginApi }));
+        this.compilers.push(plugin.createCompiler({ ...this.pluginApi }));
       }
     });
     this.compileImpl = [
       ...this.compilers,
-      createCompiler(pluginApi),
+      createCompiler({ ...this.pluginApi }),
     ].reduce((a, b) => next => a(b(next)))(identity);
   }
 
