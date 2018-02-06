@@ -17,6 +17,7 @@ describe('Test Compiler', function () {
     this.compiler = new Compiler({
       plugins: presetDefault,
     });
+    this.compiler.define('PI', [], 3.14);
     this.createSelector = this.compiler.createSelector.bind(this.compiler);
   });
 
@@ -31,6 +32,21 @@ describe('Test Compiler', function () {
         '!': 1,
       });
       formula().should.deep.equal(1);
+    });
+
+    it('should select a custom scope symbol', function () {
+      const formula = this.createSelector({
+        x: '$PI',
+      });
+      formula().should.deep.equal({ x: 3.14 });
+    });
+
+    it('should throw on unknown symbol', function () {
+      (() => {
+        this.createSelector({
+          x: '$UNKNOWN',
+        });
+      }).should.throw(/Unknown dependency/);
     });
 
     it('should select a literal inside an object', function () {

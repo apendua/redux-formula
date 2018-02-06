@@ -68,6 +68,11 @@ class Compiler {
     return this.compileImpl(expression);
   }
 
+  define(name, deps, expression) {
+    const selector = this.createSelector(expression);
+    this.scope.define(name, deps, scope => scope.bind(selector));
+  }
+
   parse(text) {
     return this.constructor.defaultParse(text);
   }
@@ -77,13 +82,11 @@ class Compiler {
     const indexes = keys(formula.deps)
       .map(name => parseInt(name, 10)).filter(index => !isNaN(index));
     const otherDeps = omit(formula.deps, indexes);
-    // TODO: Allow importing from external sources.
-    if (!isEmpty(otherDeps)) {
-      throw new Error(`Unresolved deps: ${keys(formula.deps).join(', ')}`);
-    }
     return {
       bindTo: (parentScope = this.scope) => {
         const newScope = parentScope.create();
+        // Ensure all dependencies can be resolved
+        keys(otherDeps).forEach(key => newScope.resolve(key));
         // If there were any dependencies like $0, $1, etc. interpret them
         // as references to arguments array.
         indexes.forEach(i => newScope.define(`${i}`, [], scope => scope.bind((...args) => args[i])));
