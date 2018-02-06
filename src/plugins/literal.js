@@ -17,10 +17,10 @@ const pluginLiteral = {
         if (expression === null) {
           return literal(expression);
         }
-        if (!isPlainObject(expression) || !has(expression, '!')) {
-          return next(expression);
+        if (isPlainObject(expression) && has(expression, '!')) {
+          return literal(expression['!']);
         }
-        return literal(expression['!']);
+        return next(expression);
       }
       default:
         return next(expression);

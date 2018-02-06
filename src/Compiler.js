@@ -4,24 +4,21 @@ import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import isNaN from 'lodash/isNaN';
 import Scope from './Scope';
-import pluginLiteral from './plugins/literal';
-import pluginArray from './plugins/array';
-import pluginMapping from './plugins/mapping';
-import pluginReference from './plugins/reference';
-import pluginFunction from './plugins/function';
-import pluginEvaluate from './plugins/evaluate';
-import pluginOverwrite from './plugins/overwrite';
-import pluginSubExpression from './plugins/subExpression';
-import pluginDefaultOperators from './plugins/defaultOperators';
 
-const createCompiler = ({ compile, parse }) => () => (expression) => {
+const constant = x => () => x;
+
+const createCompiler = ({ compile, parse, literal }) => () => (expression) => {
   switch (typeof expression) {
     case 'function':
       return { bindTo: scope => scope.bind(expression) };
     case 'string':
       return compile(parse(expression));
-    default:
-      return compile({ '!': expression });
+    default: {
+      if (literal) {
+        return literal(expression);
+      }
+      return { bindTo: scope => scope.bind(constant(expression)) };
+    }
   }
 };
 
@@ -30,17 +27,7 @@ const identity = x => x;
 class Compiler {
   constructor({
     scope = new Scope(),
-    plugins = [
-      pluginLiteral,
-      pluginArray,
-      pluginMapping,
-      pluginReference,
-      pluginFunction,
-      pluginOverwrite,
-      pluginEvaluate,
-      pluginSubExpression,
-      pluginDefaultOperators,
-    ],
+    plugins = [],
     operators = {},
   } = {}) {
     Object.assign(this, {

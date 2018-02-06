@@ -6,6 +6,7 @@
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 import Compiler from './Compiler';
+import presetDefault from './presets/default';
 import { identity } from './utils';
 
 chai.should();
@@ -13,7 +14,9 @@ chai.use(sinonChai);
 
 describe('Test Compiler', function () {
   beforeEach(function () {
-    this.compiler = new Compiler();
+    this.compiler = new Compiler({
+      plugins: presetDefault,
+    });
     this.createSelector = this.compiler.createSelector.bind(this.compiler);
   });
 
