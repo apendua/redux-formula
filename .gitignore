@@ -3,3 +3,7 @@
 /package-lock.json
 /npm-debug.log
 /coverage
+/plugins
+/presets
+/Compiler.js
+/Scope.js
