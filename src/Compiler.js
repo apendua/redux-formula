@@ -1,17 +1,16 @@
 import omit from 'lodash/omit';
-import map from 'lodash/map';
 import isEmpty from 'lodash/isEmpty';
 import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import isNaN from 'lodash/isNaN';
 import Scope from './Scope';
-import * as defaultOperators from './operators';
 import pluginLiteral from './plugins/literal';
 import pluginArray from './plugins/array';
 import pluginMapping from './plugins/mapping';
 import pluginReference from './plugins/reference';
 import pluginFunction from './plugins/function';
 import pluginSubExpression from './plugins/subExpression';
+import pluginDefaultOperators from './plugins/defaultOperators';
 
 const createCompiler = ({ compile, parse }) => () => (expression) => {
   switch (typeof expression) {
@@ -36,6 +35,7 @@ class Compiler {
       pluginReference,
       pluginFunction,
       pluginSubExpression,
+      pluginDefaultOperators,
     ],
     operators = {},
   } = {}) {
@@ -44,9 +44,9 @@ class Compiler {
       plugins,
     });
     this.operators = {
-      ...this.constructor.defaultOperators,
-      operators,
+      ...operators,
     };
+    this.compilers = [];
     const pluginApi = {
       parse: this.parse.bind(this),
       compile: this.compile.bind(this),
@@ -56,8 +56,13 @@ class Compiler {
       if (plugin.createApi) {
         Object.assign(pluginApi, plugin.createApi({ ...pluginApi }));
       }
+      if (plugin.createOperators) {
+        Object.assign(this.operators, plugin.createOperators({ ...pluginApi }));
+      }
+      if (plugin.createCompiler) {
+        this.compilers.push(plugin.createCompiler({ ...pluginApi }));
+      }
     });
-    this.compilers = map(plugins, plugin => plugin.createCompiler({ ...pluginApi }));
     this.compileImpl = [
       ...this.compilers,
       createCompiler(pluginApi),
@@ -94,7 +99,5 @@ class Compiler {
     }
   }
 }
-
-Compiler.defaultOperators = defaultOperators;
 
 export default Compiler;

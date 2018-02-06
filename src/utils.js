@@ -1,6 +1,5 @@
 import forEach from 'lodash/forEach';
 import isArray from 'lodash/isArray';
-import mapValues from 'lodash/mapValues';
 
 export const constant = x => () => x;
 export const identity = x => x;

@@ -5,12 +5,12 @@
 
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-import Compiler from './Compiler';
+import Compiler from '../Compiler';
 
 chai.should();
 chai.use(sinonChai);
 
-describe('Test Operators', function () {
+describe('Test Default Operators', function () {
   beforeEach(function () {
     this.compiler = new Compiler();
     this.createSelector = this.compiler.createSelector.bind(this.compiler);

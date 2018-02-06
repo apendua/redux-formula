@@ -74,3 +74,33 @@ export const $sort = scope => selectOptions => selectX => scope.boundSelector(
   selectOptions,
   (x, options) => sortBy(x, options.key),
 );
+
+const defaultOperators = {
+  createOperators: ({ opearatos }) => ({
+    $sum,
+    $prod,
+    $pow,
+    $add,
+    $sub,
+    $mul,
+    $div,
+    $mod,
+    $eq,
+    $neq,
+    $lt,
+    $gt,
+    $lte,
+    $gte,
+    $not,
+    $xor,
+    $and,
+    $or,
+    $if,
+    $unless,
+    $filter,
+    $sort,
+    ...opearatos,
+  }),
+};
+
+export default defaultOperators;
