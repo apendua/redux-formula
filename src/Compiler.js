@@ -1,5 +1,4 @@
 import omit from 'lodash/omit';
-import isEmpty from 'lodash/isEmpty';
 import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import isNaN from 'lodash/isNaN';
@@ -34,38 +33,53 @@ class Compiler {
       scope,
       plugins,
     });
-    this.operators = {
-      ...operators,
-    };
+    this.operators = { ...operators };
     this.compilers = [];
-    this.pluginApi = {
+    this.api = {
       parse: this.parse.bind(this),
       compile: this.compile.bind(this),
       operators: this.operators,
     };
-    forEach(plugins, (plugin) => {
-      if (plugin.createApi) {
-        Object.assign(this.pluginApi, plugin.createApi({ ...this.pluginApi }));
-      }
-    });
-    forEach(plugins, (plugin) => {
-      if (plugin.createOperators) {
-        Object.assign(this.operators, plugin.createOperators({ ...this.pluginApi }));
-      }
-    });
-    forEach(plugins, (plugin) => {
-      if (plugin.createCompiler) {
-        this.compilers.push(plugin.createCompiler({ ...this.pluginApi }));
-      }
-    });
-    this.compileImpl = [
-      ...this.compilers,
-      createCompiler({ ...this.pluginApi }),
-    ].reduce((a, b) => next => a(b(next)))(identity);
+    forEach(plugins, this.extendApi.bind(this));
+    forEach(plugins, this.extendOperators.bind(this));
+    forEach(plugins, this.extendCompiler.bind(this));
+  }
+
+  addPlugin(plugin) {
+    this.extendApi(plugin);
+    this.extendOperators(plugin);
+    this.extendCompiler(plugin);
+  }
+
+  extendApi(plugin) {
+    if (plugin.createApi) {
+      Object.assign(this.api, plugin.createApi(this.api));
+    }
+  }
+
+  extendOperators(plugin) {
+    if (plugin.createOperators) {
+      Object.assign(this.operators, plugin.createOperators(this.api));
+    }
+  }
+
+  extendCompiler(plugin) {
+    if (plugin.createCompiler) {
+      this.compilers.push(plugin.createCompiler(this.api));
+      this.compilerNeedsUpdate = true;
+    }
   }
 
   compile(expression) {
-    return this.compileImpl(expression);
+    if (!this.compilerNeedsUpdate) {
+      return this.compiler(expression);
+    }
+    this.compilerNeedsUpdate = false;
+    this.compiler = [
+      ...this.compilers,
+      createCompiler(this.api),
+    ].reduce((a, b) => next => a(b(next)))(identity);
+    return this.compiler(expression);
   }
 
   define(name, deps, expression) {

@@ -12,6 +12,7 @@ const formulaSelectorFactory = (expression) => {
 };
 
 export {
+  presetDefault,
   formulaSelectorFactory,
   defaultCompiler,
   Compiler,

@@ -5,7 +5,11 @@
 
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-import formulaSelector, { formulaSelectorFactory } from './index';
+import formulaSelector, {
+  Compiler,
+  presetDefault,
+  formulaSelectorFactory,
+} from './index';
 
 chai.should();
 chai.use(sinonChai);
@@ -36,6 +40,26 @@ describe('Test Public Api', function () {
         '!': 1,
       });
       factory()().should.deep.equal(1);
+    });
+  });
+
+  describe('Plugins', function () {
+    beforeEach(function () {
+      this.compiler = new Compiler({
+        plugins: presetDefault,
+      });
+    });
+
+    it('should dynamically add a new plugin', function () {
+      this.compiler.addPlugin({
+        createOperators: () => ({
+          $value: scope => () => selectX => scope.bind(selectX),
+        }),
+      });
+      const selector = this.compiler.createSelector({
+        $value: 1,
+      });
+      selector().should.deep.equal(1);
     });
   });
 });
