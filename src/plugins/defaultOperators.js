@@ -16,6 +16,7 @@ export const createAssociative = op => scope =>
 export const $sum = createAssociative((x, y) => x + y);
 export const $prod = createAssociative((x, y) => x * y);
 export const $pow = createBinary((x, y) => x ** y);
+export const $neg = createUnary(x => -x);
 export const $add = createBinary((x, y) => x + y);
 export const $sub = createBinary((x, y) => x - y);
 export const $mul = createBinary((x, y) => x * y);
@@ -80,6 +81,7 @@ const pluginDefaultOperators = {
     $sum,
     $prod,
     $pow,
+    $neg,
     $add,
     $sub,
     $mul,

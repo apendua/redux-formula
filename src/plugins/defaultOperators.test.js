@@ -33,6 +33,13 @@ describe('Test Default Operators', function () {
     formula().should.equal(8);
   });
 
+  it('should evaluate $neg', function () {
+    const formula = this.createSelector({
+      $neg: 1,
+    });
+    formula().should.equal(-1);
+  });
+
   it('should evaluate $add', function () {
     const formula = this.createSelector({
       $add: [1, 2],

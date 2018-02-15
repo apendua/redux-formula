@@ -60,14 +60,14 @@ describe('Test Compiler', function () {
       });
     });
 
-    it('should select a unary operator', function () {
+    it('should select "="', function () {
       const formula = this.createSelector({
         '=': 1,
       });
       formula().should.deep.equal(1);
     });
 
-    it('should select a unary operator with references to local scope', function () {
+    it('should select "=" with references to local scope', function () {
       const formula = this.createSelector({
         a: 1,
         '=': '$a',
@@ -75,12 +75,36 @@ describe('Test Compiler', function () {
       formula().should.deep.equal(1);
     });
 
-    it('should select a unary operator inside object', function () {
+    it('should select "=" inside object', function () {
       const formula = this.createSelector({
         a: { '=': 1 },
       });
       formula().should.deep.equal({
         a: 1,
+      });
+    });
+
+    it('should select a unary operator', function () {
+      const formula = this.createSelector({
+        $neg: 1,
+      });
+      formula().should.deep.equal(-1);
+    });
+
+    it('should select a unary operator with references to local scope', function () {
+      const formula = this.createSelector({
+        a: 1,
+        $neg: '$a',
+      });
+      formula().should.deep.equal(-1);
+    });
+
+    it('should select a unary operator inside object', function () {
+      const formula = this.createSelector({
+        a: { $neg: 1 },
+      });
+      formula().should.deep.equal({
+        a: -1,
       });
     });
 
