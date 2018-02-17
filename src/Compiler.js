@@ -84,6 +84,8 @@ class Compiler {
 
   define(name, deps, expression) {
     const selector = this.createSelector(expression);
+    // Let's forget about this selector metadata.
+    delete selector.scope;
     this.scope.define(name, deps, scope => scope.bind(selector));
   }
 
@@ -104,7 +106,7 @@ class Compiler {
         // If there were any dependencies like $0, $1, etc. interpret them
         // as references to arguments array.
         indexes.forEach(i => newScope.define(`${i}`, [], scope => scope.bind((...args) => args[i])));
-        return formula.bindTo(newScope);
+        return formula.bindTo(newScope).selector;
       },
     };
   }

@@ -659,7 +659,7 @@ describe('Test Compiler', function () {
       formula().add(1)(2)(3).should.equal(6);
     });
 
-    it('should partially apply a nested function', function () {
+    it.skip('should partially apply a nested function', function () {
       const formula = this.createSelector({
         add: {
           '?': ['x'],

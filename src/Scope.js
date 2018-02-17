@@ -2,28 +2,48 @@ import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import some from 'lodash/some';
 import mapValues from 'lodash/mapValues';
-import {
-  createSelector,
-} from 'reselect';
-
-const constant = x => () => x;
-
-const upgrade = g => (...args) => {
-  const v = g(...args);
-  return unknowns => () => v()(unknowns);
-};
-
-const upgrade2 = g => (...args) => constant(g(...args));
+import Selector, { constant } from './Selector';
 
 class Scope {
   constructor(parent, unknowns = []) {
     this.parent = parent;
     this.variables = {};
+
+    const parentOrder = (parent && parent.order) || 0;
+    if (unknowns && unknowns.length > 0) {
+      this.order = parentOrder + 1;
+    } else {
+      this.order = parentOrder;
+    }
+
     forEach(unknowns, name => this.define(name));
   }
 
   hasOwnUnknowns() {
     return some(this.variables, variable => variable.unknown);
+  }
+
+  /**
+   * Check if current scope is descendant of the given scope.
+   * A scope is not considered a descendant of itself.
+   * @param {Scope} parentScope
+   */
+  isDescendantOf(parentScope) {
+    if (!parentScope) {
+      return true;
+    }
+    let scope = this.parent;
+    while (scope) {
+      if (scope === parentScope) {
+        return true;
+      }
+      scope = scope.parent;
+    }
+    return false;
+  }
+
+  isAncestorOf(scope) {
+    return !!(scope && scope.isDescendantOf(this));
   }
 
   create(unknowns) {
@@ -42,15 +62,7 @@ class Scope {
   }
 
   indirect(selector) {
-    let f = (...args) => () => selector(...args);
-    let scope = this;
-    while (scope) {
-      if (scope.hasOwnUnknowns()) {
-        f = upgrade(f);
-      }
-      scope = scope.parent;
-    }
-    return f;
+    return Selector.relativeTo(this, selector).indirect();
   }
 
   define(name, deps, factory) {
@@ -94,53 +106,24 @@ class Scope {
     return variable;
   }
 
-  bind(originalSelector) {
-    let selector = originalSelector;
-    let scope = this;
-    while (scope) {
-      if (scope.hasOwnUnknowns()) {
-        selector = upgrade2(selector);
-      }
-      scope = scope.parent;
-    }
-    return selector;
+  bind(selector) {
+    return Selector.relativeTo(this, selector);
   }
 
   createUnknownSelector(name) {
-    let selector = constant(unknowns => unknowns[name]);
-    let scope = this.parent;
-    while (scope) {
-      if (scope.hasOwnUnknowns()) {
-        selector = constant(selector);
-      }
-      scope = scope.parent;
-    }
-    return selector;
-  }
-
-  parentBoundSelector(...args) {
-    if (this.parent) {
-      return this.parent.boundSelector(...args);
-    }
-    return createSelector(...args);
+    return new Selector(
+      this,
+      constant(this.order)(unknowns => unknowns[name]),
+    );
   }
 
   boundSelector(...args) {
-    if (this.hasOwnUnknowns()) {
-      const selectors = args.slice(0, args.length - 1);
-      const evaluate = args[args.length - 1];
-      return this.parentBoundSelector(
-        ...selectors,
-        (...values) => unknowns => evaluate(...values.map(f => f(unknowns))),
-      );
-    }
-    return this.parentBoundSelector(...args);
+    return Selector.create(this, ...args);
   }
 
   variablesSelector(variables) {
-    const selectors = map(variables, name => this.getSelector(name));
     return this.boundSelector(
-      ...selectors,
+      map(variables, name => this.getSelector(name)),
       (...values) => {
         // NOTE: This function is only re-computed if any of the values changes,
         //       so we never create a new object if it's not necessary.
@@ -159,18 +142,7 @@ class Scope {
     if (!variable) {
       return null;
     }
-    if (variable.scope === this) {
-      return variable.value;
-    }
-    const selector = this.parent.getSelector(name, stack);
-    if (!this.hasOwnUnknowns()) {
-      return selector;
-    }
-    // TODO: Try to understand why "parent bound" and not simply "bound"
-    return this.parentBoundSelector(
-      selector,
-      value => constant(value),
-    );
+    return variable.value;
   }
 }
 
