@@ -1,6 +1,5 @@
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
-import some from 'lodash/some';
 import mapValues from 'lodash/mapValues';
 import Selector, { constant } from './Selector';
 
@@ -9,18 +8,25 @@ class Scope {
     this.parent = parent;
     this.variables = {};
 
-    const parentOrder = (parent && parent.order) || 0;
+    this.parentOrder = (parent && parent.order) || 0;
     if (unknowns && unknowns.length > 0) {
-      this.order = parentOrder + 1;
+      this.order = this.parentOrder + 1;
     } else {
-      this.order = parentOrder;
+      this.order = this.parentOrder;
     }
 
-    forEach(unknowns, name => this.define(name));
+    forEach(unknowns, (name) => {
+      this.variables[name] = {
+        name,
+        scope: this,
+        state: 'resolved',
+        value: this.createUnknownSelector(name),
+      };
+    });
   }
 
   hasOwnUnknowns() {
-    return some(this.variables, variable => variable.unknown);
+    return this.order > this.parentOrder;
   }
 
   /**
@@ -70,6 +76,9 @@ class Scope {
   }
 
   define(name, deps, factory) {
+    if (!factory) {
+      throw new Error(`Missing factory function for variable ${name}`);
+    }
     if (this.variables[name]) {
       throw new Error(`${name} defined multiple times`);
     }
@@ -80,7 +89,6 @@ class Scope {
       name,
       deps,
       factory,
-      unknown: !factory,
       scope: this,
       state: factory ? 'initial' : 'resolved',
       value: factory ? null : this.createUnknownSelector(name),
