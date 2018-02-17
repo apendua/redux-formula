@@ -50,11 +50,15 @@ class Scope {
     return new this.constructor(this, unknowns);
   }
 
-  lookup(name) {
+  lookup(name, targetLevel = 0) {
+    let level = targetLevel;
     let scope = this;
     while (scope) {
       if (scope.variables[name]) {
-        return scope.variables[name];
+        if (level === 0) {
+          return scope.variables[name];
+        }
+        level -= 1;
       }
       scope = scope.parent;
     }
@@ -84,13 +88,17 @@ class Scope {
   }
 
   resolve(name, stack = [name]) {
-    const variable = this.lookup(name);
+    const match = /^(\^*)(.*)/.exec(name);
+    if (!match) {
+      return null;
+    }
+    const variable = this.lookup(match[2], match[1].length);
     if (!variable) {
       throw new Error(`Unknown dependency: ${name}`);
     }
     if (variable.scope !== this) {
       // Ensure variable is resolved by the original scope of definition.
-      return variable.scope.resolve(name);
+      return variable.scope.resolve(variable.name);
     }
     if (variable.state === 'resolving') {
       throw new Error(`Circular dependency: ${stack.join(' -> ')}`);

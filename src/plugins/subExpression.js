@@ -37,16 +37,26 @@ const pluginSubExpression = {
       const args = argsExpr
         ? map(argsExpr, compile)
         : null;
-      const deps = Object.assign(
-        {},
-        ...map(vars, 'deps'),
-        ...map(args, 'deps'),
-      );
       const allKeys = keys(vars);
       const namesPublic = allKeys.filter(name => name.charAt(0) !== '~');
       const namesPrivate = invokeMap(allKeys.filter(name => name.charAt(0) === '~'), String.prototype.substr, 1);
+      const preDeps = omit(Object.assign(
+        {},
+        ...map(vars, 'deps'),
+        ...map(args, 'deps'),
+      ), ...namesPublic, ...namesPrivate);
+      const deps = {};
+      forEach(preDeps, (name) => {
+        const match = /^(\^*)(.*)/.exec(name);
+        if (match && match[1] && (vars[match[2]] || vars[`~${match[2]}`])) {
+          const newName = name.substr(1);
+          deps[newName] = newName;
+        } else {
+          deps[name] = name;
+        }
+      });
       return {
-        deps: omit(deps, ...namesPublic, ...namesPrivate),
+        deps,
         bindTo: (scope) => {
           const newScope = scope.create();
           forEach(vars, (variable, name) => {

@@ -289,6 +289,21 @@ describe('Test Compiler', function () {
       });
     });
 
+    it('should allow self-referencing shadowed variable', function () {
+      const formula = this.createSelector({
+        a: 1,
+        b: {
+          a: { $add: ['$^a', 1] },
+        },
+      });
+      formula().should.deep.equal({
+        a: 1,
+        b: {
+          a: 2,
+        },
+      });
+    });
+
     it('should extract field from the first argument', function () {
       const formula = this.createSelector({
         a: '$0.x',
