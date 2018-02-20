@@ -37,6 +37,7 @@ class Compiler {
       parse: this.parse.bind(this),
       compile: this.compile.bind(this),
       operators: this.operators,
+      createSelector: this.createSelector.bind(this),
     };
     forEach(plugins, this.extendApi.bind(this));
     forEach(plugins, this.extendOperators.bind(this));
@@ -114,8 +115,9 @@ class Compiler {
   }
 
   static defaultParse(text) {
-    switch (text[0]) {
+    switch (text.charAt(0)) {
       case '$': return { $: text.substr(1) };
+      case '_': return { '!': text.substr(1) };
       default: return { '!': text };
     }
   }

@@ -3,6 +3,7 @@ import pluginArray from '../plugins/array';
 import pluginMapping from '../plugins/mapping';
 import pluginReference from '../plugins/reference';
 import pluginFunction from '../plugins/function';
+import pluginMacro from '../plugins/macro';
 import pluginEvaluate from '../plugins/evaluate';
 import pluginOverwrite from '../plugins/overwrite';
 import pluginSubExpression from '../plugins/subExpression';
@@ -14,6 +15,7 @@ const preset = [
   pluginMapping,
   pluginReference,
   pluginFunction,
+  pluginMacro,
   pluginOverwrite,
   pluginEvaluate,
   pluginSubExpression,

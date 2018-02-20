@@ -38,7 +38,9 @@ const pluginSubExpression = {
         ? map(argsExpr, compile)
         : null;
       const allKeys = keys(vars);
-      const namesPublic = allKeys.filter(name => name.charAt(0) !== '~');
+      const namesPublic = allKeys
+        .filter(name => name.charAt(0) !== '~')
+        .map(name => (name.charAt(0) === '_' ? name.substr(1) : name));
       const namesPrivate = invokeMap(allKeys.filter(name => name.charAt(0) === '~'), String.prototype.substr, 1);
       const preDeps = omit(Object.assign(
         {},
@@ -61,7 +63,7 @@ const pluginSubExpression = {
           const newScope = scope.create();
           forEach(vars, (variable, name) => {
             newScope.define(
-              name.charAt(0) === '~' ? name.substr(1) : name,
+              (name.charAt(0) === '~' || name.charAt(0) === '_') ? name.substr(1) : name,
               variable.deps,
               variable.bindTo,
             );

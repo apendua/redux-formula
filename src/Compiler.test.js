@@ -9,6 +9,8 @@ import Compiler from './Compiler';
 import presetDefault from './presets/default';
 import { identity } from './utils';
 
+const constant = x => () => x;
+
 chai.should();
 chai.use(sinonChai);
 
@@ -493,6 +495,60 @@ describe('Test Compiler', function () {
           },
         },
         right: '[unknown]',
+      });
+    });
+  });
+
+  describe('Macros', function () {
+    it('should use an explicit selector as a macro', function () {
+      const formula = this.createSelector({
+        // TODO: This also works, why?
+        // a: { ':=': identity },
+        a: { ':=': constant(identity) },
+      });
+      formula(1).should.deep.equal({
+        a: 1,
+      });
+    });
+
+    it('should use a function expression as a macro', function () {
+      const formula = this.createSelector({
+        '~selector': {
+          '?': ['0', '1'],
+          '=': { $add: ['$0', '$1'] },
+        },
+        a: { ':=': '$selector' },
+      });
+      formula(1, 2).should.deep.equal({
+        a: 3,
+      });
+    });
+
+    it('should create macro from explicit expression', function () {
+      const formula = this.createSelector({
+        selector: {
+          '_=': { _$add: ['_$0', '_$1'] },
+        },
+        a: { ':=': '$selector' },
+      });
+      formula(1, 2).should.deep.equal({
+        selector: {
+          '=': { $add: ['$0', '$1'] },
+        },
+        a: 3,
+      });
+    });
+
+    it('should create a parametrized macro', function () {
+      const formula = this.createSelector({
+        '~selector': {
+          '?': ['x', 'y'],
+          '_=': { _$add: ['$x', '$y'] },
+        },
+        a: { ':=': { $selector: ['$0', '$1'] } },
+      });
+      formula(1, 2).should.deep.equal({
+        a: 3,
       });
     });
   });
