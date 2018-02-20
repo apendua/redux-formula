@@ -69,7 +69,7 @@ const pluginSubExpression = {
           if (operatorName) {
             let selectEvaluate;
             try {
-              selectEvaluate = newScope.getSelector(operatorName);
+              selectEvaluate = newScope.resolve(operatorName).selector;
               return newScope.boundSelector(
                 selectEvaluate,
                 ...invokeMap(args, 'bindTo', newScope),

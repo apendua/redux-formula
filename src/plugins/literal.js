@@ -1,11 +1,9 @@
 import isPlainObject from 'lodash/isPlainObject';
 import has from 'lodash/has';
 
-const constant = x => () => x;
-
 const pluginLiteral = {
   createApi: () => ({
-    literal: value => ({ bindTo: scope => scope.bind(constant(value)) }),
+    literal: value => ({ bindTo: scope => scope.createConstantSelector(value) }),
   }),
   createCompiler: ({ literal }) => next => (expression) => {
     switch (typeof expression) {

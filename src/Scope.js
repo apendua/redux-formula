@@ -3,6 +3,8 @@ import map from 'lodash/map';
 import mapValues from 'lodash/mapValues';
 import Selector, { constant } from './Selector';
 
+const constant1 = constant(1);
+
 class Scope {
   constructor(parent, unknowns = []) {
     this.parent = parent;
@@ -20,7 +22,7 @@ class Scope {
         name,
         scope: this,
         state: 'resolved',
-        value: this.createUnknownSelector(name),
+        selector: this.createUnknownSelector(name),
       };
     });
   }
@@ -56,8 +58,8 @@ class Scope {
     return new this.constructor(this, unknowns);
   }
 
-  lookup(name, targetLevel = 0) {
-    let level = targetLevel;
+  lookup(name, lookupLevel = 0) {
+    let level = lookupLevel;
     let scope = this;
     while (scope) {
       if (scope.variables[name]) {
@@ -75,6 +77,10 @@ class Scope {
     return Selector.relativeTo(this, selector).indirect();
   }
 
+  relative(selector) {
+    return Selector.relativeTo(this, selector);
+  }
+
   define(name, deps, factory) {
     if (!factory) {
       throw new Error(`Missing factory function for variable ${name}`);
@@ -90,8 +96,7 @@ class Scope {
       deps,
       factory,
       scope: this,
-      state: factory ? 'initial' : 'resolved',
-      value: factory ? null : this.createUnknownSelector(name),
+      state: 'initial',
     };
   }
 
@@ -113,17 +118,17 @@ class Scope {
     }
     if (variable.state === 'initial') {
       variable.state = 'resolving';
-      variable.value = variable.factory(this, mapValues(
+      variable.selector = variable.factory(this, mapValues(
         variable.deps,
-        depName => this.getSelector(depName, [...stack, depName]),
+        depName => this.resolve(depName, [...stack, depName]),
       ));
       variable.state = 'resolved';
     }
     return variable;
   }
 
-  bind(selector) {
-    return Selector.relativeTo(this, selector);
+  createConstantSelector(value) {
+    return Selector.relativeTo(this, constant1(value));
   }
 
   createUnknownSelector(name) {
@@ -139,7 +144,7 @@ class Scope {
 
   variablesSelector(variables) {
     return this.boundSelector(
-      map(variables, name => this.getSelector(name)),
+      map(variables, name => this.resolve(name).selector),
       (...values) => {
         // NOTE: This function is only re-computed if any of the values changes,
         //       so we never create a new object if it's not necessary.
@@ -151,14 +156,6 @@ class Scope {
         return object;
       },
     );
-  }
-
-  getSelector(name, stack) {
-    const variable = this.resolve(name, stack);
-    if (!variable) {
-      return null;
-    }
-    return variable.value;
   }
 }
 

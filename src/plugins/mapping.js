@@ -2,8 +2,6 @@ import isPlainObject from 'lodash/isPlainObject';
 import has from 'lodash/has';
 import memoizeMapValues from '../memoizeMapValues';
 
-const constant = x => () => x;
-
 const pluginMapping = {
   createCompiler: ({ compile }) => next => (expression) => {
     if (!isPlainObject(expression) || !has(expression, '<-')) {
@@ -25,7 +23,7 @@ const pluginMapping = {
         key && key.deps,
       ),
       bindTo: (scope) => {
-        const selectGetKey = key ? key.bindTo(scope) : scope.bind(constant(null));
+        const selectGetKey = key ? key.bindTo(scope) : scope.createConstantSelector(null);
         const selectMapping = scope.boundSelector(
           mapValue.bindTo(scope),
           selectGetKey,

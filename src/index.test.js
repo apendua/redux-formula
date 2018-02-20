@@ -53,7 +53,7 @@ describe('Test Public Api', function () {
     it('should dynamically add a new plugin', function () {
       this.compiler.addPlugin({
         createOperators: () => ({
-          $value: scope => () => selectX => scope.bind(selectX),
+          $value: scope => () => selectX => scope.relative(selectX),
         }),
       });
       const selector = this.compiler.createSelector({

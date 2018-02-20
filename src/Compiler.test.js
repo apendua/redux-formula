@@ -289,7 +289,7 @@ describe('Test Compiler', function () {
       });
     });
 
-    it('should allow self-referencing shadowed variable', function () {
+    it('should allow reference shadowed variable', function () {
       const formula = this.createSelector({
         a: 1,
         b: {
@@ -301,6 +301,18 @@ describe('Test Compiler', function () {
         b: {
           a: 2,
         },
+      });
+    });
+
+    it('should allow argument reference', function () {
+      const formula = this.createSelector({
+        '~0': '$^0.context',
+        a: '$0.x',
+      });
+      formula({
+        context: { x: 1 },
+      }).should.deep.equal({
+        a: 1,
       });
     });
 

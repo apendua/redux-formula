@@ -4,19 +4,17 @@ import keys from 'lodash/keys';
 import isNaN from 'lodash/isNaN';
 import Scope from './Scope';
 
-const constant = x => () => x;
-
 const createCompiler = ({ compile, parse, literal }) => () => (expression) => {
   switch (typeof expression) {
     case 'function':
-      return { bindTo: scope => scope.bind(expression) };
+      return { bindTo: scope => scope.relative(expression) };
     case 'string':
       return compile(parse(expression));
     default: {
       if (literal) {
         return literal(expression);
       }
-      return { bindTo: scope => scope.bind(constant(expression)) };
+      return { bindTo: scope => scope.createConstantSelector(expression) };
     }
   }
 };
@@ -86,7 +84,7 @@ class Compiler {
     const selector = this.createSelector(expression);
     // Let's forget about this selector metadata.
     delete selector.scope;
-    this.scope.define(name, deps, scope => scope.bind(selector));
+    this.scope.define(name, deps, scope => scope.relative(selector));
   }
 
   parse(text) {
@@ -105,7 +103,7 @@ class Compiler {
         keys(otherDeps).forEach(key => newScope.resolve(key));
         // If there were any dependencies like $0, $1, etc. interpret them
         // as references to arguments array.
-        indexes.forEach(i => newScope.define(`${i}`, [], scope => scope.bind((...args) => args[i])));
+        indexes.forEach(i => newScope.define(`${i}`, [], scope => scope.relative((...args) => args[i])));
         return formula.bindTo(newScope).selector;
       },
     };

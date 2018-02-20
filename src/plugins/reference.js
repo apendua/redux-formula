@@ -12,7 +12,7 @@ const pluginReference = {
     return {
       deps: { [name]: name },
       bindTo: scope => scope.boundSelector(
-        scope.getSelector(name),
+        scope.resolve(name).selector,
         value => (dataKey ? get(value, dataKey) : value),
       ),
     };
