@@ -142,8 +142,8 @@ class Scope {
     return Selector.create(this, ...args);
   }
 
-  variablesSelector(variables) {
-    return this.boundSelector(
+  variablesSelector(variables, relativeTo = this) {
+    return relativeTo.boundSelector(
       map(variables, name => this.resolve(name).selector),
       (...values) => {
         // NOTE: This function is only re-computed if any of the values changes,

@@ -61,7 +61,7 @@ const pluginSubExpression = {
           const newScope = scope.create();
           forEach(vars, (variable, name) => {
             newScope.define(
-              name[0] === '~' ? name.substr(1) : name,
+              name.charAt(0) === '~' ? name.substr(1) : name,
               variable.deps,
               variable.bindTo,
             );
@@ -70,7 +70,7 @@ const pluginSubExpression = {
             let selectEvaluate;
             try {
               selectEvaluate = newScope.resolve(operatorName).selector;
-              return newScope.boundSelector(
+              return scope.boundSelector(
                 selectEvaluate,
                 ...invokeMap(args, 'bindTo', newScope),
                 (evaluate, ...rest) => evaluate(...rest),
@@ -85,9 +85,9 @@ const pluginSubExpression = {
             }
           }
           if (bindOperator) {
-            return bindOperator(newScope)(newScope.variablesSelector(namesPrivate))(...invokeMap(args, 'bindTo', newScope));
+            return bindOperator(scope)(newScope.variablesSelector(namesPrivate))(...invokeMap(args, 'bindTo', newScope));
           }
-          return newScope.variablesSelector(namesPublic);
+          return newScope.variablesSelector(namesPublic, scope);
         },
       };
     },
