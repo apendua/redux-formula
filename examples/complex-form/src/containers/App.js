@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Provider } from 'react-redux';
+import { FormulaContext } from '../store/formula';
 import Form from './Form';
 
 const App = ({ store }) => (
-  <Provider store={store}>
+  <FormulaContext.Provider value={{ store }}>
     <Form />
-  </Provider>
+  </FormulaContext.Provider>
 );
 
 App.propTypes = {

@@ -1,6 +1,5 @@
-import { combineReducers } from 'redux';
+import multiReducer from './multiReducer';
 
-const rootReducer = combineReducers({
-});
+const rootReducer = multiReducer;
 
 export default rootReducer;
