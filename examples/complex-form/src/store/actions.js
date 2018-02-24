@@ -40,7 +40,7 @@ export const del = key => ({
 });
 
 export const scope = (key, action) => ({
-  type: ACTION_SCOPE,
+  type: `${ACTION_SCOPE}.${action.type}`,
   payload: action,
   meta: {
     key,

@@ -1,6 +1,5 @@
 import get from 'lodash/get';
 import {
-  ACTION_SCOPE,
   ACTION_SCOPE_SET,
   ACTION_SCOPE_DEL,
   ACTION_SCOPE_PUSH,
@@ -9,6 +8,8 @@ import {
 import {
   setAtKey, delAtKey, pushAtKey, pullAtKey,
 } from './immutable';
+
+const actionRe = /^@SCOPE\.(.*)/;
 
 export const createMultiReducer = () => {
   const reducers = {};
@@ -26,13 +27,14 @@ export const createMultiReducer = () => {
       }
     }
     const key = action.meta && action.meta.key;
-    switch (action.type) {
-      case ACTION_SCOPE: {
-        if (key) {
-          return setAtKey(state, key, multiReducer(get(state, key), action.payload));
-        }
-        return multiReducer(state, action.payload);
+    const match = actionRe.exec(action.type);
+    if (match) {
+      if (key) {
+        return setAtKey(state, key, multiReducer(get(state, key), action.payload));
       }
+      return multiReducer(state, action.payload);
+    }
+    switch (action.type) {
       case ACTION_SCOPE_SET:
         return setAtKey(state, key, action.payload);
       case ACTION_SCOPE_DEL:
