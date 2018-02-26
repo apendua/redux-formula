@@ -5,9 +5,10 @@
 
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-import formulaSelector, {
+import {
   Compiler,
   presetDefault,
+  formulaSelector,
   formulaSelectorFactory,
 } from './index';
 

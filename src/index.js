@@ -13,10 +13,9 @@ const formulaSelectorFactory = (expression) => {
 
 export {
   presetDefault,
+  formulaSelector,
   formulaSelectorFactory,
   defaultCompiler,
   Compiler,
   Scope,
 };
-
-export default formulaSelector;
