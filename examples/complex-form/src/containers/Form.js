@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import map from 'lodash/map';
+import times from 'lodash/times';
 import { Form as F } from '../store/Context';
 
 const Input = F.connect({
@@ -70,7 +71,10 @@ const Form = F.connect({
   a: '$state.a.value',
   b: '$state.b.value',
   c: { $sum: ['$a', '$b'] },
-  phones: '$state.phones',
+  nPhones: {
+    '<<': ['$state.phones'],
+    '>!': phones => (phones ? phones.length : 0),
+  },
 }, {
   onAppend: ({ $push }) => () => {
     $push('phones', {});
@@ -80,7 +84,7 @@ const Form = F.connect({
     <Field name="a" />
     <Field name="b" />
     <Field name="c" defaultValue={props.c} />
-    {map(props.phones, (phone, index) => (
+    {times(props.nPhones, index => (
       <F.Section key={index} section={`phones.${index}`}>
         <Field name="number" />
         <Field name="type" component={Select} options={typeOptions} />
