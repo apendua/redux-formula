@@ -25,7 +25,7 @@ import {
 } from './actions';
 import shallowEqual from './shallowEqual';
 
-const scopeRe = /^@SCOPE\.(.*)/;
+const scopeRe = /^@SCOPE\[.*/;
 
 export const createMultiReducer = (options = {}) => {
   const sections = {};

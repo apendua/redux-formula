@@ -1,5 +1,4 @@
 
-export const ACTION_SCOPE = '@SCOPE';
 export const ACTION_SET = '@SET';
 export const ACTION_DEL = '@DEL';
 export const ACTION_PUSH = '@PUSH';

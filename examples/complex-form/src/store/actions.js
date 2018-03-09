@@ -3,7 +3,6 @@ import {
   ACTION_PUSH,
   ACTION_PULL,
   ACTION_DEL,
-  ACTION_SCOPE,
 } from './constants';
 
 export const set = (key, value) => ({
@@ -37,11 +36,20 @@ export const del = key => ({
   },
 });
 
-export const scope = (section, reducer) => action => ({
-  type: `${ACTION_SCOPE}.${action.type}`,
-  payload: action,
-  meta: {
-    section,
-    ...reducer && { reducer },
-  },
-});
+export const scope = (section, reducer) => (action) => {
+  const match = /@SCOPE\[(.*)\](.*)/.exec(action.type);
+  let type;
+  if (match) {
+    type = `@SCOPE[${section}.${match[1]}]${match[2]}`;
+  } else {
+    type = `@SCOPE[${section}] ${action.type}`;
+  }
+  return {
+    type,
+    payload: action,
+    meta: {
+      section,
+      ...reducer && { reducer },
+    },
+  };
+};
