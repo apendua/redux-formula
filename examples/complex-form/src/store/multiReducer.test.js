@@ -18,6 +18,7 @@ let store2;
 
 const ACTION_PUSH = '@ACTION_PUSH';
 const ACTION_PULL = '@ACTION_PULL';
+const ACTION_TEST = '@ACTION_TEST';
 
 describe('Pure multiReducer', () => {
   beforeEach(() => {
@@ -33,6 +34,34 @@ describe('Pure multiReducer', () => {
 
   it('throws on create section', () => {
     expect(() => reducer.section('a')).toThrow();
+  });
+});
+
+describe('Default multiReducer', () => {
+  beforeEach(() => {
+    reducer = createMultiReducer({
+      default: (state, action) => {
+        switch (action.type) {
+          case ACTION_TEST:
+            return {
+              ...state,
+              x: 1,
+            };
+          default:
+            return state;
+        }
+      },
+    });
+  });
+
+  it('initializes state', () => {
+    const newState = reducer(undefined, {});
+    expect(newState).toEqual({});
+  });
+
+  it('handles a custom action', () => {
+    const newState = reducer(undefined, { type: ACTION_TEST });
+    expect(newState).toEqual({ x: 1 });
   });
 });
 

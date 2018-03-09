@@ -87,17 +87,23 @@ export const createMultiReducer = (options = {}) => {
       }
     }
 
+    let nextState = state;
+
     if (!isEmpty(sections)) {
-      const nextState = {
-        ...state,
-        ...mapValues(sections, (reducer, key) => reducer(state[key], action)),
+      const nextNextState = {
+        ...nextState,
+        ...mapValues(sections, (reducer, key) => reducer(nextState[key], action)),
       };
-      if (!shallowEqual(state, nextState)) {
-        return nextState;
+      if (!shallowEqual(nextState, nextNextState)) {
+        nextState = nextNextState;
       }
     }
 
-    return state;
+    if (options.default) {
+      nextState = options.default(nextState, action);
+    }
+
+    return nextState;
   };
 
   multiReducer.pureReducer = options.sections === null
