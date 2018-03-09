@@ -1,19 +1,47 @@
 /* eslint-env jest */
 
 import {
+  splitKey,
   setAtKey,
   delAtKey,
   pushAtKey,
   pullAtKey,
 } from './immutable';
 
+describe('Test splitKey', () => {
+  it('splits undefined', () => {
+    expect(splitKey()).toEqual([null, null]);
+  });
+
+  it('splits an empty string', () => {
+    expect(splitKey('')).toEqual(['', null]);
+  });
+
+  it('splits single component path', () => {
+    expect(splitKey('a')).toEqual(['a', null]);
+  });
+
+  it('splits single two components path', () => {
+    expect(splitKey('a.aa')).toEqual(['a', 'aa']);
+  });
+
+  it('splits single multi components path', () => {
+    expect(splitKey('a.aa.aaa')).toEqual(['a', 'aa.aaa']);
+  });
+});
+
 describe('Test setAtKey', () => {
-  it('sets a value at empty object', () => {
+  it('sets value at empty object', () => {
     const object = setAtKey({}, 'a', 1);
     expect(object).toEqual({ a: 1 });
   });
 
-  it('sets a value at nested key', () => {
+  it('sets value at empty key', () => {
+    const object = setAtKey(null, '', { a: 1 });
+    expect(object).toEqual({ a: 1 });
+  });
+
+  it('sets value at nested key', () => {
     const object = setAtKey({}, 'a.b', 1);
     expect(object).toEqual({ a: { b: 1 } });
   });
@@ -45,9 +73,19 @@ describe('Test setAtKey', () => {
 });
 
 describe('Test delAtKey', () => {
-  it('delets a value from an object', () => {
+  it('delets value from an object', () => {
     const object = delAtKey({ a: 1 }, 'a');
     expect(object).toEqual({});
+  });
+
+  it('delets value from an array', () => {
+    const object = delAtKey({ a: [1, 2, 3] }, 'a.1');
+    expect(object).toEqual({ a: [1, 3] });
+  });
+
+  it('replaces value with default', () => {
+    const object = delAtKey(null, '', { a: 1 });
+    expect(object).toEqual({ a: 1 });
   });
 });
 

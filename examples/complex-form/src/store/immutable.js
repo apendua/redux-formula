@@ -7,6 +7,9 @@ import isArray from 'lodash/isArray';
 import isPlainObject from 'lodash/isPlainObject';
 
 export const splitKey = (key) => {
+  if (typeof key !== 'string') {
+    return [null, null];
+  }
   const i = key.indexOf('.');
   if (i >= 0) {
     return [key.substr(0, i), key.substr(i + 1)];
@@ -67,7 +70,10 @@ export const pullAtKey = createModifyAtKey((currentValue, valueToRemove) => {
   return currentValue;
 });
 
-export const delAtKey = (object, key) => {
+export const delAtKey = (object, key, defaultValue) => {
+  if (!key) {
+    return defaultValue;
+  }
   if (!object) {
     return object;
   }
@@ -84,8 +90,8 @@ export const delAtKey = (object, key) => {
       return [...object.slice(0, i), ...object.slice(i + 1)];
     }
   } else if (isPlainObject(object)) {
-    if (has(object, key)) {
-      return omit(object, key);
+    if (has(object, k)) {
+      return omit(object, k);
     }
   }
   return object;
