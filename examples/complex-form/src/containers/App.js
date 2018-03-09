@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { FormulaContext } from '../store/formula';
+import Context from '../store/Context';
 import Form from './Form';
 
 const App = ({ store }) => (
-  <FormulaContext.Provider value={{ store }}>
+  <Context.Provider value={{ store }}>
     <Form />
-  </FormulaContext.Provider>
+  </Context.Provider>
 );
 
 App.propTypes = {

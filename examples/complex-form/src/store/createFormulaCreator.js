@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
@@ -34,11 +34,11 @@ const createFormulaCreator = context => (expression, handlers) => {
         $del: key => this.props.store.dispatch(del(key)),
       };
       this.hooks = mapValues(handlers, handler => (...args) => {
-        const { store, props } = this.props;
+        const { store, ownProps } = this.props;
         // NOTE: This state may be more up-to-date than this.state!
         const state = store ? store.getState() : this.empty;
         return handler({
-          ...props,
+          ...ownProps,
           ...this.getValue(state),
           ...this.hooks,
           ...this.utils,
@@ -54,11 +54,11 @@ const createFormulaCreator = context => (expression, handlers) => {
       const {
         store,
         scope,
-        props,
+        ownProps,
       } = this.props;
       return store !== nextProps.store ||
              scope !== nextProps.scope ||
-             !shallowEqual(props, nextProps.props) ||
+             !shallowEqual(ownProps, nextProps.ownProps) ||
              !shallowEqual(this.state, nextState);
     }
 
@@ -81,7 +81,7 @@ const createFormulaCreator = context => (expression, handlers) => {
     }
 
     getValue(state) {
-      const value = this.getSelector(this.props.scope)(state, this.props.props);
+      const value = this.getSelector(this.props.scope)(state, this.props.ownProps);
       if (!isPlainObject(value)) {
         throw new Error('Formula value should be an object');
       }
@@ -109,19 +109,26 @@ const createFormulaCreator = context => (expression, handlers) => {
   }
 
   Component.propTypes = {
-    // props: PropTypes.object,
+    ownProps: PropTypes.object, // eslint-disable-line react/forbid-prop-types
     scope: PropTypes.instanceOf(Scope),
+    store: PropTypes.shape({
+      dispatch: PropTypes.func,
+      getState: PropTypes.func,
+      subscribe: PropTypes.func,
+    }),
     children: PropTypes.func.isRequired,
   };
 
   Component.defaultProps = {
+    ownProps: {},
     scope: new Scope(),
+    store: null,
   };
 
   return BaseComponent => props => (
     <context.Consumer>
       {ctx => (
-        <Component store={ctx.store} scope={ctx.scope} props={props} >
+        <Component store={ctx.store} scope={ctx.scope} ownProps={props} >
           {(value, hooks) => (
             <BaseComponent {...props} {...value} {...hooks} />
           )}
@@ -131,28 +138,4 @@ const createFormulaCreator = context => (expression, handlers) => {
   );
 };
 
-const FormulaContext = createContext({
-  store: null,
-  scope: null,
-});
-
-const formula = createFormulaCreator(FormulaContext);
-
-export { createFormulaCreator, FormulaContext };
-export default formula;
-
-/*
-<Formula expression={`
-  listId = $1.listId
-`}>
-  {(value) => {
-    <List listId={value.listId} />
-  }}
-</Formula>
-
-formula({
-  listId: '$1.listId',
-})((props) => (
-  <List listId={props.listId} />
-))
-*/
+export default createFormulaCreator;

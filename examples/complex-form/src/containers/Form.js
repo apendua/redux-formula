@@ -1,10 +1,7 @@
 import React from 'react';
-import formula, { FormulaContext } from '../store/formula';
-import createScope from '../store/createScope';
+import { Form as F } from '../store/Context';
 
-const Section = createScope(FormulaContext);
-
-const Input = formula({
+const Input = F.connect({
   value: '$0.value',
   edited: '$0.edited',
 }, {
@@ -18,15 +15,15 @@ const Input = formula({
   <input value={(props.edited ? props.value : props.defaultValue) || ''} onChange={props.onChange} />
 ));
 
-const Field = formula({
+const Field = F.connect({
   value: '$0.value',
 })(props => (
-  <Section name={props.name}>
+  <F.Section section={props.name} reducer="field">
     <Input defaultValue={props.defaultValue} />
-  </Section>
+  </F.Section>
 ));
 
-const Form = formula({
+const Form = F.connect({
   a: '$0.a.value',
   b: '$0.b.value',
   c: { $sum: ['$a', '$b'] },
@@ -39,7 +36,7 @@ const Form = formula({
 ));
 
 export default () => (
-  <Section name="ui.form">
+  <F.Section section="form">
     <Form />
-  </Section>
+  </F.Section>
 );

@@ -1,8 +1,20 @@
-import multiReducer from './multiReducer';
+import { createMultiReducer } from './multiReducer';
 
-const rootReducer = multiReducer({
+const formFieldReducer = createMultiReducer({
+  initialState: {
+    value: null,
+  },
+});
+
+const formReducer = createMultiReducer({
+  reducers: {
+    field: formFieldReducer,
+  },
+});
+
+const rootReducer = createMultiReducer({
   sections: {
-    ui: multiReducer,
+    form: formReducer,
   },
 });
 
