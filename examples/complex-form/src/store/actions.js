@@ -1,13 +1,13 @@
 import {
-  ACTION_SCOPE_SET,
-  ACTION_SCOPE_PUSH,
-  ACTION_SCOPE_PULL,
-  ACTION_SCOPE_DEL,
+  ACTION_SET,
+  ACTION_PUSH,
+  ACTION_PULL,
+  ACTION_DEL,
   ACTION_SCOPE,
 } from './constants';
 
 export const set = (key, value) => ({
-  type: ACTION_SCOPE_SET,
+  type: ACTION_SET,
   payload: value,
   meta: {
     key,
@@ -15,7 +15,7 @@ export const set = (key, value) => ({
 });
 
 export const push = (key, value) => ({
-  type: ACTION_SCOPE_PUSH,
+  type: ACTION_PUSH,
   payload: value,
   meta: {
     key,
@@ -23,7 +23,7 @@ export const push = (key, value) => ({
 });
 
 export const pull = (key, value) => ({
-  type: ACTION_SCOPE_PULL,
+  type: ACTION_PULL,
   payload: value,
   meta: {
     key,
@@ -31,17 +31,17 @@ export const pull = (key, value) => ({
 });
 
 export const del = key => ({
-  type: ACTION_SCOPE_DEL,
+  type: ACTION_DEL,
   meta: {
     key,
   },
 });
 
-export const scope = (key, reducerId) => action => ({
+export const scope = (section, reducer) => action => ({
   type: `${ACTION_SCOPE}.${action.type}`,
   payload: action,
   meta: {
-    key,
-    ...reducerId && { reducerId },
+    section,
+    ...reducer && { reducer },
   },
 });

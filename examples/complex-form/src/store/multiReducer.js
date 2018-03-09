@@ -4,10 +4,10 @@ import forEach from 'lodash/forEach';
 import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
 import {
-  ACTION_SCOPE_SET,
-  ACTION_SCOPE_DEL,
-  ACTION_SCOPE_PUSH,
-  ACTION_SCOPE_PULL,
+  ACTION_SET,
+  ACTION_DEL,
+  ACTION_PUSH,
+  ACTION_PULL,
 } from './constants';
 import {
   setAtKey,
@@ -27,66 +27,63 @@ import shallowEqual from './shallowEqual';
 
 const scopeRe = /^@SCOPE\.(.*)/;
 
-const getNextId = (() => {
-  let counter = 0;
-  return () => {
-    counter += 1;
-    return counter.toString();
-  };
-})();
-
-let pureReducer;
 export const createMultiReducer = (options = {}) => {
   const sections = {};
   const reducers = Object.create(options.reducers || {});
   const initialState = options.initialState || {};
 
   const multiReducer = (state = initialState, action) => {
-    const isScopedAction = !!scopeRe.test(action.type);
-    if (
-      isScopedAction ||
-      action.type === ACTION_SCOPE_SET ||
-      action.type === ACTION_SCOPE_DEL ||
-      action.type === ACTION_SCOPE_PUSH ||
-      action.type === ACTION_SCOPE_PULL
-    ) {
+    if (scopeRe.test(action.type)) {
       const {
-        key,
-        reducerId,
+        section,
+        reducer,
       } = action.meta || {};
-      if (key) {
-        const [k, tail] = splitKey(key);
-        if (tail) {
-          const reducer = sections[k] || pureReducer;
-          return setAtKey(state, k, reducer(state[k], {
-            ...action,
-            meta: {
-              ...action.meta,
-              key: tail,
-            },
-          }));
-        } else if (isScopedAction) {
-          const reducer = sections[k] || reducers[reducerId] || pureReducer;
-          return setAtKey(state, k, reducer(state[k], action.payload));
-        }
-        switch (action.type) {
-          case ACTION_SCOPE_SET:
-            return setAtKey(state, key, action.payload);
-          case ACTION_SCOPE_DEL:
-            return delAtKey(state, key);
-          case ACTION_SCOPE_PUSH:
-            return pushAtKey(state, key, action.payload);
-          case ACTION_SCOPE_PULL:
-            return pullAtKey(state, key, action.payload);
-          default:
-            // do nothing
-        }
-      } else if (isScopedAction) {
-        return multiReducer(state, action.payload);
-      } else if (action.type === ACTION_SCOPE_SET) {
-        return action.payload;
-      } else if (action.type === ACTION_SCOPE_DEL) {
-        return initialState;
+      const [k, tail] = splitKey(section);
+      if (tail) {
+        return setAtKey(state, k, (sections[k] || multiReducer.pureReducer)(state[k], {
+          ...action,
+          meta: {
+            ...action.meta,
+            section: tail,
+          },
+        }));
+      }
+      // if k is empty, this function simply replaces the exisitng value
+      return setAtKey(
+        state,
+        k,
+        (reducers[reducer] || multiReducer.pureReducer)(k ? state[k] : state, action.payload),
+      );
+    }
+
+    if (action.type === ACTION_SET ||
+        action.type === ACTION_DEL ||
+        action.type === ACTION_PUSH ||
+        action.type === ACTION_PULL
+    ) {
+      const key = action.meta &&
+                  action.meta.key;
+      const [k, tail] = splitKey(key);
+      if (tail) {
+        return setAtKey(state, k, (sections[k] || multiReducer.pureReducer)(state[k], {
+          ...action,
+          meta: {
+            ...action.meta,
+            key: tail,
+          },
+        }));
+      }
+      switch (action.type) {
+        case ACTION_SET:
+          return setAtKey(state, k, action.payload);
+        case ACTION_DEL:
+          return delAtKey(state, k, initialState);
+        case ACTION_PUSH:
+          return pushAtKey(state, k, action.payload);
+        case ACTION_PULL:
+          return pullAtKey(state, k, action.payload);
+        default:
+          // do nothing
       }
     }
 
@@ -103,13 +100,21 @@ export const createMultiReducer = (options = {}) => {
     return state;
   };
 
-  multiReducer.factory = (factory) => {
-    const id = getNextId();
-    reducers[id] = factory(pureReducer);
-    return id;
+  multiReducer.pureReducer = options.sections === null
+    ? multiReducer
+    : createMultiReducer({
+      reducers,
+      sections: null,
+    });
+
+  multiReducer.reducer = (id, reducer) => {
+    reducers[id] = reducer;
   };
 
   multiReducer.section = (key, reducer) => {
+    if (options.sections === null) {
+      throw new Error('Cannot create sections on pure reducers');
+    }
     const [k, tail] = splitKey(key);
     if (typeof reducer === 'function') {
       if (!tail) {
@@ -162,10 +167,8 @@ export const createMultiReducer = (options = {}) => {
   return multiReducer;
 };
 
-pureReducer = createMultiReducer({
-  initialState: {},
-});
-
 const multiReducer = createMultiReducer();
+const { pureReducer } = multiReducer;
 
 export default multiReducer;
+export { pureReducer };
