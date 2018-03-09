@@ -2,8 +2,8 @@ import React from 'react';
 import { Form as F } from '../store/Context';
 
 const Input = F.connect({
-  value: '$0.value',
-  edited: '$0.edited',
+  value: '$state.value',
+  edited: '$state.edited',
 }, {
   onChange: ({ edited, $set }) => (e) => {
     $set('value', e.target.value);
@@ -16,7 +16,7 @@ const Input = F.connect({
 ));
 
 const Field = F.connect({
-  value: '$0.value',
+  value: '$state.value',
 })(props => (
   <F.Section section={props.name} reducer="field">
     <Input defaultValue={props.defaultValue} />
@@ -24,8 +24,8 @@ const Field = F.connect({
 ));
 
 const Form = F.connect({
-  a: '$0.a.value',
-  b: '$0.b.value',
+  a: '$state.a.value',
+  b: '$state.b.value',
   c: { $sum: ['$a', '$b'] },
 })(props => (
   <form>

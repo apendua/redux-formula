@@ -13,6 +13,10 @@ import {
 
 const createFormulaCreator = context => (expression, handlers) => {
   const factory = formulaSelectorFactory(expression);
+  const defaultScope = new Scope();
+
+  defaultScope.external('state', state => state);
+  defaultScope.external('props', (state, props) => props);
 
   class Component extends React.Component {
     static getDerivedStateFromProps(nextProps) {
@@ -75,7 +79,7 @@ const createFormulaCreator = context => (expression, handlers) => {
     getSelector(scope) {
       if (this.scope !== scope) {
         this.scope = scope;
-        this.selector = factory(scope);
+        this.selector = factory(defaultScope);
       }
       return this.selector;
     }

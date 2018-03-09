@@ -81,6 +81,10 @@ class Scope {
     return Selector.relativeTo(this, selector);
   }
 
+  external(name, selector) {
+    this.define(name, [], () => this.relative(selector));
+  }
+
   define(name, deps, factory) {
     if (!factory) {
       throw new Error(`Missing factory function for variable ${name}`);
