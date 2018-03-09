@@ -1,5 +1,9 @@
 import multiReducer from './multiReducer';
 
-const rootReducer = multiReducer;
+const rootReducer = multiReducer({
+  sections: {
+    ui: multiReducer,
+  },
+});
 
 export default rootReducer;

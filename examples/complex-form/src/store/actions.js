@@ -6,8 +6,6 @@ import {
   ACTION_SCOPE,
 } from './constants';
 
-const identity = x => x;
-
 export const set = (key, value) => ({
   type: ACTION_SCOPE_SET,
   payload: value,
@@ -39,26 +37,11 @@ export const del = key => ({
   },
 });
 
-export const scope = (key, action) => ({
+export const scope = (key, reducerId) => action => ({
   type: `${ACTION_SCOPE}.${action.type}`,
   payload: action,
   meta: {
     key,
+    ...reducerId && { reducerId },
   },
 });
-
-export const withReducer = (reducer) => {
-  if (!reducer) {
-    return identity;
-  }
-  return actionCreator => (...args) => {
-    const action = actionCreator(...args);
-    return {
-      ...action,
-      meta: {
-        ...action.meta,
-        reducer,
-      },
-    };
-  };
-};
