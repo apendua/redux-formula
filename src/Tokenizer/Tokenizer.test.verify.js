@@ -120,7 +120,13 @@ function compile(rawTokens) {
 
       case TOKEN_TYPE_OPERATOR:
         str = value;
-        if ((value === '.' && prev === TOKEN_TYPE_LITERAL && prevValueType === VALUE_TYPE_INTEGER) || prev === TOKEN_TYPE_OPERATOR) {
+        if (
+          prev === TOKEN_TYPE_OPERATOR || (
+            value === '.' &&
+            prev === TOKEN_TYPE_LITERAL &&
+            prevValueType === VALUE_TYPE_INTEGER
+          )
+        ) {
           sep = ' ';
         }
         break;
