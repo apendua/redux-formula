@@ -20,6 +20,14 @@ describe('Test Default Operators', () => {
     testContext.createSelector = testContext.compiler.createSelector.bind(testContext.compiler);
   });
 
+  test('should evaluate $dot', () => {
+    const formula = testContext.createSelector({
+      a: 'x',
+      $dot: ['$0', '$a'],
+    });
+    expect(formula({ x: 1 })).toBe(1);
+  });
+
   test('should evaluate $sum', () => {
     const formula = testContext.createSelector({
       $sum: [1, 2, 3],
