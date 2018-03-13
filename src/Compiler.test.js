@@ -1,169 +1,173 @@
-/* eslint-env mocha */
-/* eslint no-unused-expressions: "off" */
-/* eslint func-names: "off" */
-/* eslint prefer-arrow-callback: "off" */
+/* eslint-env jest */
 
-import chai from 'chai';
-import sinonChai from 'sinon-chai';
 import Compiler from './Compiler';
 import presetDefault from './presets/default';
 import { identity } from './utils';
 
 const constant = x => () => x;
 
-chai.should();
-chai.use(sinonChai);
+describe('Test Compiler', () => {
+  let testContext;
 
-describe('Test Compiler', function () {
-  beforeEach(function () {
-    this.compiler = new Compiler({
-      plugins: presetDefault,
-    });
-    this.compiler.define('PI', [], 3.14);
-    this.createSelector = this.compiler.createSelector.bind(this.compiler);
+  beforeEach(() => {
+    testContext = {};
   });
 
-  describe('Basic formulas', function () {
-    it('should select an empty object', function () {
-      const formula = this.createSelector({});
-      formula().should.deep.equal({});
+  beforeEach(() => {
+    testContext.compiler = new Compiler({
+      plugins: presetDefault,
+    });
+    testContext.compiler.define('PI', [], 3.14);
+    testContext.createSelector = testContext.compiler.createSelector.bind(testContext.compiler);
+  });
+
+  describe('Basic formulas', () => {
+    test('should select an empty object', () => {
+      const formula = testContext.createSelector({});
+      expect(formula()).toEqual({});
     });
 
-    it('should select a plain literal', function () {
-      const formula = this.createSelector({
+    test('should select a plain literal', () => {
+      const formula = testContext.createSelector({
         '!': 1,
       });
-      formula().should.deep.equal(1);
+      expect(formula()).toEqual(1);
     });
 
-    it('should select a custom scope symbol', function () {
-      const formula = this.createSelector({
+    test('should select a custom scope symbol', () => {
+      const formula = testContext.createSelector({
         x: '$PI',
       });
-      formula().should.deep.equal({ x: 3.14 });
+      expect(formula()).toEqual({ x: 3.14 });
     });
 
-    it('should throw on unknown symbol', function () {
-      (() => {
-        this.createSelector({
+    test('should throw on unknown symbol', () => {
+      expect(() => {
+        testContext.createSelector({
           x: '$UNKNOWN',
         });
-      }).should.throw(/Unknown dependency/);
+      }).toThrowError(/Unknown dependency/);
     });
 
-    it('should select a literal inside an object', function () {
-      const formula = this.createSelector({
+    test('should select a literal inside an object', () => {
+      const formula = testContext.createSelector({
         a: { '!': 1 },
         b: 2,
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: 1,
         b: 2,
       });
     });
 
-    it('should select "="', function () {
-      const formula = this.createSelector({
+    test('should select "="', () => {
+      const formula = testContext.createSelector({
         '=': 1,
       });
-      formula().should.deep.equal(1);
+      expect(formula()).toEqual(1);
     });
 
-    it('should select "=" with references to local scope', function () {
-      const formula = this.createSelector({
+    test('should select "=" with references to local scope', () => {
+      const formula = testContext.createSelector({
         a: 1,
         '=': '$a',
       });
-      formula().should.deep.equal(1);
+      expect(formula()).toEqual(1);
     });
 
-    it('should select "=" inside object', function () {
-      const formula = this.createSelector({
+    test('should select "=" inside object', () => {
+      const formula = testContext.createSelector({
         a: { '=': 1 },
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: 1,
       });
     });
 
-    it('should select a unary operator', function () {
-      const formula = this.createSelector({
+    test('should select a unary operator', () => {
+      const formula = testContext.createSelector({
         $neg: 1,
       });
-      formula().should.deep.equal(-1);
+      expect(formula()).toEqual(-1);
     });
 
-    it('should select a unary operator with references to local scope', function () {
-      const formula = this.createSelector({
-        a: 1,
-        $neg: '$a',
-      });
-      formula().should.deep.equal(-1);
-    });
+    test(
+      'should select a unary operator with references to local scope',
+      () => {
+        const formula = testContext.createSelector({
+          a: 1,
+          $neg: '$a',
+        });
+        expect(formula()).toEqual(-1);
+      },
+    );
 
-    it('should select a unary operator inside object', function () {
-      const formula = this.createSelector({
+    test('should select a unary operator inside object', () => {
+      const formula = testContext.createSelector({
         a: { $neg: 1 },
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: -1,
       });
     });
 
-    it('should select a binary operator', function () {
-      const formula = this.createSelector({
+    test('should select a binary operator', () => {
+      const formula = testContext.createSelector({
         $sub: [1, 2],
       });
-      formula().should.deep.equal(-1);
+      expect(formula()).toEqual(-1);
     });
 
-    it('should select a binary operator with references to local scope', function () {
-      const formula = this.createSelector({
-        a: 1,
-        b: 2,
-        $sub: ['$a', '$b'],
-      });
-      formula().should.deep.equal(-1);
-    });
+    test(
+      'should select a binary operator with references to local scope',
+      () => {
+        const formula = testContext.createSelector({
+          a: 1,
+          b: 2,
+          $sub: ['$a', '$b'],
+        });
+        expect(formula()).toEqual(-1);
+      },
+    );
 
-    it('should select a binary operator inside object', function () {
-      const formula = this.createSelector({
+    test('should select a binary operator inside object', () => {
+      const formula = testContext.createSelector({
         a: { $sub: [1, 2] },
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: -1,
       });
     });
 
-    it('should resolve basic dependency', function () {
-      const formula = this.createSelector({
+    test('should resolve basic dependency', () => {
+      const formula = testContext.createSelector({
         a: 1,
         b: '$a',
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: 1,
         b: 1,
       });
     });
 
-    it('should select a constant function', function () {
-      const formula = this.createSelector({
+    test('should select a constant function', () => {
+      const formula = testContext.createSelector({
         '?': [],
         '=': 1,
       });
-      formula()().should.deep.equal(1);
+      expect(formula()()).toEqual(1);
     });
 
-    it('should select an identity function', function () {
-      const formula = this.createSelector({
+    test('should select an identity function', () => {
+      const formula = testContext.createSelector({
         '?': ['x'],
         '=': '$x',
       });
-      formula()(13).should.deep.equal(13);
+      expect(formula()(13)).toEqual(13);
     });
 
-    it('should evaluate a function', function () {
-      const formula = this.createSelector({
+    test('should evaluate a function', () => {
+      const formula = testContext.createSelector({
         identity: {
           '?': ['x'],
           '=': '$x',
@@ -172,86 +176,86 @@ describe('Test Compiler', function () {
           $identity: 2,
         },
       });
-      formula().a.should.deep.equal(2);
+      expect(formula().a).toEqual(2);
     });
 
-    it('should select a "property" function', function () {
-      const formula = this.createSelector({
+    test('should select a "property" function', () => {
+      const formula = testContext.createSelector({
         '?': ['y'],
         x: '$y',
       });
-      formula()(13).should.deep.equal({ x: 13 });
+      expect(formula()(13)).toEqual({ x: 13 });
     });
 
-    it('should resolve a nested key from function argument', function () {
-      const formula = this.createSelector({
+    test('should resolve a nested key from function argument', () => {
+      const formula = testContext.createSelector({
         '?': ['y'],
         x: '$y.x',
       });
-      formula()({ x: 2 }).should.deep.equal({ x: 2 });
+      expect(formula()({ x: 2 })).toEqual({ x: 2 });
     });
   });
 
-  describe('Complex formulas', function () {
-    it('should use an explicit selector', function () {
-      const formula = this.createSelector({
+  describe('Complex formulas', () => {
+    test('should use an explicit selector', () => {
+      const formula = testContext.createSelector({
         a: identity,
       });
-      formula(1).should.deep.equal({
+      expect(formula(1)).toEqual({
         a: 1,
       });
     });
 
-    it('should use an explicit selector inside a function', function () {
-      const formula = this.createSelector({
+    test('should use an explicit selector inside a function', () => {
+      const formula = testContext.createSelector({
         '?': ['x'],
         y: identity,
         '=': { $add: ['$x', '$y'] },
       });
-      formula(1)(2).should.equal(3);
+      expect(formula(1)(2)).toBe(3);
     });
 
-    it('should ignore comments', function () {
-      const formula = this.createSelector({
+    test('should ignore comments', () => {
+      const formula = testContext.createSelector({
         '#': 'This text should be ignored',
         a: 1,
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: 1,
       });
     });
 
-    it('should exclude hidden variables', function () {
-      const formula = this.createSelector({
+    test('should exclude hidden variables', () => {
+      const formula = testContext.createSelector({
         a: '$b',
         '~b': 1,
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: 1,
       });
     });
 
-    it('should select nested properties', function () {
-      const formula = this.createSelector({
+    test('should select nested properties', () => {
+      const formula = testContext.createSelector({
         a: {
           b: 1,
         },
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: {
           b: 1,
         },
       });
     });
 
-    it('should resolve dependency with nested key', function () {
-      const formula = this.createSelector({
+    test('should resolve dependency with nested key', () => {
+      const formula = testContext.createSelector({
         a: {
           b: 1,
         },
         c: '$a.b',
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: {
           b: 1,
         },
@@ -259,14 +263,14 @@ describe('Test Compiler', function () {
       });
     });
 
-    it('should resolve dependency from parent scope', function () {
-      const formula = this.createSelector({
+    test('should resolve dependency from parent scope', () => {
+      const formula = testContext.createSelector({
         a: 1,
         b: {
           c: '$a',
         },
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: 1,
         b: {
           c: 1,
@@ -274,15 +278,15 @@ describe('Test Compiler', function () {
       });
     });
 
-    it('should shadow dependency from parent scope', function () {
-      const formula = this.createSelector({
+    test('should shadow dependency from parent scope', () => {
+      const formula = testContext.createSelector({
         a: 1,
         b: {
           a: 2,
           c: '$a',
         },
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: 1,
         b: {
           a: 2,
@@ -291,14 +295,14 @@ describe('Test Compiler', function () {
       });
     });
 
-    it('should allow reference shadowed variable', function () {
-      const formula = this.createSelector({
+    test('should allow reference shadowed variable', () => {
+      const formula = testContext.createSelector({
         a: 1,
         b: {
           a: { $add: ['$^a', 1] },
         },
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: 1,
         b: {
           a: 2,
@@ -306,51 +310,51 @@ describe('Test Compiler', function () {
       });
     });
 
-    it('should allow argument reference', function () {
-      const formula = this.createSelector({
+    test('should allow argument reference', () => {
+      const formula = testContext.createSelector({
         '~0': '$^0.context',
         a: '$0.x',
       });
-      formula({
+      expect(formula({
         context: { x: 1 },
-      }).should.deep.equal({
+      })).toEqual({
         a: 1,
       });
     });
 
-    it('should extract field from the first argument', function () {
-      const formula = this.createSelector({
+    test('should extract field from the first argument', () => {
+      const formula = testContext.createSelector({
         a: '$0.x',
       });
-      formula({ x: 1 }).should.deep.equal({
+      expect(formula({ x: 1 })).toEqual({
         a: 1,
       });
     });
 
-    it('should extract second argument', function () {
-      const formula = this.createSelector({
+    test('should extract second argument', () => {
+      const formula = testContext.createSelector({
         a: '$1',
       });
-      formula(null, 1).should.deep.equal({
+      expect(formula(null, 1)).toEqual({
         a: 1,
       });
     });
 
-    it('should filter contents of an array', function () {
-      const formula = this.createSelector({
+    test('should filter contents of an array', () => {
+      const formula = testContext.createSelector({
         a: [{ x: 1 }, { x: 2 }, { x: 3 }, { x: 4 }],
         b: {
           $filter: ['$a', { x: 1 }],
         },
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: [{ x: 1 }, { x: 2 }, { x: 3 }, { x: 4 }],
         b: [{ x: 1 }],
       });
     });
 
-    it('should create a function based on a formula', function () {
-      const formula = this.createSelector({
+    test('should create a function based on a formula', () => {
+      const formula = testContext.createSelector({
         a: {
           '?': ['x', 'y'],
           '=': {
@@ -359,12 +363,12 @@ describe('Test Compiler', function () {
         },
       });
       const result = formula();
-      result.a(1, 2).should.deep.equal(3);
-      result.a(3, 4).should.deep.equal(7);
+      expect(result.a(1, 2)).toEqual(3);
+      expect(result.a(3, 4)).toEqual(7);
     });
 
-    it('should evaluate a predefined formula', function () {
-      const formula = this.createSelector({
+    test('should evaluate a predefined formula', () => {
+      const formula = testContext.createSelector({
         a: {
           '?': ['x', 'y'],
           '=': {
@@ -376,11 +380,11 @@ describe('Test Compiler', function () {
         },
       });
       const result = formula();
-      result.b.should.deep.equal(5);
+      expect(result.b).toEqual(5);
     });
 
-    it('should evaluate comparision operator', function () {
-      const formula = this.createSelector({
+    test('should evaluate comparision operator', () => {
+      const formula = testContext.createSelector({
         a: {
           $lt: [1, 2],
         },
@@ -388,14 +392,14 @@ describe('Test Compiler', function () {
           $lt: [2, 1],
         },
       });
-      formula().should.deep.equal({
+      expect(formula()).toEqual({
         a: true,
         b: false,
       });
     });
 
-    it('should evaluate conditional formula', function () {
-      const formula = this.createSelector({
+    test('should evaluate conditional formula', () => {
+      const formula = testContext.createSelector({
         min: {
           '?': ['x', 'y'],
           '=': {
@@ -404,12 +408,12 @@ describe('Test Compiler', function () {
         },
       });
       const result = formula();
-      result.min(1, 2).should.deep.equal(1);
-      result.min(2, 1).should.deep.equal(1);
+      expect(result.min(1, 2)).toEqual(1);
+      expect(result.min(2, 1)).toEqual(1);
     });
 
-    it('should evaluate a recursive function', function () {
-      const formula = this.createSelector({
+    test('should evaluate a recursive function', () => {
+      const formula = testContext.createSelector({
         triangle: {
           '?': ['x'],
           '=': {
@@ -422,11 +426,11 @@ describe('Test Compiler', function () {
         },
       });
       const result = formula();
-      result.triangle(2).should.deep.equal(3);
+      expect(result.triangle(2)).toEqual(3);
     });
 
-    it('should evaluate a complex functions composition', function () {
-      const formula = this.createSelector({
+    test('should evaluate a complex functions composition', () => {
+      const formula = testContext.createSelector({
         subtract: {
           '?': ['x', 'y'],
           '=': { $sub: ['$x', '$y'] },
@@ -441,14 +445,14 @@ describe('Test Compiler', function () {
         },
       });
       const result = formula();
-      result.value.should.equal(1);
-      result.subtract(1, 2).should.equal(-1);
+      expect(result.value).toBe(1);
+      expect(result.subtract(1, 2)).toBe(-1);
       // NOTE: I don't believe this one works :)
-      result.swap((x, y) => x / y)(5, 10).should.equal(2);
+      expect(result.swap((x, y) => x / y)(5, 10)).toBe(2);
     });
 
-    it('should process a tree data structure', function () {
-      const formula = this.createSelector({
+    test('should process a tree data structure', () => {
+      const formula = testContext.createSelector({
         map: {
           '?': ['node'],
           '=': {
@@ -479,7 +483,7 @@ describe('Test Compiler', function () {
           },
         },
       });
-      result.should.deep.equal({
+      expect(result).toEqual({
         name: 'A',
         left: {
           name: 'B',
@@ -499,39 +503,39 @@ describe('Test Compiler', function () {
     });
   });
 
-  describe('Macros', function () {
-    it('should use an explicit selector as a macro', function () {
-      const formula = this.createSelector({
+  describe('Macros', () => {
+    test('should use an explicit selector as a macro', () => {
+      const formula = testContext.createSelector({
         // TODO: This also works, why?
         // a: { ':=': identity },
         a: { ':=': constant(identity) },
       });
-      formula(1).should.deep.equal({
+      expect(formula(1)).toEqual({
         a: 1,
       });
     });
 
-    it('should use a function expression as a macro', function () {
-      const formula = this.createSelector({
+    test('should use a function expression as a macro', () => {
+      const formula = testContext.createSelector({
         '~selector': {
           '?': ['0', '1'],
           '=': { $add: ['$0', '$1'] },
         },
         a: { ':=': '$selector' },
       });
-      formula(1, 2).should.deep.equal({
+      expect(formula(1, 2)).toEqual({
         a: 3,
       });
     });
 
-    it('should create macro from explicit expression', function () {
-      const formula = this.createSelector({
+    test('should create macro from explicit expression', () => {
+      const formula = testContext.createSelector({
         selector: {
           '_=': { _$add: ['_$0', '_$1'] },
         },
         a: { ':=': '$selector' },
       });
-      formula(1, 2).should.deep.equal({
+      expect(formula(1, 2)).toEqual({
         selector: {
           '=': { $add: ['$0', '$1'] },
         },
@@ -539,23 +543,23 @@ describe('Test Compiler', function () {
       });
     });
 
-    it('should create a parametrized macro', function () {
-      const formula = this.createSelector({
+    test('should create a parametrized macro', () => {
+      const formula = testContext.createSelector({
         '~selector': {
           '?': ['x', 'y'],
           '_=': { _$add: ['$x', '$y'] },
         },
         a: { ':=': { $selector: ['$0', '$1'] } },
       });
-      formula(1, 2).should.deep.equal({
+      expect(formula(1, 2)).toEqual({
         a: 3,
       });
     });
   });
 
-  describe('Value mappings', function () {
-    it('should map object fields', function () {
-      const formula = this.createSelector({
+  describe('Value mappings', () => {
+    test('should map object fields', () => {
+      const formula = testContext.createSelector({
         '<-': '$0',
         '->': {
           '?': ['value', 'key'],
@@ -565,14 +569,14 @@ describe('Test Compiler', function () {
           },
         },
       });
-      formula({ a: 1, b: 2 }).should.deep.equal({
+      expect(formula({ a: 1, b: 2 })).toEqual({
         a: { v: 1, k: 'a' },
         b: { v: 2, k: 'b' },
       });
     });
 
-    it('should map array elements', function () {
-      const formula = this.createSelector({
+    test('should map array elements', () => {
+      const formula = testContext.createSelector({
         '<-': '$0',
         '->': {
           '?': ['value', 'key'],
@@ -582,14 +586,14 @@ describe('Test Compiler', function () {
           },
         },
       });
-      formula([1, 2]).should.deep.equal([
+      expect(formula([1, 2])).toEqual([
         { v: 1, k: 0 },
         { v: 2, k: 1 },
       ]);
     });
 
-    it('should map array elements with custom caching key', function () {
-      const formula = this.createSelector({
+    test('should map array elements with custom caching key', () => {
+      const formula = testContext.createSelector({
         '<-': '$0',
         '->': {
           '?': ['x', 'y'],
@@ -597,11 +601,11 @@ describe('Test Compiler', function () {
         },
         '~key': 'id',
       });
-      formula([
+      expect(formula([
         { id: '1', v: 'a' },
         { id: '2', v: 'b' },
         { id: '3', v: 'c' },
-      ]).should.deep.equal([
+      ])).toEqual([
         { v: '1,a' },
         { v: '2,b' },
         { v: '3,c' },
@@ -609,36 +613,36 @@ describe('Test Compiler', function () {
     });
   });
 
-  describe('Native functions', function () {
-    it('should embed a custom selector', function () {
-      const formula = this.createSelector({
+  describe('Native functions', () => {
+    test('should embed a custom selector', () => {
+      const formula = testContext.createSelector({
         x: (...args) => args[0],
       });
-      formula(1).should.deep.equal({
+      expect(formula(1)).toEqual({
         x: 1,
       });
     });
 
-    it('should be able to embed a custom function', function () {
+    test('should be able to embed a custom function', () => {
       const func = x => x + 1;
-      const formula = this.createSelector({
+      const formula = testContext.createSelector({
         func: { '!': func },
         x: { $func: [2] },
       });
-      formula(1).should.deep.equal({
+      expect(formula(1)).toEqual({
         func,
         x: 3,
       });
     });
 
-    it('should be able to to call a custom function directly', function () {
+    test('should be able to to call a custom function directly', () => {
       const func = x => x + 1;
-      const formula = this.createSelector({
+      const formula = testContext.createSelector({
         x: 3,
         // y: { '!': func, '>': ['$x'] },
         z: { '<<': ['$x'], '>!': func },
       });
-      formula(1).should.deep.equal({
+      expect(formula(1)).toEqual({
         x: 3,
         // y: 4,
         z: 4,
@@ -646,9 +650,9 @@ describe('Test Compiler', function () {
     });
   });
 
-  describe('Advanced functions', function () {
-    it('should create a function parametrized by input', function () {
-      const formula = this.createSelector({
+  describe('Advanced functions', () => {
+    test('should create a function parametrized by input', () => {
+      const formula = testContext.createSelector({
         x: '$0.value',
         inc: {
           '?': ['y'],
@@ -657,11 +661,11 @@ describe('Test Compiler', function () {
           },
         },
       });
-      formula({ value: 2 }).inc(1).should.equal(3);
+      expect(formula({ value: 2 }).inc(1)).toBe(3);
     });
 
-    it('should be able to invoke a function via operator notation', function () {
-      const formula = this.createSelector({
+    test('should be able to invoke a function via operator notation', () => {
+      const formula = testContext.createSelector({
         inc: {
           '?': ['x'],
           '=': {
@@ -670,38 +674,44 @@ describe('Test Compiler', function () {
         },
         val: { $inc: [1] },
       });
-      formula().val.should.equal(2);
+      expect(formula().val).toBe(2);
     });
 
-    it('should be able to invoke a function with one argument instead of arguments list', function () {
-      const formula = this.createSelector({
-        inc: {
-          '?': ['x'],
-          '=': {
-            $add: ['$x', 1],
+    test(
+      'should be able to invoke a function with one argument instead of arguments list',
+      () => {
+        const formula = testContext.createSelector({
+          inc: {
+            '?': ['x'],
+            '=': {
+              $add: ['$x', 1],
+            },
           },
-        },
-        val: {
-          '<<': 1,
-          '>>': '$inc',
-        },
-      });
-      formula().val.should.equal(2);
-    });
+          val: {
+            '<<': 1,
+            '>>': '$inc',
+          },
+        });
+        expect(formula().val).toBe(2);
+      },
+    );
 
-    it('should be able to invoke an operator with one argument instead of arguments list', function () {
-      const formula = this.createSelector({
-        a: { $not: true },
-        b: { $not: [true] },
-      });
-      formula().should.deep.equal({
-        a: false,
-        b: false,
-      });
-    });
+    test(
+      'should be able to invoke an operator with one argument instead of arguments list',
+      () => {
+        const formula = testContext.createSelector({
+          a: { $not: true },
+          b: { $not: [true] },
+        });
+        expect(formula()).toEqual({
+          a: false,
+          b: false,
+        });
+      },
+    );
 
-    it('should create constant functor', function () {
-      const formula = this.createSelector({
+    test('should create constant functor', () => {
+      const formula = testContext.createSelector({
         constant: {
           '?': ['x'],
           '=': {
@@ -710,11 +720,11 @@ describe('Test Compiler', function () {
           },
         },
       });
-      formula().constant(2)().should.equal(2);
+      expect(formula().constant(2)()).toBe(2);
     });
 
-    it('should create a nested function', function () {
-      const formula = this.createSelector({
+    test('should create a nested function', () => {
+      const formula = testContext.createSelector({
         add: {
           '?': ['x'],
           '=': {
@@ -723,11 +733,11 @@ describe('Test Compiler', function () {
           },
         },
       });
-      formula().add(2)(3).should.equal(5);
+      expect(formula().add(2)(3)).toBe(5);
     });
 
-    it('should create a double nested function', function () {
-      const formula = this.createSelector({
+    test('should create a double nested function', () => {
+      const formula = testContext.createSelector({
         add: {
           '?': ['x'],
           '=': {
@@ -739,11 +749,11 @@ describe('Test Compiler', function () {
           },
         },
       });
-      formula().add(1)(2)(3).should.equal(6);
+      expect(formula().add(1)(2)(3)).toBe(6);
     });
 
-    it('should partially apply a nested function', function () {
-      const formula = this.createSelector({
+    test('should partially apply a nested function', () => {
+      const formula = testContext.createSelector({
         add: {
           '?': ['x'],
           '=': {
@@ -754,39 +764,39 @@ describe('Test Compiler', function () {
         add1: { $add: [1] },
         value: { $add1: [4] },
       });
-      formula().add1(2).should.equal(3);
-      formula().value.should.equal(5);
+      expect(formula().add1(2)).toBe(3);
+      expect(formula().value).toBe(5);
     });
   });
 
-  describe('Value persistance', function () {
-    it('should persist on constant formula', function () {
-      const formula = this.createSelector({
+  describe('Value persistance', () => {
+    test('should persist on constant formula', () => {
+      const formula = testContext.createSelector({
         a: 1,
       });
-      formula({}).should.equal(formula({}));
+      expect(formula({})).toBe(formula({}));
     });
 
-    it('should persist if dependencies do not change', function () {
-      const formula = this.createSelector({
+    test('should persist if dependencies do not change', () => {
+      const formula = testContext.createSelector({
         a: '$0.x',
       });
-      formula({ x: 1, y: 1 }).should.equal(formula({ x: 1, y: 2 }));
+      expect(formula({ x: 1, y: 1 })).toBe(formula({ x: 1, y: 2 }));
     });
 
-    it('should persist a function call', function () {
-      const formula = this.createSelector({
+    test('should persist a function call', () => {
+      const formula = testContext.createSelector({
         map: {
           '?': ['x'],
           v: '$x',
         },
         a: { $map: '$0.x' },
       });
-      formula({ x: 1, y: 1 }).should.equal(formula({ x: 1, y: 2 }));
+      expect(formula({ x: 1, y: 1 })).toBe(formula({ x: 1, y: 2 }));
     });
 
-    it('should persist map values', function () {
-      const formula = this.createSelector({
+    test('should persist map values', () => {
+      const formula = testContext.createSelector({
         '<-': '$0',
         '->': {
           '?': ['value', 'index'],
@@ -798,11 +808,11 @@ describe('Test Compiler', function () {
       });
       const out1 = formula({ a: 1, b: 2 });
       const out2 = formula({ a: 1, b: 2 });
-      out1.should.equal(out2);
+      expect(out1).toBe(out2);
     });
 
-    it('should persist map array elements with custom caching key', function () {
-      const formula = this.createSelector({
+    test('should persist map array elements with custom caching key', () => {
+      const formula = testContext.createSelector({
         '<-': '$0',
         '->': {
           '?': ['x'],
@@ -823,9 +833,9 @@ describe('Test Compiler', function () {
         doc1,
         doc2,
       ]);
-      out1[0].should.equal(out2[1]);
-      out1[1].should.equal(out2[2]);
-      out1[2].should.equal(out2[0]);
+      expect(out1[0]).toBe(out2[1]);
+      expect(out1[1]).toBe(out2[2]);
+      expect(out1[2]).toBe(out2[0]);
     });
   });
 });

@@ -1,6 +1,4 @@
-/* eslint-env mocha */
-/* eslint no-unused-expressions: "off" */
-/* eslint func-names: "off" */
+/* eslint-env jest */
 
 import Scope from './Scope';
 
@@ -8,21 +6,27 @@ import Scope from './Scope';
 // const identity = x => x;
 
 describe('Test Scope', () => {
+  let testContext;
+
+  beforeEach(() => {
+    testContext = {};
+  });
+
   describe('Given a scope without unknowns', () => {
-    beforeEach(function () {
-      this.scope = new Scope();
+    beforeEach(() => {
+      testContext.scope = new Scope();
     });
-    it('should not have any own unknowns', function () {
-      this.scope.hasOwnUnknowns().should.be.false;
+    test('should not have any own unknowns', () => {
+      expect(testContext.scope.hasOwnUnknowns()).toBe(false);
     });
   });
 
   describe('Given a scope with unknowns', () => {
-    beforeEach(function () {
-      this.scope = new Scope(null, ['x', 'y']);
+    beforeEach(() => {
+      testContext.scope = new Scope(null, ['x', 'y']);
     });
-    it('should have own unknowns', function () {
-      this.scope.hasOwnUnknowns().should.be.true;
+    test('should have own unknowns', () => {
+      expect(testContext.scope.hasOwnUnknowns()).toBe(true);
     });
   });
 });

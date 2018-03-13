@@ -17,6 +17,7 @@
   "settings": {},
   "rules": {
     "react/jsx-filename-extension": "off",
-    "function-paren-newline": "off"
+    "function-paren-newline": "off",
+    "max-len": ["error", { "code": 120 }]
   }
 }

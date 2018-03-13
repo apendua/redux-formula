@@ -1,78 +1,78 @@
-/* eslint-env mocha */
-/* eslint no-unused-expressions: "off" */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint func-names: "off" */
+/* eslint-env jest */
 
-import chai from 'chai';
 import Token from './Parser.Token';
 
-chai.should();
-
 describe('Test Token; ', () => {
-  beforeEach(function () {
-    this.s1 = new Token();
-    this.s1.ifUsedAsPrefix(i => (i === 1 ? 'prefix_1' : null));
-    this.s1.ifUsedAsPrefix(i => (i === 2 ? 'prefix_2' : null));
-    this.s1.ifUsedAsInfix(i => (i === 1 ? 'infix_1' : null));
-    this.s1.ifUsedAsInfix(i => (i === 2 ? 'infix_2' : null));
-    this.s1.ifUsedAsStatement(() => 'statement_1');
+  let testContext;
 
-    this.s2 = new Token();
+  beforeEach(() => {
+    testContext = {};
   });
 
-  it('should know if it can be used as prefix', function () {
-    this.s1.canBeUsedAsPrefix().should.be.true;
+  beforeEach(() => {
+    testContext.s1 = new Token();
+    testContext.s1.ifUsedAsPrefix(i => (i === 1 ? 'prefix_1' : null));
+    testContext.s1.ifUsedAsPrefix(i => (i === 2 ? 'prefix_2' : null));
+    testContext.s1.ifUsedAsInfix(i => (i === 1 ? 'infix_1' : null));
+    testContext.s1.ifUsedAsInfix(i => (i === 2 ? 'infix_2' : null));
+    testContext.s1.ifUsedAsStatement(() => 'statement_1');
+
+    testContext.s2 = new Token();
   });
 
-  it('should know if it can be used as infix', function () {
-    this.s1.canBeUsedAsInfix().should.be.true;
+  test('should know if it can be used as prefix', () => {
+    expect(testContext.s1.canBeUsedAsPrefix()).toBe(true);
   });
 
-  it('should know if it can be used as statement', function () {
-    this.s1.canBeUsedAsStatement().should.be.true;
+  test('should know if it can be used as infix', () => {
+    expect(testContext.s1.canBeUsedAsInfix()).toBe(true);
   });
 
-  it('should know if it cannot be used as prefix', function () {
-    this.s2.canBeUsedAsPrefix().should.be.false;
+  test('should know if it can be used as statement', () => {
+    expect(testContext.s1.canBeUsedAsStatement()).toBe(true);
   });
 
-  it('should know if it cannot be used as infix', function () {
-    this.s2.canBeUsedAsInfix().should.be.false;
+  test('should know if it cannot be used as prefix', () => {
+    expect(testContext.s2.canBeUsedAsPrefix()).toBe(false);
   });
 
-  it('should know if it cannot be used as statement', function () {
-    this.s2.canBeUsedAsStatement().should.be.false;
+  test('should know if it cannot be used as infix', () => {
+    expect(testContext.s2.canBeUsedAsInfix()).toBe(false);
   });
 
-  it('should resolve at prefix postion', function () {
-    this.s1.resolve('prefix', 1).should.equal('prefix_1');
+  test('should know if it cannot be used as statement', () => {
+    expect(testContext.s2.canBeUsedAsStatement()).toBe(false);
   });
 
-  it('should resolve at infix postion', function () {
-    this.s1.resolve('infix', 1).should.equal('infix_1');
+  test('should resolve at prefix postion', () => {
+    expect(testContext.s1.resolve('prefix', 1)).toBe('prefix_1');
   });
 
-  it('should resolve at statement postion', function () {
-    this.s1.resolve('statement').should.equal('statement_1');
+  test('should resolve at infix postion', () => {
+    expect(testContext.s1.resolve('infix', 1)).toBe('infix_1');
   });
 
-  it('should find alternative path at prefix postion', function () {
-    this.s1.resolve('prefix', 2).should.equal('prefix_2');
+  test('should resolve at statement postion', () => {
+    expect(testContext.s1.resolve('statement')).toBe('statement_1');
   });
 
-  it('should find alternative path infix postion', function () {
-    this.s1.resolve('infix', 2).should.equal('infix_2');
+  test('should find alternative path at prefix postion', () => {
+    expect(testContext.s1.resolve('prefix', 2)).toBe('prefix_2');
   });
 
-  it('should throw if resolved in unknown context', function () {
-    (() => {
-      this.s1.resolve('unknown');
-    }).should.throw(/Unexpected/);
+  test('should find alternative path infix postion', () => {
+    expect(testContext.s1.resolve('infix', 2)).toBe('infix_2');
   });
 
-  it('should throw if no resulution path is find', function () {
-    (() => {
-      this.s1.resolve('infix', 3);
-    }).should.throw(/Unexpected/);
+  test('should throw if resolved in unknown context', () => {
+    expect(() => {
+      testContext.s1.resolve('unknown');
+    }).toThrowError(/Unexpected/);
+  });
+
+  test('should throw if no resulution path is find', () => {
+    expect(() => {
+      testContext.s1.resolve('infix', 3);
+    }).toThrowError(/Unexpected/);
   });
 });

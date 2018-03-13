@@ -1,7 +1,4 @@
-/* eslint-env mocha */
-/* eslint no-unused-expressions: "off" */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint func-names: "off" */
+/* eslint-env jest */
 
 import jsc from 'jsverify';
 import sample from 'lodash/sample';
@@ -70,7 +67,7 @@ arbitrary.token = jsc.oneof([
 
 function property(arb, verify) {
   let error = null;
-  const test = jsc.forall(arb, function (...args) {
+  const test = jsc.forall(arb, (...args) => {
     try {
       return verify(...args);
     } catch (err) {
@@ -78,7 +75,7 @@ function property(arb, verify) {
     }
     return false;
   });
-  return function () {
+  return () => {
     try {
       jsc.assert(test);
     } catch (err) {
@@ -142,7 +139,7 @@ function compile(rawTokens) {
     }
     tokens.push({
       value,
-      ...valueType && { valueType },
+      ...(valueType && { valueType }),
       type,
       line: 0,
       from: code.length + sep.length,
@@ -158,12 +155,12 @@ function compile(rawTokens) {
 describe('Test Tokenizer', () => {
   const tokenizer = createTokenizer();
 
-  it('should properly tokenize random chains of tokens', property(
+  test('should properly tokenize random chains of tokens', property(
     jsc.array(arbitrary.token),
     (tokens) => {
       const compiled = compile(tokens);
       const parsedTokens = tokenizer.tokenize(compiled.code);
-      parsedTokens.should.deep.equal(compiled.tokens);
+      expect(parsedTokens).toEqual(compiled.tokens);
       return true;
     }));
 });

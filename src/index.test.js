@@ -1,10 +1,5 @@
-/* eslint-env mocha */
-/* eslint no-unused-expressions: "off" */
-/* eslint func-names: "off" */
-/* eslint prefer-arrow-callback: "off" */
+/* eslint-env jest */
 
-import chai from 'chai';
-import sinonChai from 'sinon-chai';
 import {
   Compiler,
   presetDefault,
@@ -12,55 +7,58 @@ import {
   formulaSelectorFactory,
 } from './index';
 
-chai.should();
-chai.use(sinonChai);
+describe('Test Public Api', () => {
+  let testContext;
 
-describe('Test Public Api', function () {
-  describe('Basic formulas', function () {
-    it('should select an empty object', function () {
+  beforeEach(() => {
+    testContext = {};
+  });
+
+  describe('Basic formulas', () => {
+    test('should select an empty object', () => {
       const selector = formulaSelector({});
-      selector().should.deep.equal({});
+      expect(selector()).toEqual({});
     });
 
-    it('should select a plain literal', function () {
+    test('should select a plain literal', () => {
       const selector = formulaSelector({
         '!': 1,
       });
-      selector().should.deep.equal(1);
+      expect(selector()).toEqual(1);
     });
   });
 
-  describe('Selector factory', function () {
-    it('should select an empty object', function () {
+  describe('Selector factory', () => {
+    test('should select an empty object', () => {
       const factory = formulaSelectorFactory({});
-      factory()().should.deep.equal({});
+      expect(factory()()).toEqual({});
     });
 
-    it('should select a plain literal', function () {
+    test('should select a plain literal', () => {
       const factory = formulaSelectorFactory({
         '!': 1,
       });
-      factory()().should.deep.equal(1);
+      expect(factory()()).toEqual(1);
     });
   });
 
-  describe('Plugins', function () {
-    beforeEach(function () {
-      this.compiler = new Compiler({
+  describe('Plugins', () => {
+    beforeEach(() => {
+      testContext.compiler = new Compiler({
         plugins: presetDefault,
       });
     });
 
-    it('should dynamically add a new plugin', function () {
-      this.compiler.addPlugin({
+    test('should dynamically add a new plugin', () => {
+      testContext.compiler.addPlugin({
         createOperators: () => ({
           $value: scope => () => selectX => scope.relative(selectX),
         }),
       });
-      const selector = this.compiler.createSelector({
+      const selector = testContext.compiler.createSelector({
         $value: 1,
       });
-      selector().should.deep.equal(1);
+      expect(selector()).toEqual(1);
     });
   });
 });

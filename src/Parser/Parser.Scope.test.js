@@ -1,75 +1,75 @@
-/* eslint-env mocha */
-/* eslint no-unused-expressions: "off" */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint func-names: "off" */
+/* eslint-env jest */
 
-import chai, { expect } from 'chai';
 import Scope from './Parser.Scope';
 
-chai.should();
-
 describe('Test Scope; ', () => {
+  let testContext;
+
+  beforeEach(() => {
+    testContext = {};
+  });
+
   describe('given a simple scope', () => {
-    beforeEach(function () {
-      this.scope = new Scope(null, {
+    beforeEach(() => {
+      testContext.scope = new Scope(null, {
         a: 1,
         b: 2,
       });
     });
 
-    it('should be able to lookup symbols', function () {
-      this.scope.lookup('a').should.equal(1);
-      this.scope.lookup('b').should.equal(2);
+    test('should be able to lookup symbols', () => {
+      expect(testContext.scope.lookup('a')).toBe(1);
+      expect(testContext.scope.lookup('b')).toBe(2);
     });
 
-    it('should be able to get symbols', function () {
-      this.scope.get('a').should.equal(1);
-      this.scope.get('b').should.equal(2);
+    test('should be able to get symbols', () => {
+      expect(testContext.scope.get('a')).toBe(1);
+      expect(testContext.scope.get('b')).toBe(2);
     });
 
-    it('should be able to define symbols', function () {
-      this.scope.define('c', 3);
-      this.scope.lookup('c').should.equal(3);
+    test('should be able to define symbols', () => {
+      testContext.scope.define('c', 3);
+      expect(testContext.scope.lookup('c')).toBe(3);
     });
 
-    it('should be able to remove existing symbols', function () {
-      this.scope.remove('a');
-      expect(this.scope.lookup('a')).to.be.undefined;
+    test('should be able to remove existing symbols', () => {
+      testContext.scope.remove('a');
+      expect(testContext.scope.lookup('a')).toBeUndefined();
     });
   });
 
   describe('Given a scope hierarchy', () => {
-    beforeEach(function () {
-      this.scope1 = new Scope(null, { a: 4 });
-      this.scope2 = this.scope1.child({ b: 5 });
+    beforeEach(() => {
+      testContext.scope1 = new Scope(null, { a: 4 });
+      testContext.scope2 = testContext.scope1.child({ b: 5 });
     });
 
-    it('should be able to lookup symbol', function () {
-      this.scope2.lookup('b').should.equal(5);
+    test('should be able to lookup symbol', () => {
+      expect(testContext.scope2.lookup('b')).toBe(5);
     });
 
-    it('should be able to lookup symbol from parent scope', function () {
-      this.scope2.lookup('a').should.equal(4);
+    test('should be able to lookup symbol from parent scope', () => {
+      expect(testContext.scope2.lookup('a')).toBe(4);
     });
 
-    it('should not be able to access symbol from nested scope', function () {
-      expect(this.scope1.lookup('b')).to.be.undefined;
+    test('should not be able to access symbol from nested scope', () => {
+      expect(testContext.scope1.lookup('b')).toBeUndefined();
     });
 
-    it('should not affect parent scope when defining new symbol', function () {
-      this.scope2.define('c', 6);
-      expect(this.scope1.lookup('c')).to.be.undefined;
-      expect(this.scope2.lookup('c')).to.equal(6);
+    test('should not affect parent scope when defining new symbol', () => {
+      testContext.scope2.define('c', 6);
+      expect(testContext.scope1.lookup('c')).toBeUndefined();
+      expect(testContext.scope2.lookup('c')).toBe(6);
     });
 
-    it('should be able to overwrite parent symbol', function () {
-      this.scope2.define('a', 100);
-      this.scope2.lookup('a').should.equal(100);
+    test('should be able to overwrite parent symbol', () => {
+      testContext.scope2.define('a', 100);
+      expect(testContext.scope2.lookup('a')).toBe(100);
     });
 
-    it('however, should not affect the parent value', function () {
-      this.scope2.define('a', 100);
-      this.scope1.lookup('a').should.equal(4);
+    test('however, should not affect the parent value', () => {
+      testContext.scope2.define('a', 100);
+      expect(testContext.scope1.lookup('a')).toBe(4);
     });
   });
 });

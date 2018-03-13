@@ -1,159 +1,160 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 /* eslint no-unused-expressions: "off" */
 /* eslint func-names: "off" */
 /* eslint prefer-arrow-callback: "off" */
 
-import chai from 'chai';
-import sinonChai from 'sinon-chai';
 import Compiler from '../Compiler';
 import presetDefault from '../presets/default';
 
-chai.should();
-chai.use(sinonChai);
+describe('Test Default Operators', () => {
+  let testContext;
 
-describe('Test Default Operators', function () {
-  beforeEach(function () {
-    this.compiler = new Compiler({
+  beforeEach(() => {
+    testContext = {};
+  });
+
+  beforeEach(() => {
+    testContext.compiler = new Compiler({
       plugins: presetDefault,
     });
-    this.createSelector = this.compiler.createSelector.bind(this.compiler);
+    testContext.createSelector = testContext.compiler.createSelector.bind(testContext.compiler);
   });
 
-  it('should evaluate $sum', function () {
-    const formula = this.createSelector({
+  test('should evaluate $sum', () => {
+    const formula = testContext.createSelector({
       $sum: [1, 2, 3],
     });
-    formula().should.equal(6);
+    expect(formula()).toBe(6);
   });
 
-  it('should evaluate $prod', function () {
-    const formula = this.createSelector({
+  test('should evaluate $prod', () => {
+    const formula = testContext.createSelector({
       $prod: [2, 2, 2],
     });
-    formula().should.equal(8);
+    expect(formula()).toBe(8);
   });
 
-  it('should evaluate $neg', function () {
-    const formula = this.createSelector({
+  test('should evaluate $neg', () => {
+    const formula = testContext.createSelector({
       $neg: 1,
     });
-    formula().should.equal(-1);
+    expect(formula()).toBe(-1);
   });
 
-  it('should evaluate $add', function () {
-    const formula = this.createSelector({
+  test('should evaluate $add', () => {
+    const formula = testContext.createSelector({
       $add: [1, 2],
     });
-    formula().should.equal(3);
+    expect(formula()).toBe(3);
   });
 
-  it('should evaluate $sub', function () {
-    const formula = this.createSelector({
+  test('should evaluate $sub', () => {
+    const formula = testContext.createSelector({
       $sub: [1, 2],
     });
-    formula().should.equal(-1);
+    expect(formula()).toBe(-1);
   });
 
-  it('should evaluate $mul', function () {
-    const formula = this.createSelector({
+  test('should evaluate $mul', () => {
+    const formula = testContext.createSelector({
       $mul: [5, 2],
     });
-    formula().should.equal(10);
+    expect(formula()).toBe(10);
   });
 
-  it('should evaluate $pow', function () {
-    const formula = this.createSelector({
+  test('should evaluate $pow', () => {
+    const formula = testContext.createSelector({
       $pow: [5, 2],
     });
-    formula().should.equal(25);
+    expect(formula()).toBe(25);
   });
 
-  it('should evaluate $div', function () {
-    const formula = this.createSelector({
+  test('should evaluate $div', () => {
+    const formula = testContext.createSelector({
       $div: [6, 2],
     });
-    formula().should.equal(3);
+    expect(formula()).toBe(3);
   });
 
-  it('should evaluate $mod', function () {
-    const formula = this.createSelector({
+  test('should evaluate $mod', () => {
+    const formula = testContext.createSelector({
       $mod: [5, 2],
     });
-    formula().should.equal(1);
+    expect(formula()).toBe(1);
   });
 
-  it('should evaluate $eq', function () {
-    const formula = this.createSelector({
+  test('should evaluate $eq', () => {
+    const formula = testContext.createSelector({
       $eq: ['$0', '$1'],
     });
-    formula(1, 2).should.equal(false);
-    formula(2, 2).should.equal(true);
+    expect(formula(1, 2)).toBe(false);
+    expect(formula(2, 2)).toBe(true);
   });
 
-  it('should evaluate $neq', function () {
-    const formula = this.createSelector({
+  test('should evaluate $neq', () => {
+    const formula = testContext.createSelector({
       $neq: ['$0', '$1'],
     });
-    formula(1, 2).should.equal(true);
-    formula(2, 2).should.equal(false);
+    expect(formula(1, 2)).toBe(true);
+    expect(formula(2, 2)).toBe(false);
   });
 
-  it('should evaluate $lt', function () {
-    const formula = this.createSelector({
+  test('should evaluate $lt', () => {
+    const formula = testContext.createSelector({
       $lt: ['$0', '$1'],
     });
-    formula(1, 2).should.equal(true);
-    formula(2, 2).should.equal(false);
-    formula(3, 2).should.equal(false);
+    expect(formula(1, 2)).toBe(true);
+    expect(formula(2, 2)).toBe(false);
+    expect(formula(3, 2)).toBe(false);
   });
 
-  it('should evaluate $gt', function () {
-    const formula = this.createSelector({
+  test('should evaluate $gt', () => {
+    const formula = testContext.createSelector({
       $gt: ['$0', '$1'],
     });
-    formula(1, 2).should.equal(false);
-    formula(2, 2).should.equal(false);
-    formula(3, 2).should.equal(true);
+    expect(formula(1, 2)).toBe(false);
+    expect(formula(2, 2)).toBe(false);
+    expect(formula(3, 2)).toBe(true);
   });
 
-  it('should evaluate $lte', function () {
-    const formula = this.createSelector({
+  test('should evaluate $lte', () => {
+    const formula = testContext.createSelector({
       $lte: ['$0', '$1'],
     });
-    formula(1, 2).should.equal(true);
-    formula(2, 2).should.equal(true);
-    formula(3, 2).should.equal(false);
+    expect(formula(1, 2)).toBe(true);
+    expect(formula(2, 2)).toBe(true);
+    expect(formula(3, 2)).toBe(false);
   });
 
-  it('should evaluate $gte', function () {
-    const formula = this.createSelector({
+  test('should evaluate $gte', () => {
+    const formula = testContext.createSelector({
       $gte: ['$0', '$1'],
     });
-    formula(1, 2).should.equal(false);
-    formula(2, 2).should.equal(true);
-    formula(3, 2).should.equal(true);
+    expect(formula(1, 2)).toBe(false);
+    expect(formula(2, 2)).toBe(true);
+    expect(formula(3, 2)).toBe(true);
   });
 
-  it('should evaluate $not', function () {
-    const formula = this.createSelector({
+  test('should evaluate $not', () => {
+    const formula = testContext.createSelector({
       $not: ['$0'],
     });
-    formula(true).should.equal(false);
-    formula(false).should.equal(true);
+    expect(formula(true)).toBe(false);
+    expect(formula(false)).toBe(true);
   });
 
-  it('should evaluate $xor', function () {
-    const formula = this.createSelector({
+  test('should evaluate $xor', () => {
+    const formula = testContext.createSelector({
       $xor: ['$0', '$1'],
     });
-    formula(true, true).should.equal(false);
-    formula(true, false).should.equal(true);
-    formula(false, true).should.equal(true);
-    formula(false, false).should.equal(false);
+    expect(formula(true, true)).toBe(false);
+    expect(formula(true, false)).toBe(true);
+    expect(formula(false, true)).toBe(true);
+    expect(formula(false, false)).toBe(false);
   });
 
-  it('should use short circuit for $and', function () {
-    const formula = this.createSelector({
+  test('should use short circuit for $and', () => {
+    const formula = testContext.createSelector({
       $and: ['$0', {
         '>!': function () {
           throw new Error('Should not reach this line.');
@@ -161,14 +162,14 @@ describe('Test Default Operators', function () {
         '?:': [],
       }],
     });
-    formula(false).should.equal(false);
-    (() => {
+    expect(formula(false)).toBe(false);
+    expect(() => {
       formula(true);
-    }).should.throw(/Should not reach this line/);
+    }).toThrowError(/Should not reach this line/);
   });
 
-  it('should use short circuit for $or', function () {
-    const formula = this.createSelector({
+  test('should use short circuit for $or', () => {
+    const formula = testContext.createSelector({
       $or: ['$0', {
         '>!': function () {
           throw new Error('Should not reach this line.');
@@ -176,30 +177,30 @@ describe('Test Default Operators', function () {
         '?:': [],
       }],
     });
-    formula(true).should.equal(true);
-    (() => {
+    expect(formula(true)).toBe(true);
+    expect(() => {
       formula(false);
-    }).should.throw(/Should not reach this line/);
+    }).toThrowError(/Should not reach this line/);
   });
 
-  it('should evaluate $if', function () {
-    const formula = this.createSelector({
+  test('should evaluate $if', () => {
+    const formula = testContext.createSelector({
       $if: ['$0', 1, 2],
     });
-    formula(true).should.equal(1);
-    formula(false).should.equal(2);
+    expect(formula(true)).toBe(1);
+    expect(formula(false)).toBe(2);
   });
 
-  it('should evaluate $unless', function () {
-    const formula = this.createSelector({
+  test('should evaluate $unless', () => {
+    const formula = testContext.createSelector({
       $unless: ['$0', 1, 2],
     });
-    formula(false).should.equal(1);
-    formula(true).should.equal(2);
+    expect(formula(false)).toBe(1);
+    expect(formula(true)).toBe(2);
   });
 
-  it('should use short circuit for $if', function () {
-    const formula = this.createSelector({
+  test('should use short circuit for $if', () => {
+    const formula = testContext.createSelector({
       $if: ['$0', '$1', {
         '>!': function () {
           throw new Error('Should not reach this line.');
@@ -207,14 +208,14 @@ describe('Test Default Operators', function () {
         '?:': [],
       }],
     });
-    formula(true, 2).should.equal(2);
-    (() => {
+    expect(formula(true, 2)).toBe(2);
+    expect(() => {
       formula(false);
-    }).should.throw(/Should not reach this line/);
+    }).toThrowError(/Should not reach this line/);
   });
 
-  it('should use short circuit for $unless', function () {
-    const formula = this.createSelector({
+  test('should use short circuit for $unless', () => {
+    const formula = testContext.createSelector({
       $unless: ['$0', '$1', {
         '>!': function () {
           throw new Error('Should not reach this line.');
@@ -222,9 +223,9 @@ describe('Test Default Operators', function () {
         '?:': [],
       }],
     });
-    formula(false, 2).should.equal(2);
-    (() => {
+    expect(formula(false, 2)).toBe(2);
+    expect(() => {
       formula(true);
-    }).should.throw(/Should not reach this line/);
+    }).toThrowError(/Should not reach this line/);
   });
 });

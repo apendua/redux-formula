@@ -1,9 +1,8 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 /* eslint no-unused-expressions: "off" */
 /* eslint prefer-arrow-callback: "off" */
 /* eslint func-names: "off" */
 
-import chai from 'chai';
 import Tokenizer from './Tokenizer';
 import {
   identifier,
@@ -26,8 +25,6 @@ import {
   VALUE_TYPE_STRING,
 } from './../core/constants';
 
-chai.should();
-
 const createTokenizer = function () {
   const tokenizer = new Tokenizer({
     options: {
@@ -48,12 +45,18 @@ const createTokenizer = function () {
 export default createTokenizer;
 
 describe('Test Tokenizer', () => {
-  beforeEach(function () {
-    this.tokenizer = createTokenizer();
+  let testContext;
+
+  beforeEach(() => {
+    testContext = {};
   });
 
-  it('should reckognize an identifier', function () {
-    this.tokenizer.readToken('any', 0).should.deep.equal({
+  beforeEach(() => {
+    testContext.tokenizer = createTokenizer();
+  });
+
+  test('should reckognize an identifier', () => {
+    expect(testContext.tokenizer.readToken('any', 0)).toEqual({
       type: TOKEN_TYPE_IDENTIFIER,
       value: 'any',
       from: 0,
@@ -62,8 +65,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize an identifier prefixed with lodash', function () {
-    this.tokenizer.readToken('_any', 0).should.deep.equal({
+  test('should reckognize an identifier prefixed with lodash', () => {
+    expect(testContext.tokenizer.readToken('_any', 0)).toEqual({
       type: TOKEN_TYPE_IDENTIFIER,
       value: '_any',
       from: 0,
@@ -72,8 +75,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize an identifier containing digits', function () {
-    this.tokenizer.readToken('x12', 0).should.deep.equal({
+  test('should reckognize an identifier containing digits', () => {
+    expect(testContext.tokenizer.readToken('x12', 0)).toEqual({
       type: TOKEN_TYPE_IDENTIFIER,
       value: 'x12',
       from: 0,
@@ -82,8 +85,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should not reckognize an identifier started with a digit', function () {
-    this.tokenizer.readToken('1x', 0).should.deep.equal({
+  test('should not reckognize an identifier started with a digit', () => {
+    expect(testContext.tokenizer.readToken('1x', 0)).toEqual({
       type: TOKEN_TYPE_LITERAL,
       valueType: VALUE_TYPE_INTEGER,
       value: 1,
@@ -93,8 +96,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize an integer number', function () {
-    this.tokenizer.readToken('123', 0).should.deep.equal({
+  test('should reckognize an integer number', () => {
+    expect(testContext.tokenizer.readToken('123', 0)).toEqual({
       type: TOKEN_TYPE_LITERAL,
       valueType: VALUE_TYPE_INTEGER,
       value: 123,
@@ -104,8 +107,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize a decimal number', function () {
-    this.tokenizer.readToken('1234.5', 0).should.deep.equal({
+  test('should reckognize a decimal number', () => {
+    expect(testContext.tokenizer.readToken('1234.5', 0)).toEqual({
       type: TOKEN_TYPE_LITERAL,
       valueType: VALUE_TYPE_DECIMAL,
       value: 1234.5,
@@ -115,8 +118,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize a basic operator', function () {
-    this.tokenizer.readToken('+', 0).should.deep.equal({
+  test('should reckognize a basic operator', () => {
+    expect(testContext.tokenizer.readToken('+', 0)).toEqual({
       type: TOKEN_TYPE_OPERATOR,
       value: '+',
       from: 0,
@@ -125,8 +128,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize a compound operator', function () {
-    this.tokenizer.readToken('==', 0).should.deep.equal({
+  test('should reckognize a compound operator', () => {
+    expect(testContext.tokenizer.readToken('==', 0)).toEqual({
       type: TOKEN_TYPE_OPERATOR,
       value: '==',
       from: 0,
@@ -135,8 +138,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize a string literal', function () {
-    this.tokenizer.readToken('"abc"', 0).should.deep.equal({
+  test('should reckognize a string literal', () => {
+    expect(testContext.tokenizer.readToken('"abc"', 0)).toEqual({
       type: TOKEN_TYPE_LITERAL,
       valueType: VALUE_TYPE_STRING,
       value: 'abc',
@@ -146,8 +149,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize a string literal with escaped "', function () {
-    this.tokenizer.readToken('"\\""', 0).should.deep.equal({
+  test('should reckognize a string literal with escaped "', () => {
+    expect(testContext.tokenizer.readToken('"\\""', 0)).toEqual({
       type: TOKEN_TYPE_LITERAL,
       valueType: VALUE_TYPE_STRING,
       value: '"',
@@ -157,8 +160,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize a string literal with escaped \\', function () {
-    this.tokenizer.readToken('"\\\\"', 0).should.deep.equal({
+  test('should reckognize a string literal with escaped \\', () => {
+    expect(testContext.tokenizer.readToken('"\\\\"', 0)).toEqual({
       type: TOKEN_TYPE_LITERAL,
       valueType: VALUE_TYPE_STRING,
       value: '\\',
@@ -168,8 +171,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize a whitespace token', function () {
-    this.tokenizer.readToken(' \t\t ', 0).should.deep.equal({
+  test('should reckognize a whitespace token', () => {
+    expect(testContext.tokenizer.readToken(' \t\t ', 0)).toEqual({
       type: TOKEN_TYPE_WHITESPACE,
       value: ' \t\t ',
       from: 0,
@@ -178,8 +181,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize a line comment', function () {
-    this.tokenizer.readToken('# abc\n1', 0).should.deep.equal({
+  test('should reckognize a line comment', () => {
+    expect(testContext.tokenizer.readToken('# abc\n1', 0)).toEqual({
       type: TOKEN_TYPE_LINE_COMMENT,
       value: '# abc',
       from: 0,
@@ -188,8 +191,8 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should reckognize a keyword', function () {
-    this.tokenizer.readToken('AND', 0).should.deep.equal({
+  test('should reckognize a keyword', () => {
+    expect(testContext.tokenizer.readToken('AND', 0)).toEqual({
       type: TOKEN_TYPE_KEYWORD,
       value: 'AND',
       from: 0,
@@ -198,9 +201,9 @@ describe('Test Tokenizer', () => {
     });
   });
 
-  it('should throw error on unexpected character', function () {
-    (() => {
-      this.tokenizer.tokenize('`');
-    }).should.throw(/character/);
+  test('should throw error on unexpected character', () => {
+    expect(() => {
+      testContext.tokenizer.tokenize('`');
+    }).toThrowError(/character/);
   });
 });

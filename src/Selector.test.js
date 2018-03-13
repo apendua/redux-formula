@@ -1,6 +1,4 @@
-/* eslint-env mocha */
-/* eslint no-unused-expressions: "off" */
-/* eslint func-names: "off" */
+/* eslint-env jest */
 
 import Scope from './Scope';
 import Selector, {
@@ -13,240 +11,255 @@ const constant1 = x => () => x;
 // const identity = x => x;
 
 describe('Test Selector', () => {
+  let testContext;
+
+  beforeEach(() => {
+    testContext = {};
+  });
+
   describe('Given constant functor', () => {
-    beforeEach(function () {
-      this.obj = {};
+    beforeEach(() => {
+      testContext.obj = {};
     });
-    it('should create constant of order 0', function () {
-      constant(0)(this.obj).should.equal(this.obj);
+    test('should create constant of order 0', () => {
+      expect(constant(0)(testContext.obj)).toBe(testContext.obj);
     });
-    it('should create constant of order 1', function () {
-      constant(1)(this.obj)().should.equal(this.obj);
+    test('should create constant of order 1', () => {
+      expect(constant(1)(testContext.obj)()).toBe(testContext.obj);
     });
-    it('should create constant of order 2', function () {
-      constant(2)(this.obj)()().should.equal(this.obj);
+    test('should create constant of order 2', () => {
+      expect(constant(2)(testContext.obj)()()).toBe(testContext.obj);
     });
-    it('should create constant of order 2', function () {
-      constant(3)(this.obj)()()().should.equal(this.obj);
+    test('should create constant of order 2', () => {
+      expect(constant(3)(testContext.obj)()()()).toBe(testContext.obj);
     });
   });
 
   describe('Given lift functor', () => {
-    beforeEach(function () {
-      this.obj = {};
-      this.s1 = x => x;
-      this.s2 = x => y => x + y;
-      this.s3 = x => y => z => x + y + z;
+    beforeEach(() => {
+      testContext.obj = {};
+      testContext.s1 = x => x;
+      testContext.s2 = x => y => x + y;
+      testContext.s3 = x => y => z => x + y + z;
     });
-    it('should create lift of order 0, 0', function () {
-      lift(0, 0)(this.s1)(1).should.equal(1);
+    test('should create lift of order 0, 0', () => {
+      expect(lift(0, 0)(testContext.s1)(1)).toBe(1);
     });
-    it('should create lift of order 0, 1', function () {
-      lift(0, 1)(this.s1)()(1).should.equal(1);
+    test('should create lift of order 0, 1', () => {
+      expect(lift(0, 1)(testContext.s1)()(1)).toBe(1);
     });
-    it('should create lift of order 0, 2', function () {
-      lift(0, 2)(this.s1)()()(1).should.equal(1);
+    test('should create lift of order 0, 2', () => {
+      expect(lift(0, 2)(testContext.s1)()()(1)).toBe(1);
     });
-    it('should create lift of order 1, 0', function () {
-      lift(1, 0)(this.s2)(1)(2).should.equal(3);
+    test('should create lift of order 1, 0', () => {
+      expect(lift(1, 0)(testContext.s2)(1)(2)).toBe(3);
     });
-    it('should create lift of order 1, 1', function () {
-      lift(1, 1)(this.s2)(1)()(2).should.equal(3);
+    test('should create lift of order 1, 1', () => {
+      expect(lift(1, 1)(testContext.s2)(1)()(2)).toBe(3);
     });
-    it('should create lift of order 1, 2', function () {
-      lift(1, 2)(this.s2)(1)()()(2).should.equal(3);
+    test('should create lift of order 1, 2', () => {
+      expect(lift(1, 2)(testContext.s2)(1)()()(2)).toBe(3);
     });
-    it('should create lift of order 2, 0', function () {
-      lift(2, 0)(this.s2)(1)(2).should.equal(3);
+    test('should create lift of order 2, 0', () => {
+      expect(lift(2, 0)(testContext.s2)(1)(2)).toBe(3);
     });
-    it('should create lift of order 2, 1', function () {
-      lift(2, 1)(this.s2)(1)(2)().should.equal(3);
+    test('should create lift of order 2, 1', () => {
+      expect(lift(2, 1)(testContext.s2)(1)(2)()).toBe(3);
     });
-    it('should create lift of order 2, 2', function () {
-      lift(2, 2)(this.s2)(1)(2)()().should.equal(3);
+    test('should create lift of order 2, 2', () => {
+      expect(lift(2, 2)(testContext.s2)(1)(2)()()).toBe(3);
     });
   });
 
   describe('Given a scope without unknowns', () => {
-    beforeEach(function () {
-      this.scope = new Scope();
+    beforeEach(() => {
+      testContext.scope = new Scope();
     });
-    it('should select a literal', function () {
-      const selector = Selector.relativeTo(this.scope, constant1(1));
-      selector.selector().should.equal(1);
+    test('should select a literal', () => {
+      const selector = Selector.relativeTo(testContext.scope, constant1(1));
+      expect(selector.selector()).toBe(1);
     });
-    it('should select a specified literal', function () {
+    test('should select a specified literal', () => {
       const selector = Selector.relativeTo(
-        this.scope,
+        testContext.scope,
         identity,
       );
-      selector.selector(1).should.equal(1);
+      expect(selector.selector(1)).toBe(1);
     });
-    it('should select a specified literal indirectly', function () {
+    test('should select a specified literal indirectly', () => {
       const selector = Selector.relativeTo(
-        this.scope,
+        testContext.scope,
         identity,
       ).indirect();
-      selector.selector(2)().should.equal(2);
+      expect(selector.selector(2)()).toBe(2);
     });
   });
 
   describe('Given a scope with unknowns', () => {
-    beforeEach(function () {
-      this.scope = new Scope(null, ['x']);
+    beforeEach(() => {
+      testContext.scope = new Scope(null, ['x']);
     });
-    it('should select a function that returns a literal', function () {
+    test('should select a function that returns a literal', () => {
       const selector = Selector.create(
-        this.scope,
+        testContext.scope,
         constant1(1),
         identity,
       );
-      selector.selector()().should.equal(1);
+      expect(selector.selector()()).toBe(1);
     });
-    it('should select a function that returns a specified literal', function () {
+    test('should select a function that returns a specified literal', () => {
       const selector = Selector.create(
-        this.scope,
+        testContext.scope,
         identity,
         identity,
       );
-      selector.selector(2)().should.equal(2);
+      expect(selector.selector(2)()).toBe(2);
     });
-    it('should select a specified literal indirectly', function () {
+    test('should select a specified literal indirectly', () => {
       const selector = Selector.relativeTo(
-        this.scope,
+        testContext.scope,
         identity,
       ).indirect();
-      selector.selector(2)()().should.equal(2);
+      expect(selector.selector(2)()()).toBe(2);
     });
-    it('should select a function that returns a specified variable', function () {
+    test(
+      'should select a function that returns a specified variable',
+      () => {
+        const selector = Selector.create(
+          testContext.scope,
+          new Selector(
+            testContext.scope,
+            constant1(({ x }) => x),
+          ),
+          identity,
+        );
+        expect(selector.selector()({ x: 2 })).toBe(2);
+      },
+    );
+    test('should select an incrementation function', () => {
       const selector = Selector.create(
-        this.scope,
+        testContext.scope,
         new Selector(
-          this.scope,
-          constant1(({ x }) => x),
-        ),
-        identity,
-      );
-      selector.selector()({ x: 2 }).should.equal(2);
-    });
-    it('should select an incrementation function', function () {
-      const selector = Selector.create(
-        this.scope,
-        new Selector(
-          this.scope,
+          testContext.scope,
           y => (({ x }) => x + y),
         ),
         identity,
       );
-      selector.selector(2)({ x: 1 }).should.equal(3);
+      expect(selector.selector(2)({ x: 1 })).toBe(3);
     });
   });
 
   describe('Given a scope with parent unknowns', () => {
-    beforeEach(function () {
-      this.parentScope = new Scope(null, ['x']);
-      this.scope = new Scope(this.parentScope);
+    beforeEach(() => {
+      testContext.parentScope = new Scope(null, ['x']);
+      testContext.scope = new Scope(testContext.parentScope);
     });
-    it('should select a function that returns a literal', function () {
+    test('should select a function that returns a literal', () => {
       const selector = Selector.create(
-        this.scope,
+        testContext.scope,
         constant1(1),
         identity,
       );
-      selector.selector()().should.equal(1);
+      expect(selector.selector()()).toBe(1);
     });
-    it('should select a function that returns a specified literal', function () {
+    test('should select a function that returns a specified literal', () => {
       const selector = Selector.create(
-        this.scope,
+        testContext.scope,
         identity,
         identity,
       );
-      selector.selector(2)().should.equal(2);
+      expect(selector.selector(2)()).toBe(2);
     });
-    it('should select a specified literal indirectly', function () {
+    test('should select a specified literal indirectly', () => {
       const selector = Selector.relativeTo(
-        this.scope,
+        testContext.scope,
         identity,
       ).indirect();
-      selector.selector(2)()().should.equal(2);
+      expect(selector.selector(2)()()).toBe(2);
     });
-    it('should select a function that returns a specified variable', function () {
+    test(
+      'should select a function that returns a specified variable',
+      () => {
+        const selector = Selector.create(
+          testContext.scope,
+          new Selector(
+            testContext.scope,
+            constant1(({ x }) => x),
+          ),
+          identity,
+        );
+        expect(selector.selector()({ x: 2 })).toBe(2);
+      },
+    );
+    test('should select an incrementation function', () => {
       const selector = Selector.create(
-        this.scope,
+        testContext.scope,
         new Selector(
-          this.scope,
-          constant1(({ x }) => x),
-        ),
-        identity,
-      );
-      selector.selector()({ x: 2 }).should.equal(2);
-    });
-    it('should select an incrementation function', function () {
-      const selector = Selector.create(
-        this.scope,
-        new Selector(
-          this.scope,
+          testContext.scope,
           y => (({ x }) => x + y),
         ),
         identity,
       );
-      selector.selector(2)({ x: 1 }).should.equal(3);
+      expect(selector.selector(2)({ x: 1 })).toBe(3);
     });
   });
 
   describe('Given a scope with both self and parent unknowns', () => {
-    beforeEach(function () {
-      this.parentScope = new Scope(null, ['x']);
-      this.scope = new Scope(this.parentScope, ['y']);
+    beforeEach(() => {
+      testContext.parentScope = new Scope(null, ['x']);
+      testContext.scope = new Scope(testContext.parentScope, ['y']);
     });
-    it('should select a function that returns a literal', function () {
+    test('should select a function that returns a literal', () => {
       const selector = Selector.create(
-        this.scope,
+        testContext.scope,
         constant1(1),
         identity,
       );
-      selector.selector()()().should.equal(1);
+      expect(selector.selector()()()).toBe(1);
     });
-    it('should select a function that returns a specified literal', function () {
+    test('should select a function that returns a specified literal', () => {
       const selector = Selector.create(
-        this.scope,
+        testContext.scope,
         identity,
         identity,
       );
-      selector.selector(2)()().should.equal(2);
+      expect(selector.selector(2)()()).toBe(2);
     });
-    it('should select a specified literal indirectly', function () {
+    test('should select a specified literal indirectly', () => {
       const selector = Selector.relativeTo(
-        this.scope,
+        testContext.scope,
         identity,
       ).indirect();
-      selector.selector(2)()()().should.equal(2);
+      expect(selector.selector(2)()()()).toBe(2);
     });
-    it('should select a function that returns a specified variable', function () {
+    test(
+      'should select a function that returns a specified variable',
+      () => {
+        const selector = Selector.create(
+          testContext.scope,
+          new Selector(
+            testContext.scope,
+            constant1(constant1(({ x }) => x)),
+          ),
+          identity,
+        );
+        expect(selector.selector()()({ x: 2 })).toBe(2);
+      },
+    );
+    test('should select an incrementation function', () => {
       const selector = Selector.create(
-        this.scope,
+        testContext.scope,
         new Selector(
-          this.scope,
-          constant1(constant1(({ x }) => x)),
-        ),
-        identity,
-      );
-      selector.selector()()({ x: 2 }).should.equal(2);
-    });
-    it('should select an incrementation function', function () {
-      const selector = Selector.create(
-        this.scope,
-        new Selector(
-          this.parentScope,
+          testContext.parentScope,
           x => y => x + y,
         ),
         new Selector(
-          this.scope,
+          testContext.scope,
           x => y => z => x + y + z,
         ),
         (a, b) => a + b,
       );
-      selector.selector(1)(2)(3).should.equal(9);
+      expect(selector.selector(1)(2)(3)).toBe(9);
     });
   });
 });

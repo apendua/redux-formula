@@ -1,92 +1,92 @@
-/* eslint-env mocha */
-/* eslint no-unused-expressions: "off" */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint func-names: "off" */
+/* eslint-env jest */
 
-import chai, { expect } from 'chai';
 import string from './string';
 import {
   TOKEN_TYPE_LITERAL,
   VALUE_TYPE_STRING,
 } from '../../core/constants';
 
-chai.should();
-
 describe('Test String parser', () => {
-  beforeEach(function () {
-    this.parser = string();
+  let testContext;
+
+  beforeEach(() => {
+    testContext = {};
   });
 
-  it('should accept starting quotes', function () {
+  beforeEach(() => {
+    testContext.parser = string();
+  });
+
+  test('should accept starting quotes', () => {
     const state = {};
-    this.parser.accept({
+    expect(testContext.parser.accept({
       state,
       index: 0,
       value: '',
       ahead: 'a',
-    }, '"').should.be.true;
+    }, '"')).toBe(true);
   });
 
-  it('should not accept other characters at the beginning', function () {
+  test('should not accept other characters at the beginning', () => {
     const state = {};
-    this.parser.accept({
+    expect(testContext.parser.accept({
       state,
       index: 0,
       value: '',
       ahead: '',
-    }, 'a').should.be.false;
+    }, 'a')).toBe(false);
   });
 
-  it('should accept escaping slash', function () {
+  test('should accept escaping slash', () => {
     const state = {};
-    this.parser.accept({
+    expect(testContext.parser.accept({
       state,
       index: 1,
       value: '"',
       ahead: '"',
-    }, '\\').should.be.true;
-    state.escape.should.to.eql(1);
+    }, '\\')).toBe(true);
+    expect(state.escape).toEqual(1);
   });
 
-  it('should accept escaped quotes', function () {
+  test('should accept escaped quotes', () => {
     const state = { escape: true };
-    this.parser.accept({
+    expect(testContext.parser.accept({
       state,
       index: 1,
       value: '"\\',
       ahead: '"',
-    }, '"').should.be.true;
-    expect(state.escape).to.eql(0);
-    expect(state.done).not.to.be.true;
+    }, '"')).toBe(true);
+    expect(state.escape).toEqual(0);
+    expect(state.done).not.toBe(true);
   });
 
-  it('should finish if at ending quotes', function () {
+  test('should finish if at ending quotes', () => {
     const state = {};
-    this.parser.accept({
+    expect(testContext.parser.accept({
       state,
       index: 1,
       value: '"',
       ahead: '',
-    }, '"').should.be.true;
-    expect(state.done).to.be.true;
+    }, '"')).toBe(true);
+    expect(state.done).toBe(true);
   });
 
-  it('should not accept anything agter it is done', function () {
+  test('should not accept anything agter it is done', () => {
     const state = { done: true };
-    this.parser.accept({
+    expect(testContext.parser.accept({
       state,
       index: 2,
       value: '""',
       ahead: '',
-    }, 'x').should.be.false;
+    }, 'x')).toBe(false);
   });
 
-  it('should parse the resulting string', function () {
+  test('should parse the resulting string', () => {
     const text = 'This is a text\n "containing" escaped characters';
-    this.parser.create({
+    expect(testContext.parser.create({
       value: JSON.stringify(text),
       ahead: '',
-    }).should.deep.equal({
+    })).toEqual({
       type: TOKEN_TYPE_LITERAL,
       value: text,
       valueType: VALUE_TYPE_STRING,

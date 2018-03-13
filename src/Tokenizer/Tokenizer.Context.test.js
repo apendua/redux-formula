@@ -1,30 +1,30 @@
-/* eslint-env mocha */
-/* eslint no-unused-expressions: "off" */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint func-names: "off" */
+/* eslint-env jest */
 
-import chai from 'chai';
 import Context from './Tokenizer.Context';
 
-chai.should();
-
 describe('Test Tokenizer.Context', () => {
+  let testContext;
+
+  beforeEach(() => {
+    testContext = {};
+  });
+
   describe('Given "abc" string', () => {
-    beforeEach(function () {
-      this.context = new Context('abc', 0, { lineNo: 1 });
+    beforeEach(() => {
+      testContext.context = new Context('abc', 0, { lineNo: 1 });
     });
 
     describe('after first advance()', () => {
-      beforeEach(function () {
-        this.character = this.context.advance();
+      beforeEach(() => {
+        testContext.character = testContext.context.advance();
       });
 
-      it('the returned value should be "a"', function () {
-        this.character.should.equal('a');
+      test('the returned value should be "a"', () => {
+        expect(testContext.character).toBe('a');
       });
 
-      it('get() should return current state', function () {
-        this.context.get().should.deep.equal({
+      test('get() should return current state', () => {
+        expect(testContext.context.get()).toEqual({
           index: 0,
           value: '',
           ahead: 'b',
@@ -32,8 +32,8 @@ describe('Test Tokenizer.Context', () => {
         });
       });
 
-      it('wrap() should return current position', function () {
-        this.context.wrap({}).should.deep.equal({
+      test('wrap() should return current position', () => {
+        expect(testContext.context.wrap({})).toEqual({
           from: 0,
           to: -1,
           line: 1,
@@ -42,17 +42,17 @@ describe('Test Tokenizer.Context', () => {
     });
 
     describe('after second advance()', () => {
-      beforeEach(function () {
-        this.context.advance();
-        this.character = this.context.advance();
+      beforeEach(() => {
+        testContext.context.advance();
+        testContext.character = testContext.context.advance();
       });
 
-      it('the returned value should be "b"', function () {
-        this.character.should.equal('b');
+      test('the returned value should be "b"', () => {
+        expect(testContext.character).toBe('b');
       });
 
-      it('get() should return current state', function () {
-        this.context.get().should.deep.equal({
+      test('get() should return current state', () => {
+        expect(testContext.context.get()).toEqual({
           index: 1,
           value: 'a',
           ahead: 'c',
@@ -60,8 +60,8 @@ describe('Test Tokenizer.Context', () => {
         });
       });
 
-      it('wrap() should return current position', function () {
-        this.context.wrap({}).should.deep.equal({
+      test('wrap() should return current position', () => {
+        expect(testContext.context.wrap({})).toEqual({
           from: 0,
           to: 0,
           line: 1,
@@ -70,18 +70,18 @@ describe('Test Tokenizer.Context', () => {
     });
 
     describe('after third advance()', () => {
-      beforeEach(function () {
-        this.context.advance();
-        this.context.advance();
-        this.character = this.context.advance();
+      beforeEach(() => {
+        testContext.context.advance();
+        testContext.context.advance();
+        testContext.character = testContext.context.advance();
       });
 
-      it('the returned value should be "c"', function () {
-        this.character.should.equal('c');
+      test('the returned value should be "c"', () => {
+        expect(testContext.character).toBe('c');
       });
 
-      it('get() should return current state', function () {
-        this.context.get().should.deep.equal({
+      test('get() should return current state', () => {
+        expect(testContext.context.get()).toEqual({
           index: 2,
           value: 'ab',
           ahead: '',
@@ -89,8 +89,8 @@ describe('Test Tokenizer.Context', () => {
         });
       });
 
-      it('wrap() should return current position', function () {
-        this.context.wrap({}).should.deep.equal({
+      test('wrap() should return current position', () => {
+        expect(testContext.context.wrap({})).toEqual({
           from: 0,
           to: 1,
           line: 1,
