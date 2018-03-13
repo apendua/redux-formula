@@ -3,16 +3,17 @@ import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import isNaN from 'lodash/isNaN';
 import Scope from './Scope';
+import parse from './Compiler.parse';
 
-const createCompiler = ({ compile, parse, literal }) => () => (expression) => {
+const createCompiler = api => () => (expression) => {
   switch (typeof expression) {
     case 'function':
       return { bindTo: scope => scope.relative(expression) };
     case 'string':
-      return compile(parse(expression));
+      return api.compile(api.parse(expression));
     default: {
-      if (literal) {
-        return literal(expression);
+      if (api.literal) {
+        return api.literal(expression);
       }
       return { bindTo: scope => scope.createConstantSelector(expression) };
     }
@@ -122,5 +123,7 @@ class Compiler {
     }
   }
 }
+
+Compiler.parse = parse;
 
 export default Compiler;

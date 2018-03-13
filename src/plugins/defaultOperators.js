@@ -13,6 +13,7 @@ export const createAssociative = op => scope =>
     (...args) => args.reduce(op),
   );
 
+export const $dot = createAssociative((x, y) => x && x[y]);
 export const $sum = createAssociative((x, y) => x + y);
 export const $prod = createAssociative((x, y) => x * y);
 export const $pow = createBinary((x, y) => x ** y);
@@ -78,6 +79,7 @@ export const $sort = scope => selectOptions => selectX => scope.boundSelector(
 
 const pluginDefaultOperators = {
   createOperators: ({ opearatos }) => ({
+    $dot,
     $sum,
     $prod,
     $pow,
