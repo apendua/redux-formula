@@ -87,7 +87,9 @@ const pluginSubExpression = {
             }
           }
           if (bindOperator) {
-            return bindOperator(scope)(newScope.variablesSelector(namesPrivate))(...invokeMap(args, 'bindTo', newScope));
+            return bindOperator(scope)(newScope.variablesSelector(namesPrivate))(
+              ...invokeMap(args, 'bindTo', newScope),
+            );
           }
           return newScope.variablesSelector(namesPublic, scope);
         },
