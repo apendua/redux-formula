@@ -44,7 +44,12 @@ export default class Context {
     return this.queue[offset];
   }
 
-  tuple({ separator = ',', end, id }) {
+  tuple({
+    separator = ',',
+    end,
+    id,
+    map = ({ value, type }) => ({ value, type }),
+  }) {
     if (!end && !id) {
       throw new Error('Tuple requires either "end" or "id" specified');
     }
@@ -54,12 +59,11 @@ export default class Context {
       : () => this.look(1).id !== id;
     while (!isEnd()) {
       if (id) {
-        const { type, value } = this.advance(id);
-        tuple.push({ type, value });
+        tuple.push(map(this.advance(id)));
       } else {
         tuple.push(this.expression());
       }
-      if (this.look(1).id === separator) {
+      if (separator && this.look(1).id === separator) {
         this.advance(separator);
       }
     }

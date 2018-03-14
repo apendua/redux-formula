@@ -12,6 +12,6 @@ export const VALUE_TYPE_STRING = 'STRING';
 export const VALUE_TYPE_BOOLEAN = 'BOOLEAN';
 
 export const DEFAULT_OPERATOR_PREFIXES = '.<>+-*/=!()[]{},?';
-export const DEFAULT_OPERATOR_SUFFIXES = '.=>';
+export const DEFAULT_OPERATOR_SUFFIXES = '.=>[';
 
 export const ERROR_UNEXPECTED_CHARACTER = '101';

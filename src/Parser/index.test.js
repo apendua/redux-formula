@@ -89,7 +89,7 @@ test('parses chained dot operator', () => {
 test('parses index operator', () => {
   expect(parse([
     { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
-    { type: TOKEN_TYPE_OPERATOR, value: '[' },
+    { type: TOKEN_TYPE_OPERATOR, value: '.[' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
     { type: TOKEN_TYPE_OPERATOR, value: ']' },
   ])).toEqual({
@@ -170,4 +170,16 @@ test('parses scope object', () => {
     a: { '!': 1 },
     b: { '!': 2 },
   });
+});
+
+test('parses a list', () => {
+  expect(parse([
+    { type: TOKEN_TYPE_OPERATOR, value: '[' },
+    { type: TOKEN_TYPE_LITERAL, value: 1 },
+    { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
+    { type: TOKEN_TYPE_OPERATOR, value: ']' },
+  ])).toEqual([
+    { '!': 1 },
+    { $: 'a' },
+  ]);
 });

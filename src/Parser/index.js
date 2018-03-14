@@ -66,7 +66,8 @@ const scopeObject = () => (grammar) => {
           object[key] = parse.tuple({
             id: TOKEN_TYPE_IDENTIFIER,
             separator: ',',
-          }).map(el => el.value);
+            map: token => token.value,
+          });
         } else {
           if (parse.look(1).id === '=') {
             key = '=';
@@ -89,7 +90,7 @@ const index = (alias, bp) => (grammar) => {
     .token(']');
 
   grammar
-    .token('[')
+    .token('.[')
     .setBindingPower(bp)
     .ifUsedAsInfix((parse, token, left) => {
       const parsed = parse.expression();
@@ -114,6 +115,18 @@ const call = bp => (grammar) => {
         separator: ',',
         end: ')',
       }),
+    }));
+};
+
+const list = () => (grammar) => {
+  grammar
+    .token(']');
+
+  grammar
+    .token('[')
+    .ifUsedAsPrefix(parse => parse.tuple({
+      separator: null,
+      end: ']',
     }));
 };
 
@@ -159,6 +172,7 @@ parser.token(TOKEN_TYPE_IDENTIFIER)
   call(80),
   parenthesis(),
   scopeObject(),
+  list(),
 
 ].forEach(plugin => plugin(parser));
 

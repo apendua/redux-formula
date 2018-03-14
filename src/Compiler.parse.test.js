@@ -53,7 +53,7 @@ test('parses chained dot operator', () => {
 });
 
 test('parses index operator', () => {
-  expect(parse('a[b]')).toEqual({
+  expect(parse('a.[b]')).toEqual({
     $dot: [
       { $: 'a' },
       { $: 'b' },
@@ -155,4 +155,49 @@ test('parses scope with unknowns', () => {
       ],
     },
   });
+});
+
+test('parses a list', () => {
+  expect(parse(`
+  [
+    1
+    a
+  ]
+  `)).toEqual([
+    { '!': 1 },
+    { $: 'a' },
+  ]);
+});
+
+test('parses a nested list', () => {
+  expect(parse(`
+  {
+    a = 1
+    b = [
+      1
+      a
+    ]
+  }
+  `)).toEqual({
+    a: { '!': 1 },
+    b: [
+      { '!': 1 },
+      { $: 'a' },
+    ],
+  });
+});
+
+test('parses a double nested list', () => {
+  expect(parse(`
+  [
+    1
+    [1 a]
+  ]
+  `)).toEqual([
+    { '!': 1 },
+    [
+      { '!': 1 },
+      { $: 'a' },
+    ],
+  ]);
 });
