@@ -4,6 +4,5 @@ install:
 script:
   - npm test
 node_js:
-  - "4"
   - "6"
   - "8"
