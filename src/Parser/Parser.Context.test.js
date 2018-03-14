@@ -533,6 +533,15 @@ describe('Test Parser.Context;', () => {
           { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
         ]);
       });
+      test('should be able to parse all items until non-identifier token', () => {
+        testContext.context.advance('{');
+        expect(
+          testContext.context.tuple({ separator: ',', end: null, id: TOKEN_TYPE_IDENTIFIER }),
+        ).toEqual([
+          { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
+          { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
+        ]);
+      });
     });
 
     describe('given a tuple of expressions', () => {

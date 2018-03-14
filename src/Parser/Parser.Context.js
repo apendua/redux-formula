@@ -44,22 +44,28 @@ export default class Context {
     return this.queue[offset];
   }
 
-  tuple({ separator = ',', end = ']', id }) {
-    const tuple = [];
-    if (this.look(1).id !== end) {
-      do {
-        if (id) {
-          const { type, value } = this.advance(id);
-          tuple.push({ type, value });
-        } else {
-          tuple.push(this.expression(0));
-        }
-      } while (
-        this.look(1).id !== end &&
-        this.advance(separator)
-      );
+  tuple({ separator = ',', end, id }) {
+    if (!end && !id) {
+      throw new Error('Tuple requires either "end" or "id" specified');
     }
-    this.advance(end);
+    const tuple = [];
+    const isEnd = end
+      ? () => this.look(1).id === end
+      : () => this.look(1).id !== id;
+    while (!isEnd()) {
+      if (id) {
+        const { type, value } = this.advance(id);
+        tuple.push({ type, value });
+      } else {
+        tuple.push(this.expression());
+      }
+      if (this.look(1).id === separator) {
+        this.advance(separator);
+      }
+    }
+    if (end) {
+      this.advance(end);
+    }
     return tuple;
   }
 
