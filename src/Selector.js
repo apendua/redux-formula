@@ -15,7 +15,7 @@ export const constant = (order) => {
 
 export const lift = (a, b) => {
   if (b === 0) {
-    return f => f;
+    return identity;
   }
   if (a === 0) {
     return f => constant(b)(f);
@@ -40,8 +40,10 @@ const relativeTo = (targetScope, originalSelector, originalScope) => {
     throw new Error('Can only bind selectors from related scopes');
   }
   const order = (originalScope && originalScope.order) || 0;
-  const wrap = lift(order, targetScope.order - order);
-  return (...args) => wrap(originalSelector(...args));
+  return createSelector(
+    originalSelector,
+    lift(order, targetScope.order - order),
+  );
 };
 
 class Selector {
