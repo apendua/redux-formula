@@ -22,8 +22,8 @@ describe('Test Default Operators', () => {
 
   test('should evaluate $dot', () => {
     const formula = testContext.createSelector({
-      a: 'x',
-      $dot: ['$0', '$a'],
+      a: '"x"',
+      $dot: ['$0', 'a'],
     });
     expect(formula({ x: 1 })).toBe(1);
   });

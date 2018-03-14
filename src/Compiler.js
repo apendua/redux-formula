@@ -90,14 +90,18 @@ class Compiler {
   }
 
   parse(text) {
-    return this.constructor.defaultParse(text);
+    return this.constructor.parse(text);
   }
 
   createFormula(expression) {
     const formula = this.compile(expression);
     const indexes = keys(formula.deps)
-      .map(name => parseInt(name, 10)).filter(index => !isNaN(index));
-    const otherDeps = omit(formula.deps, indexes);
+      .map(name => (name.charAt(0) === '$'
+        ? parseInt(name.substr(1), 10)
+        : NaN
+      ))
+      .filter(index => !isNaN(index));
+    const otherDeps = omit(formula.deps, indexes.map(i => `$${i}`));
     return {
       bindTo: (parentScope = this.scope) => {
         const newScope = parentScope.create();
@@ -105,7 +109,7 @@ class Compiler {
         keys(otherDeps).forEach(key => newScope.resolve(key));
         // If there were any dependencies like $0, $1, etc. interpret them
         // as references to arguments array.
-        indexes.forEach(i => newScope.define(`${i}`, [], scope => scope.relative((...args) => args[i])));
+        indexes.forEach(i => newScope.define(`$${i}`, [], scope => scope.relative((...args) => args[i])));
         return formula.bindTo(newScope).selector;
       },
     };
