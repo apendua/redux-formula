@@ -1,5 +1,7 @@
 # redux-formula
 
+[![Build Status][travis-svg]][travis-url]
+
 An alternative way for defining your redux selectors.
 
 ```javascript
@@ -11,10 +13,21 @@ const Component = ({ a, b, c }) => (
 );
 
 connect(
-  formulaSelector({
-    a: '$0.a',
-    b: '$0.b',
-    c: { $add: ['$a', '$b'] },
-  }),
+  formulaSelector(`
+{
+  a = $0.a
+  b = $0.b
+  c = a + b
+}
+  `),
 )(Component);
 ```
+
+# Instalation
+
+```
+npm install --save redux-formula
+```
+
+[travis-svg]: https://travis-ci.org/apendua/redux-formula.svg?branch=master
+[travis-url]: https://travis-ci.org/apendua/redux-formula

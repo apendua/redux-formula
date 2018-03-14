@@ -4,7 +4,7 @@
   "description": "An advanced selectors generator library",
   "main": "lib/index.js",
   "scripts": {
-    "test": "jest src",
+    "test": "jest",
     "test-watch": "jest --watch src",
     "coverage": "jest --coverage src",
     "build": "babel src/ -d lib/",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/apendua/spreadsheet.git"
+    "url": "git+https://github.com/apendua/redux-formula.git"
   },
   "keywords": [
     "selector",
@@ -23,9 +23,9 @@
   "author": "apendua",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/apendua/spreadsheet/issues"
+    "url": "https://github.com/apendua/redux-formula/issues"
   },
-  "homepage": "https://github.com/apendua/spreadsheet#readme",
+  "homepage": "https://github.com/apendua/redux-formula#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
