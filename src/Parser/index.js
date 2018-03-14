@@ -53,6 +53,8 @@ const scopeObject = () => (grammar) => {
   grammar.token('=');
   grammar.token(',');
   grammar.token('?');
+  grammar.token('..');
+  grammar.token('->');
 
   grammar
     .token('{')
@@ -68,6 +70,9 @@ const scopeObject = () => (grammar) => {
             separator: ',',
             map: token => token.value,
           });
+        } if (parse.look(1).id === '..' || parse.look(1).id === '->') {
+          key = parse.advance().value;
+          object[key] = parse.expression();
         } else {
           if (parse.look(1).id === '=') {
             key = '=';

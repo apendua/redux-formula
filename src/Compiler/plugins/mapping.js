@@ -4,11 +4,11 @@ import memoizeMapValues from '../../utils/memoizeMapValues';
 
 const pluginMapping = {
   createCompiler: ({ compile }) => next => (expression) => {
-    if (!isPlainObject(expression) || !has(expression, '<-')) {
+    if (!isPlainObject(expression) || !has(expression, '..')) {
       return next(expression);
     }
     const {
-      '<-': inputExpr,
+      '..': inputExpr,
       '->': mapValueExpr,
       '~key': keyExpr,
     } = expression;

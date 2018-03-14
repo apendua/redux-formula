@@ -560,7 +560,7 @@ describe('Test Compiler', () => {
   describe('Value mappings', () => {
     test('should map object fields', () => {
       const formula = testContext.createSelector({
-        '<-': '$0',
+        '..': '$0',
         '->': {
           '?': ['value', 'key'],
           '=': {
@@ -577,7 +577,7 @@ describe('Test Compiler', () => {
 
     test('should map array elements', () => {
       const formula = testContext.createSelector({
-        '<-': '$0',
+        '..': '$0',
         '->': {
           '?': ['value', 'key'],
           '=': {
@@ -594,7 +594,7 @@ describe('Test Compiler', () => {
 
     test('should map array elements with custom caching key', () => {
       const formula = testContext.createSelector({
-        '<-': '$0',
+        '..': '$0',
         '->': {
           '?': ['x', 'y'],
           '=': { v: { $sum: ['y', '","', 'x.v'] } },
@@ -846,7 +846,7 @@ describe('Test Compiler', () => {
 
     test('should persist map values', () => {
       const formula = testContext.createSelector({
-        '<-': '$0',
+        '..': '$0',
         '->': {
           '?': ['value', 'index'],
           '=': {
@@ -862,7 +862,7 @@ describe('Test Compiler', () => {
 
     test('should persist map array elements with custom caching key', () => {
       const formula = testContext.createSelector({
-        '<-': '$0',
+        '..': '$0',
         '->': {
           '?': ['x'],
           '=': { v: { $dot: ['x', { '!': 'v' }] } },

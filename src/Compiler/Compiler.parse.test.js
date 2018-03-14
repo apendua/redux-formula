@@ -220,3 +220,25 @@ test('parses a double nested list', () => {
     ],
   ]);
 });
+
+test('parses mapping expression', () => {
+  expect(parse(`
+  {
+    .. points
+    -> { ? p = p.x }
+    ~key = "id"
+  }
+  `)).toEqual({
+    '..': { $: 'points' },
+    '->': {
+      '?': ['p'],
+      '=': {
+        $dot: [
+          { $: 'p' },
+          { '!': 'x' },
+        ],
+      },
+    },
+    '~key': { '!': 'id' },
+  });
+});
