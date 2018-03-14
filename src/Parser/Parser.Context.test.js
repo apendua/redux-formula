@@ -84,7 +84,7 @@ describe('Test Parser.Context;', () => {
     });
   });
 
-  describe('given a dymmy context and a IDENTIFIER', () => {
+  describe('given a dummy context and a IDENTIFIER', () => {
     beforeEach(() => {
       testContext.tokens = [{ type: TOKEN_TYPE_IDENTIFIER, value: 'name' }];
       testContext.context = new Context({
@@ -105,7 +105,7 @@ describe('Test Parser.Context;', () => {
     });
   });
 
-  describe('given a dymmy context and a LITERAL', () => {
+  describe('given a dummy context and a LITERAL', () => {
     beforeEach(() => {
       testContext.tokens = [{ type: TOKEN_TYPE_LITERAL }];
       testContext.context = new Context({
@@ -126,7 +126,7 @@ describe('Test Parser.Context;', () => {
     });
   });
 
-  describe('given a dymmy context and an unknown OPERATOR', () => {
+  describe('given a dummy context and an unknown OPERATOR', () => {
     beforeEach(() => {
       testContext.tokens = [{ type: TOKEN_TYPE_OPERATOR, value: '+' }];
       testContext.context = new Context({
@@ -145,7 +145,7 @@ describe('Test Parser.Context;', () => {
     });
   });
 
-  describe('given a dymmy context and a WHITESPACE', () => {
+  describe('given a dummy context and a WHITESPACE', () => {
     beforeEach(() => {
       testContext.tokens = [{ type: TOKEN_TYPE_WHITESPACE }];
       testContext.context = new Context({
@@ -157,7 +157,32 @@ describe('Test Parser.Context;', () => {
     });
   });
 
-  describe('given a dymmy context and a COMMENT', () => {
+  describe('given a dummy context and a WHITESPACE between two IDENTIFIERs', () => {
+    beforeEach(() => {
+      testContext.tokens = [
+        { type: TOKEN_TYPE_IDENTIFIER },
+        { type: TOKEN_TYPE_WHITESPACE },
+        { type: TOKEN_TYPE_IDENTIFIER },
+      ];
+      testContext.context = new Context({
+        tokens: testContext.tokens,
+      });
+    });
+    test('should return "IDENTIFIER" after the first advance', () => {
+      expect(testContext.context.advance().id).toBe(TOKEN_TYPE_IDENTIFIER);
+    });
+    test('should return "IDENTIFIER" after the second advance', () => {
+      testContext.context.advance();
+      expect(testContext.context.advance().id).toBe(TOKEN_TYPE_IDENTIFIER);
+    });
+    test('should throw if we are expecting another token', () => {
+      expect(() => {
+        testContext.context.advance(TOKEN_TYPE_LITERAL);
+      }).toThrowError(/Expected/);
+    });
+  });
+
+  describe('given a dummy context and a COMMENT', () => {
     beforeEach(() => {
       testContext.tokens = [{ type: TOKEN_TYPE_LINE_COMMENT }];
       testContext.context = new Context({
@@ -169,7 +194,7 @@ describe('Test Parser.Context;', () => {
     });
   });
 
-  describe('given a dymmy context and a bunch of tokens', () => {
+  describe('given a dummy context and a bunch of tokens', () => {
     beforeEach(() => {
       testContext.tokens = [
         { type: TOKEN_TYPE_WHITESPACE },

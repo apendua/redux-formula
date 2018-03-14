@@ -179,7 +179,7 @@ export default class Context {
 
     // Skip this symbol if it's ignored
     if (token && token.ignored) {
-      return this.advance();
+      return this.advance(id);
     }
 
     // Perform a "move" in the symbols queue
