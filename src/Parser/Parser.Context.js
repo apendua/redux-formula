@@ -48,6 +48,7 @@ export default class Context {
     separator = ',',
     end,
     id,
+    bp,
     map = ({ value, type }) => ({ value, type }),
   }) {
     if (!end && !id) {
@@ -61,7 +62,7 @@ export default class Context {
       if (id) {
         tuple.push(map(this.advance(id)));
       } else {
-        tuple.push(this.expression());
+        tuple.push(this.expression(bp));
       }
       if (separator) {
         if (this.look(1).id === separator) {

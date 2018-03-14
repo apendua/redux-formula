@@ -100,7 +100,7 @@ test('parses index operator', () => {
   });
 });
 
-test('parses call operator', () => {
+test('parses evaluate expression', () => {
   expect(parse([
     { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
     { type: TOKEN_TYPE_OPERATOR, value: '(' },
@@ -113,6 +113,39 @@ test('parses call operator', () => {
     '()': { $: 'a' },
   });
 });
+
+test('parses pipe operator', () => {
+  expect(parse([
+    { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
+    { type: TOKEN_TYPE_OPERATOR, value: '|' },
+    { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
+  ])).toEqual({
+    '??': [
+      { $: 'a' },
+    ],
+    '()': { $: 'b' },
+  });
+});
+
+test('parses multi arguments pipe expression', () => {
+  expect(parse([
+    { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
+    { type: TOKEN_TYPE_OPERATOR, value: ',' },
+    { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
+    { type: TOKEN_TYPE_OPERATOR, value: ',' },
+    { type: TOKEN_TYPE_IDENTIFIER, value: 'c' },
+    { type: TOKEN_TYPE_OPERATOR, value: '|' },
+    { type: TOKEN_TYPE_IDENTIFIER, value: 'd' },
+  ])).toEqual({
+    '??': [
+      { $: 'a' },
+      { $: 'b' },
+      { $: 'c' },
+    ],
+    '()': { $: 'd' },
+  });
+});
+
 
 test('respects operator precedence', () => {
   expect(parse([

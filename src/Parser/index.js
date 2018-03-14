@@ -107,8 +107,8 @@ const index = (alias, bp) => (grammar) => {
 };
 
 const call = bp => (grammar) => {
-  grammar
-    .token(')');
+  grammar.token(')');
+  grammar.token('|');
 
   // TODO: Add support for "method call"
   grammar
@@ -120,6 +120,32 @@ const call = bp => (grammar) => {
         separator: ',',
         end: ')',
       }),
+    }));
+
+  grammar
+    .token(',')
+    .setBindingPower(bp)
+    .ifUsedAsInfix((parse, token, left) => {
+      const args = [
+        left,
+        ...parse.tuple({
+          bp,
+          separator: ',',
+          end: '|',
+        }),
+      ];
+      return {
+        '??': args,
+        '()': parse.expression(bp),
+      };
+    });
+
+  grammar
+    .token('|')
+    .setBindingPower(bp)
+    .ifUsedAsInfix((parse, token, left) => ({
+      '??': [left],
+      '()': parse.expression(bp),
     }));
 };
 

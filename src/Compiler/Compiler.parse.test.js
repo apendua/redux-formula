@@ -61,12 +61,61 @@ test('parses index operator', () => {
   });
 });
 
-test('parses call operator', () => {
+test('parses evaluate expression', () => {
   expect(parse('a(b)')).toEqual({
     '??': [
       { $: 'b' },
     ],
     '()': { $: 'a' },
+  });
+});
+
+test('parses pipe operator', () => {
+  expect(parse('a|b')).toEqual({
+    '??': [
+      { $: 'a' },
+    ],
+    '()': { $: 'b' },
+  });
+});
+
+test('parses multi arguments pipe expression', () => {
+  expect(parse('a,b,c|d')).toEqual({
+    '??': [
+      { $: 'a' },
+      { $: 'b' },
+      { $: 'c' },
+    ],
+    '()': { $: 'd' },
+  });
+});
+
+test('parses consecutive pipe operator', () => {
+  expect(parse('a|b|c')).toEqual({
+    '??': [
+      {
+        '??': [
+          { $: 'a' },
+        ],
+        '()': { $: 'b' },
+      },
+    ],
+    '()': { $: 'c' },
+  });
+});
+
+test('parses pipe expression followed by pipe operator', () => {
+  expect(parse('a,b|c|d')).toEqual({
+    '??': [
+      {
+        '??': [
+          { $: 'a' },
+          { $: 'b' },
+        ],
+        '()': { $: 'c' },
+      },
+    ],
+    '()': { $: 'd' },
   });
 });
 
