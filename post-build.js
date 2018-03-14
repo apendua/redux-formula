@@ -12,7 +12,7 @@ const mkdirp = require('mkdirp'); // eslint-disable-line
       }
       files.forEach((file) => {
         console.log(`create file: ${name}/${file}`); // eslint-disable-line
-        fs.writeFileSync(`./${name}/${file}`, `module.exports = require('../lib/${name}/${file}');\n`);
+        fs.writeFileSync(`./${name}/${file}`, `module.exports = require('../lib/Compiler/${name}/${file}');\n`);
       });
     });
   });

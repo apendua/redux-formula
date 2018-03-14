@@ -23,7 +23,7 @@ connect(
 )(Component);
 ```
 
-# Instalation
+# Installation
 
 ```
 npm install --save redux-formula
