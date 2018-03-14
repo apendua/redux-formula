@@ -193,6 +193,13 @@ parser.token(TOKEN_TYPE_IDENTIFIER)
   binary('*', 'mul', 40),
   binary('/', 'div', 40),
 
+  binary('<=', 'lte', 10),
+  binary('>=', 'gte', 10),
+  binary('<', 'lt', 10),
+  binary('>', 'gt', 10),
+  binary('==', 'eq', 10),
+  binary('!=', 'neq', 10),
+
   property('.', 'dot', 90),
 
   binaryRight('AND', 'and', 60),

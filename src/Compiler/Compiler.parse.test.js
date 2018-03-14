@@ -29,6 +29,61 @@ test('parses binary plus', () => {
   });
 });
 
+test('parses <=', () => {
+  expect(parse('a<=b')).toEqual({
+    $lte: [
+      { $: 'a' },
+      { $: 'b' },
+    ],
+  });
+});
+
+test('parses >=', () => {
+  expect(parse('a>=b')).toEqual({
+    $gte: [
+      { $: 'a' },
+      { $: 'b' },
+    ],
+  });
+});
+
+test('parses <', () => {
+  expect(parse('a<b')).toEqual({
+    $lt: [
+      { $: 'a' },
+      { $: 'b' },
+    ],
+  });
+});
+
+
+test('parses >', () => {
+  expect(parse('a>b')).toEqual({
+    $gt: [
+      { $: 'a' },
+      { $: 'b' },
+    ],
+  });
+});
+
+test('parses ==', () => {
+  expect(parse('a==b')).toEqual({
+    $eq: [
+      { $: 'a' },
+      { $: 'b' },
+    ],
+  });
+});
+
+test('parses !=', () => {
+  expect(parse('a!=b')).toEqual({
+    $neq: [
+      { $: 'a' },
+      { $: 'b' },
+    ],
+  });
+});
+
 test('parses dot operator', () => {
   expect(parse('a.b')).toEqual({
     $dot: [
