@@ -33,6 +33,13 @@ test('parses an identifier', () => {
   });
 });
 
+test('throws if expression is not entirely consumed', () => {
+  expect(() => parse([
+    { type: TOKEN_TYPE_LITERAL, value: 1 },
+    { type: TOKEN_TYPE_LITERAL, value: 1 },
+  ])).toThrow();
+});
+
 test('parses binary plus', () => {
   expect(parse([
     { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },

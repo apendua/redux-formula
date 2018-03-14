@@ -1,6 +1,8 @@
 import Scope from './Parser.Scope';
 import Token from './Parser.Token';
 import Context from './Parser.Context';
+import { TOKEN_TYPE_END } from '../core/constants';
+import { ParseError } from '../core/errors';
 
 export default class Parser {
   constructor(plugins = []) {
@@ -24,7 +26,11 @@ export default class Parser {
       tokens,
       symbols,
     });
-    return context.expression();
+    const parsed = context.expression();
+    if (context.look(1).id !== TOKEN_TYPE_END) {
+      throw new ParseError(`Expected end, got ${context.look(1).id}`);
+    }
+    return parsed;
   }
 }
 
