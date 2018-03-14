@@ -157,6 +157,25 @@ test('parses scope with unknowns', () => {
   });
 });
 
+test('parses scope with unknowns and helper variables', () => {
+  expect(parse(`
+  {
+    ? x, y
+    result = x + y
+    = result
+  }
+  `)).toEqual({
+    '?': ['x', 'y'],
+    result: {
+      $add: [
+        { $: 'x' },
+        { $: 'y' },
+      ],
+    },
+    '=': { $: 'result' },
+  });
+});
+
 test('parses a list', () => {
   expect(parse(`
   [

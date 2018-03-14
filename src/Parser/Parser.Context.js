@@ -63,8 +63,12 @@ export default class Context {
       } else {
         tuple.push(this.expression());
       }
-      if (separator && this.look(1).id === separator) {
-        this.advance(separator);
+      if (separator) {
+        if (this.look(1).id === separator) {
+          this.advance(separator);
+        } else {
+          break;
+        }
       }
     }
     if (end) {

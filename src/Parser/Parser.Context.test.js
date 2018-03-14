@@ -544,6 +544,29 @@ describe('Test Parser.Context;', () => {
       });
     });
 
+    describe('separators are missing', () => {
+      beforeEach(() => {
+        testContext.tokens = [
+          { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
+          { type: TOKEN_TYPE_OPERATOR, value: ',' },
+          { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
+          { type: TOKEN_TYPE_IDENTIFIER, value: 'c' },
+        ];
+        testContext.context = new Context({
+          tokens: testContext.tokens,
+          symbols: new Scope(null, testContext.grammar),
+        });
+      });
+      test('should stop early', () => {
+        expect(
+          testContext.context.tuple({ separator: ',', id: TOKEN_TYPE_IDENTIFIER }),
+        ).toEqual([
+          { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
+          { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
+        ]);
+      });
+    });
+
     describe('given a tuple of expressions', () => {
       beforeEach(() => {
         testContext.tokens = [
