@@ -11,18 +11,18 @@ const pluginEvaluate = {
       if (!isPlainObject(expression)) {
         return next(expression);
       }
-      if (has(expression, '<<')) {
+      if (has(expression, '()') || has(expression, '(!')) {
         const {
-          '<<': argsExpr,
-          '>!': func,
-          '>>': funcExpr,
+          '??': argsExpr = [],
+          '(!': func,
+          '()': funcExpr,
           ...varsExpr
         } = expression;
         if (func && typeof func !== 'function') {
-          throw new Error('Expected a function at ">!"');
+          throw new Error('Expected a function at "(!"');
         }
         if (func && funcExpr) {
-          throw new Error('You cannot use both ">>" and ">!" in the same expression');
+          throw new Error('You cannot use both "()" and "(!" in the same expression');
         }
         return subExpression(
           varsExpr,

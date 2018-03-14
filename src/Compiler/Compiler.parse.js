@@ -29,8 +29,8 @@ const P = (strings, ...values) => {
 };
 
 const F = (args, func) => ({
-  '<<': args,
-  '>!': func,
+  '??': args,
+  '(!': func,
 });
 
 export default parse;

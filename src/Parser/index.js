@@ -115,8 +115,8 @@ const call = bp => (grammar) => {
     .token('(')
     .setBindingPower(bp)
     .ifUsedAsInfix((parse, token, left) => ({
-      '>>': left,
-      '<<': parse.tuple({
+      '()': left,
+      '??': parse.tuple({
         separator: ',',
         end: ')',
       }),

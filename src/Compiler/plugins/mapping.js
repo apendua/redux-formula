@@ -4,7 +4,7 @@ import memoizeMapValues from '../../utils/memoizeMapValues';
 
 const pluginMapping = {
   createCompiler: ({ compile }) => next => (expression) => {
-    if (!isPlainObject(expression) || !has(expression, '..')) {
+    if (!isPlainObject(expression) || !has(expression, '..') || !has(expression, '->')) {
       return next(expression);
     }
     const {

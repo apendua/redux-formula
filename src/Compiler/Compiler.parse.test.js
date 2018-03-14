@@ -63,10 +63,10 @@ test('parses index operator', () => {
 
 test('parses call operator', () => {
   expect(parse('a(b)')).toEqual({
-    '<<': [
+    '??': [
       { $: 'b' },
     ],
-    '>>': { $: 'a' },
+    '()': { $: 'a' },
   });
 });
 

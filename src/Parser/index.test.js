@@ -107,10 +107,10 @@ test('parses call operator', () => {
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
     { type: TOKEN_TYPE_OPERATOR, value: ')' },
   ])).toEqual({
-    '<<': [
+    '??': [
       { $: 'b' },
     ],
-    '>>': { $: 'a' },
+    '()': { $: 'a' },
   });
 });
 
