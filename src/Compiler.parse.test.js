@@ -106,3 +106,53 @@ test('parses string with custom literals', () => {
     ],
   });
 });
+
+test('parses scope object', () => {
+  expect(parse(`
+  {
+    a = 1
+    b = 2
+  }
+  `)).toEqual({
+    a: { '!': 1 },
+    b: { '!': 2 },
+  });
+});
+
+test('parses nested scope object', () => {
+  expect(parse(`
+  {
+    a = 1
+    b = {
+      c = a + 1
+    }
+  }
+  `)).toEqual({
+    a: { '!': 1 },
+    b: {
+      c: {
+        $add: [
+          { $: 'a' },
+          { '!': 1 },
+        ],
+      },
+    },
+  });
+});
+
+test('parses scope with unknowns', () => {
+  expect(parse(`
+  {
+    ? x, y
+    = x + y
+  }
+  `)).toEqual({
+    '?': ['x', 'y'],
+    '=': {
+      $add: [
+        { $: 'x' },
+        { $: 'y' },
+      ],
+    },
+  });
+});

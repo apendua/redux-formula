@@ -48,6 +48,42 @@ const property = (id, alias, bp) => grammar =>
       };
     });
 
+const scopeObject = () => (grammar) => {
+  grammar.token('}');
+  grammar.token('=');
+  grammar.token(',');
+  grammar.token('?');
+
+  grammar
+    .token('{')
+    .ifUsedAsPrefix((parse) => {
+      const object = {};
+      while (parse.look(1).id !== '}') {
+        let key;
+        if (parse.look(1).id === '?') {
+          key = '?';
+          parse.advance('?');
+          object[key] = parse.tuple({
+            id: TOKEN_TYPE_IDENTIFIER,
+            separator: ',',
+          }).map(el => el.value);
+        } else {
+          if (parse.look(1).id === '=') {
+            key = '=';
+          } else if (parse.look(1).id === TOKEN_TYPE_LITERAL) {
+            key = parse.advance(TOKEN_TYPE_LITERAL).value;
+          } else {
+            key = parse.advance(TOKEN_TYPE_IDENTIFIER).value;
+          }
+          parse.advance('=');
+          object[key] = parse.expression();
+        }
+      }
+      parse.advance('}');
+      return object;
+    });
+};
+
 const index = (alias, bp) => (grammar) => {
   grammar
     .token(']');
@@ -55,9 +91,13 @@ const index = (alias, bp) => (grammar) => {
   grammar
     .token('[')
     .setBindingPower(bp)
-    .ifUsedAsInfix((parse, token, left) => ({
-      [`$${alias}`]: [left, parse.expression(bp)],
-    }));
+    .ifUsedAsInfix((parse, token, left) => {
+      const parsed = parse.expression();
+      parse.advance(']');
+      return {
+        [`$${alias}`]: [left, parsed],
+      };
+    });
 };
 
 const call = bp => (grammar) => {
@@ -118,6 +158,7 @@ parser.token(TOKEN_TYPE_IDENTIFIER)
   index('dot', 80),
   call(80),
   parenthesis(),
+  scopeObject(),
 
 ].forEach(plugin => plugin(parser));
 

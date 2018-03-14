@@ -149,3 +149,18 @@ test('respects parenthesis', () => {
   });
 });
 
+test('parses scope object', () => {
+  expect(parse([
+    { type: TOKEN_TYPE_OPERATOR, value: '{' },
+    { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
+    { type: TOKEN_TYPE_OPERATOR, value: '=' },
+    { type: TOKEN_TYPE_LITERAL, value: 1 },
+    { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
+    { type: TOKEN_TYPE_OPERATOR, value: '=' },
+    { type: TOKEN_TYPE_LITERAL, value: 2 },
+    { type: TOKEN_TYPE_OPERATOR, value: '}' },
+  ])).toEqual({
+    a: { '!': 1 },
+    b: { '!': 2 },
+  });
+});
