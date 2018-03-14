@@ -3,7 +3,7 @@ import {
   TOKEN_TYPE_LITERAL,
   VALUE_TYPE_DECIMAL,
   VALUE_TYPE_INTEGER,
-} from '../../core/constants';
+} from '../../constants';
 
 export default function number() {
   return {

@@ -1,8 +1,8 @@
 import Context from './Tokenizer.Context';
-import { LexicalError } from '../core/errors';
+import { LexicalError } from '../errors';
 import {
   ERROR_UNEXPECTED_CHARACTER,
-} from '../core/constants';
+} from '../constants';
 
 // TODO: Check if regexp based version would be faster
 //       than the simple scanning technique.

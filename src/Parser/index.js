@@ -2,7 +2,7 @@ import Parser from './Parser';
 import {
   TOKEN_TYPE_LITERAL,
   TOKEN_TYPE_IDENTIFIER,
-} from '../core/constants';
+} from '../constants';
 
 const parser = new Parser();
 

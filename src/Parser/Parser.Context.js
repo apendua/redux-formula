@@ -1,4 +1,4 @@
-import { ParseError } from '../core/errors';
+import { ParseError } from '../errors';
 import {
   TOKEN_TYPE_IDENTIFIER,
   TOKEN_TYPE_KEYWORD,
@@ -7,7 +7,7 @@ import {
   TOKEN_TYPE_WHITESPACE,
   TOKEN_TYPE_LINE_COMMENT,
   TOKEN_TYPE_END,
-} from '../core/constants';
+} from '../constants';
 
 import Token from './Parser.Token';
 import Scope from './Parser.Scope';

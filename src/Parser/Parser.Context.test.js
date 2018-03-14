@@ -10,7 +10,7 @@ import {
   TOKEN_TYPE_LINE_COMMENT,
   TOKEN_TYPE_WHITESPACE,
   TOKEN_TYPE_END,
-} from '../core/constants';
+} from '../constants';
 
 function binary(parse, { value }, left) {
   return {

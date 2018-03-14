@@ -1,7 +1,7 @@
 import isPlainObject from 'lodash/isPlainObject';
 import has from 'lodash/has';
 import get from 'lodash/get';
-import { split } from '../utils';
+import { split } from '../../utils';
 
 const pluginReference = {
   createCompiler: () => next => (expression) => {

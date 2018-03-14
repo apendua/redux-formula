@@ -71,7 +71,7 @@ class Compiler {
   }
 
   compile(expression) {
-    if (!this.compilerNeedsUpdate) {
+    if (this.compiler && !this.compilerNeedsUpdate) {
       return this.compiler(expression);
     }
     this.compilerNeedsUpdate = false;

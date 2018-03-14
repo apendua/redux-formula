@@ -5,7 +5,7 @@ import Selector, {
   lift,
   constant,
 } from './Selector';
-import { identity } from './utils';
+import { identity } from '../utils';
 
 const constant1 = x => () => x;
 // const identity = x => x;

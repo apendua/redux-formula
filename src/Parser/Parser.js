@@ -1,8 +1,8 @@
 import Scope from './Parser.Scope';
 import Token from './Parser.Token';
 import Context from './Parser.Context';
-import { TOKEN_TYPE_END } from '../core/constants';
-import { ParseError } from '../core/errors';
+import { TOKEN_TYPE_END } from '../constants';
+import { ParseError } from '../errors';
 
 export default class Parser {
   constructor(plugins = []) {

@@ -1,7 +1,7 @@
 import {
   createSelector,
 } from 'reselect';
-import { identity } from './utils';
+import { identity } from '../utils';
 
 const constant1 = x => () => x;
 

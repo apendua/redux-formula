@@ -2,7 +2,7 @@ import {
   TOKEN_TYPE_OPERATOR,
   DEFAULT_OPERATOR_PREFIXES,
   DEFAULT_OPERATOR_SUFFIXES,
-} from '../../core/constants';
+} from '../../constants';
 
 export default function operator({
   operators: [prefixes, suffixes] = [

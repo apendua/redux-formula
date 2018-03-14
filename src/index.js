@@ -1,6 +1,7 @@
-import Compiler from './Compiler';
-import Scope from './Scope';
-import presetDefault from './presets/default';
+import Compiler, {
+  Scope,
+} from './Compiler';
+import presetDefault from './Compiler/presets/default';
 
 const defaultCompiler = new Compiler({
   plugins: presetDefault,
@@ -12,7 +13,6 @@ const formulaSelectorFactory = (expression) => {
 };
 
 export {
-  presetDefault,
   formulaSelector,
   formulaSelectorFactory,
   defaultCompiler,

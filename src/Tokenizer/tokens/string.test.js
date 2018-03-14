@@ -4,7 +4,7 @@ import string from './string';
 import {
   TOKEN_TYPE_LITERAL,
   VALUE_TYPE_STRING,
-} from '../../core/constants';
+} from '../../constants';
 
 describe('Test String parser', () => {
   let testContext;

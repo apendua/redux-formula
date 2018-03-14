@@ -2,7 +2,7 @@
 import {
   TOKEN_TYPE_LITERAL,
   VALUE_TYPE_STRING,
-} from '../../core/constants';
+} from '../../constants';
 
 export default function string() {
   return {

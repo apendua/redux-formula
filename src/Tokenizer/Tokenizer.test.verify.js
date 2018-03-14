@@ -12,7 +12,7 @@ import {
   VALUE_TYPE_STRING,
   DEFAULT_OPERATOR_PREFIXES,
   DEFAULT_OPERATOR_SUFFIXES,
-} from './../core/constants';
+} from './../constants';
 import createTokenizer from './Tokenizer.test';
 
 const arbitrary = {};

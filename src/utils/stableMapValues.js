@@ -5,7 +5,7 @@ import mapValues from 'lodash/mapValues';
 import isArray from 'lodash/isArray';
 import {
   defaultIsEqual,
-} from './utils';
+} from './index';
 
 /**
  * Like lodash/mapValues, but with more caution, e.g. when new value is the

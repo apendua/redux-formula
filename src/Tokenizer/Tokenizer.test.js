@@ -1,7 +1,4 @@
 /* eslint-env jest */
-/* eslint no-unused-expressions: "off" */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint func-names: "off" */
 
 import Tokenizer from './Tokenizer';
 import {
@@ -23,9 +20,9 @@ import {
   VALUE_TYPE_INTEGER,
   VALUE_TYPE_DECIMAL,
   VALUE_TYPE_STRING,
-} from './../core/constants';
+} from './../constants';
 
-const createTokenizer = function () {
+const createTokenizer = () => {
   const tokenizer = new Tokenizer({
     options: {
       keywords: ['AND', 'OR', 'NOT'],

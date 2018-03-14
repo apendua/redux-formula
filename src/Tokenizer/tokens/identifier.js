@@ -1,7 +1,7 @@
 import {
   TOKEN_TYPE_IDENTIFIER,
   TOKEN_TYPE_KEYWORD,
-} from '../../core/constants';
+} from '../../constants';
 
 export default function identifier({
   keywords = [],

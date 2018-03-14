@@ -1,4 +1,4 @@
-import { ParseError } from '../core/errors';
+import { ParseError } from '../errors';
 
 export default class Token {
   constructor(id, {

@@ -2,10 +2,10 @@
 
 import {
   Compiler,
-  presetDefault,
   formulaSelector,
   formulaSelectorFactory,
 } from './index';
+import presetDefault from './Compiler/presets/default';
 
 describe('Test Public Api', () => {
   let testContext;

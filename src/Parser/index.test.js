@@ -7,7 +7,7 @@ import {
   TOKEN_TYPE_LITERAL,
   TOKEN_TYPE_IDENTIFIER,
   TOKEN_TYPE_OPERATOR,
-} from '../core/constants';
+} from '../constants';
 
 test('parses a number literal', () => {
   expect(parse([

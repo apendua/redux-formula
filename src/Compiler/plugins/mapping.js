@@ -1,6 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject';
 import has from 'lodash/has';
-import memoizeMapValues from '../memoizeMapValues';
+import memoizeMapValues from '../../utils/memoizeMapValues';
 
 const pluginMapping = {
   createCompiler: ({ compile }) => next => (expression) => {

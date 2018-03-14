@@ -1,6 +1,6 @@
 import {
   TOKEN_TYPE_WHITESPACE,
-} from '../../core/constants';
+} from '../../constants';
 
 export default function whitespace() {
   return {

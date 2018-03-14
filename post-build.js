@@ -6,7 +6,7 @@ const mkdirp = require('mkdirp'); // eslint-disable-line
   'presets',
 ].forEach((name) => {
   mkdirp(name, () => {
-    fs.readdir(`./lib/${name}`, (err, files) => {
+    fs.readdir(`./lib/Compiler/${name}`, (err, files) => {
       if (err) {
         console.error(err); // eslint-disable-line
       }
@@ -23,5 +23,5 @@ const mkdirp = require('mkdirp'); // eslint-disable-line
   'Scope',
 ].forEach((name) => {
   console.log(`create file: ${name}.js`); // eslint-disable-line
-  fs.writeFileSync(`./${name}.js`, `module.exports = require('../lib/${name}.js');\n`);
+  fs.writeFileSync(`./${name}.js`, `module.exports = require('../lib/Compiler/${name}.js');\n`);
 });

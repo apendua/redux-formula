@@ -1,7 +1,7 @@
 /* eslint no-param-reassign: "off" */
 import {
   TOKEN_TYPE_LINE_COMMENT,
-} from '../../core/constants';
+} from '../../constants';
 
 export default function lineComment({
   lineCommentDelimiter = '#',

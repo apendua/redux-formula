@@ -1,10 +1,10 @@
 import {
   parser,
-} from './Parser';
+} from '../Parser';
 import {
   tokenizer,
-} from './Tokenizer';
-import { TOKEN_TYPE_LITERAL } from './core/constants';
+} from '../Tokenizer';
+import { TOKEN_TYPE_LITERAL } from '../constants';
 
 const parse = (code) => {
   const tokens = tokenizer.tokenize(code);
