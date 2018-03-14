@@ -346,3 +346,20 @@ test('parses mapping expression', () => {
     '~key': { '!': 'id' },
   });
 });
+
+test('parses conditional expression', () => {
+  expect(parse(`
+if a == 1 => b
+if a == 2 => c
+else d
+`)).toEqual({
+    $match: [
+      { $eq: [{ $: 'a' }, { '!': 1 }] },
+      { $: 'b' },
+      { $eq: [{ $: 'a' }, { '!': 2 }] },
+      { $: 'c' },
+      { '!': true },
+      { $: 'd' },
+    ],
+  });
+});

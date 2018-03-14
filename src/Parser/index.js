@@ -70,7 +70,7 @@ const scopeObject = () => (grammar) => {
             separator: ',',
             map: token => token.value,
           });
-        } if (parse.look(1).id === '..' || parse.look(1).id === '->') {
+        } else if (parse.look(1).id === '..' || parse.look(1).id === '->') {
           key = parse.advance().value;
           object[key] = parse.expression();
         } else {
@@ -161,6 +161,33 @@ const list = () => (grammar) => {
     }));
 };
 
+const condition = () => (grammar) => {
+  grammar.token('=>');
+  grammar.token('else');
+
+  grammar
+    .token('if')
+    .ifUsedAsPrefix((parse) => {
+      const $match = [];
+      do {
+        $match.push(parse.expression());
+        parse.advance('=>');
+        $match.push(parse.expression());
+        if (parse.look(1).id === 'if') {
+          parse.advance('if');
+        }
+      } while (parse.look(0).id === 'if');
+      if (parse.look(1).id === 'else') {
+        parse.advance('else');
+        $match.push({ '!': true });
+        $match.push(parse.expression());
+      }
+      return {
+        $match,
+      };
+    });
+};
+
 const binaryRight = (id, alias, bp) => grammar =>
   grammar
     .token(id)
@@ -211,6 +238,7 @@ parser.token(TOKEN_TYPE_IDENTIFIER)
   parenthesis(),
   scopeObject(),
   list(),
+  condition(),
 
 ].forEach(plugin => plugin(parser));
 

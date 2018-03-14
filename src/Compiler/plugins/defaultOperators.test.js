@@ -197,6 +197,19 @@ describe('Test Default Operators', () => {
     expect(formula(false)).toBe(2);
   });
 
+  test('should evaluate $match', () => {
+    const formula = testContext.createSelector({
+      $match: [
+        '$0 == 1', 1,
+        '$0 == 2', 2,
+        true, 3,
+      ],
+    });
+    expect(formula(1)).toBe(1);
+    expect(formula(2)).toBe(2);
+    expect(formula(0)).toBe(3);
+  });
+
   test('should evaluate $unless', () => {
     const formula = testContext.createSelector({
       $unless: ['$0', 1, 2],
@@ -216,6 +229,25 @@ describe('Test Default Operators', () => {
     expect(formula(true, 2)).toBe(2);
     expect(() => {
       formula(false);
+    }).toThrowError(/Should not reach this line/);
+  });
+
+  test('should use short circuit for $match', () => {
+    const formula = testContext.createSelector({
+      $match: [
+        '$0 == 1', 1,
+        '$0 == 2', 2,
+        true, {
+          '(!': function () {
+            throw new Error('Should not reach this line.');
+          },
+        },
+      ],
+    });
+    expect(formula(1)).toBe(1);
+    expect(formula(2)).toBe(2);
+    expect(() => {
+      formula(0);
     }).toThrowError(/Should not reach this line/);
   });
 
