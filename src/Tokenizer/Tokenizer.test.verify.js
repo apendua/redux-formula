@@ -10,8 +10,7 @@ import {
   TOKEN_TYPE_WHITESPACE,
   VALUE_TYPE_INTEGER,
   VALUE_TYPE_STRING,
-  DEFAULT_OPERATOR_PREFIXES,
-  DEFAULT_OPERATOR_SUFFIXES,
+  DEFAULT_OPERATORS,
 } from './../constants';
 import createTokenizer from './Tokenizer.test';
 
@@ -30,13 +29,7 @@ arbitrary.name = jsc.bless({
 
 arbitrary.operator = jsc.bless({
   generator() {
-    const value = jsc.random(0, 1);
-    if (value === 0) {
-      return sample(DEFAULT_OPERATOR_PREFIXES.split(''));
-    } else if (value === 1) {
-      return sample(DEFAULT_OPERATOR_PREFIXES.split('')) + sample(DEFAULT_OPERATOR_SUFFIXES.split(''));
-    }
-    return undefined;
+    return sample(DEFAULT_OPERATORS);
   },
 });
 

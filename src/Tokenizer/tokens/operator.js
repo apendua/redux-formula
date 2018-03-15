@@ -1,29 +1,25 @@
 import {
   TOKEN_TYPE_OPERATOR,
-  DEFAULT_OPERATOR_PREFIXES,
-  DEFAULT_OPERATOR_SUFFIXES,
+  DEFAULT_OPERATORS,
 } from '../../constants';
 
 export default function operator({
-  operators: [prefixes, suffixes] = [
-    DEFAULT_OPERATOR_PREFIXES,
-    DEFAULT_OPERATOR_SUFFIXES,
-  ],
+  operators = DEFAULT_OPERATORS,
 } = {}) {
-  const map1 = {};
-  prefixes.split('').forEach((c) => {
-    map1[c] = true;
-  });
-  const map2 = {};
-  suffixes.split('').forEach((c) => {
-    map2[c] = true;
+  const prefixes = {};
+  operators.forEach((str) => {
+    const n = str.length;
+    for (let i = 1; i <= n; i += 1) {
+      const k = str.substr(0, i);
+      if (!prefixes[i]) {
+        prefixes[i] = {};
+      }
+      prefixes[i][k] = true;
+    }
   });
   return {
-    accept({ index }, c) {
-      if (index === 0) {
-        return !!map1[c];
-      }
-      return !!map2[c];
+    accept({ index, value }, c) {
+      return !!prefixes[index + 1] && prefixes[index + 1][value + c];
     },
     create({ value }) {
       return {
