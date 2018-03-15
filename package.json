@@ -5,11 +5,16 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "jest",
-    "test-watch": "jest --watch src",
+    "test-watch": "jest --watch",
     "coverage": "jest --coverage src",
     "build": "babel src/ -d lib/",
     "build-watch": "watch 'npm run build' ./src",
     "prepare": "npm run build && node post-build.js"
+  },
+  "jest": {
+    "testMatch": [
+      "**/?(*.)(spec|test)?(.verify).js?(x)"
+    ]
   },
   "repository": {
     "type": "git",
