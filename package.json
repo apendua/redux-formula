@@ -31,8 +31,8 @@
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.1.2",
     "babel-plugin-syntax-trailing-function-commas": "^6.22.0",
-    "babel-preset-flow": "^6.23.0",
     "babel-preset-latest": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",
     "eslint": "^4.14.0",
     "eslint-config-airbnb": "^16.1.0",
@@ -42,6 +42,7 @@
     "jest": "^22.4.2",
     "jsverify": "^0.8.3",
     "mkdirp": "^0.5.1",
+    "npm-watch": "^0.3.0",
     "shortid": "^2.2.8"
   },
   "peerDependencies": {
