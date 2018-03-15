@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
-import { formulaSelectorFactory, Scope } from 'redux-formula';
-import shallowEqual from './shallowEqual';
+import Scope from '../Compiler/Scope';
+import shallowEqual from '../utils/shallowEqual';
 import {
   set,
   del,
@@ -11,7 +11,7 @@ import {
   pull,
 } from './actions';
 
-const createFormulaCreator = context => (expression, handlers) => {
+const createFormulaCreator = (context, formulaSelectorFactory) => (expression, handlers) => {
   const factory = formulaSelectorFactory(expression);
   const defaultScope = new Scope();
 

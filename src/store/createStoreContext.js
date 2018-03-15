@@ -4,7 +4,7 @@ import get from 'lodash/get';
 import {
   scope,
 } from './actions';
-import shallowEqual from './shallowEqual';
+import shallowEqual from '../utils/shallowEqual';
 import createFormulaCreator from './createFormulaCreator';
 
 /*

@@ -1,6 +1,8 @@
+import isArray from 'lodash/isArray';
+
 const shallowEqual = (a, b) => {
-  const aIsArray = Array.isArray(a);
-  const bIsArray = Array.isArray(b);
+  const aIsArray = isArray(a);
+  const bIsArray = isArray(b);
   if (aIsArray && bIsArray) {
     if (a.length !== b.length) {
       return false;

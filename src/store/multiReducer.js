@@ -15,7 +15,7 @@ import {
   pushAtKey,
   pullAtKey,
   splitKey,
-} from './immutable';
+} from '../utils/immutable';
 import {
   set,
   del,
@@ -23,7 +23,7 @@ import {
   pull,
   scope,
 } from './actions';
-import shallowEqual from './shallowEqual';
+import shallowEqual from '../utils/shallowEqual';
 
 const scopeRe = /^@SCOPE\[.*/;
 
