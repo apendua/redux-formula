@@ -5,8 +5,8 @@ import times from 'lodash/times';
 import { Form as F } from '../store/Context';
 
 const Input = F.connect({
-  value: '$state.value',
-  edited: '$state.edited',
+  value: 'state.value',
+  edited: 'state.edited',
 }, {
   onChange: ({ edited, $set }) => (e) => {
     $set('value', e.target.value);
@@ -19,8 +19,8 @@ const Input = F.connect({
 ));
 
 const Select = F.connect({
-  value: '$state.value',
-  edited: '$state.edited',
+  value: 'state.value',
+  edited: 'state.edited',
 }, {
   onChange: ({ edited, $set }) => (e) => {
     $set('value', e.target.value);
@@ -67,19 +67,20 @@ const typeOptions = [
   { value: 'Work', label: 'Work' },
 ];
 
-const Form = F.connect({
-  a: '$state.a.value',
-  b: '$state.b.value',
-  c: { $sum: ['$a', '$b'] },
-  nPhones: {
-    '<<': ['$state.phones'],
-    '>!': phones => (phones ? phones.length : 0),
+const Form = F.connect(`
+{
+  a = state.a.value
+  b = state.b.value
+  c = a + b
+  nPhones = state.phones.length OR 0
+}
+`,
+  {
+    onAppend: ({ $push }) => () => {
+      $push('phones', {});
+    },
   },
-}, {
-  onAppend: ({ $push }) => () => {
-    $push('phones', {});
-  },
-})(props => (
+)(props => (
   <div>
     <Field name="a" />
     <Field name="b" />

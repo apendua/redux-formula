@@ -1,4 +1,4 @@
-import { createMultiReducer } from './multiReducer';
+import { createMultiReducer } from 'redux-formula/lib/store/multiReducer';
 
 const formFieldReducer = createMultiReducer({
   initialState: {

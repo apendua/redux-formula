@@ -1,4 +1,4 @@
-import createStoreContext from './createStoreContext';
+import createStoreContext from 'redux-formula/lib/store/createStoreContext';
 
 const Context = createStoreContext();
 

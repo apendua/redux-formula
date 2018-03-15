@@ -5,13 +5,16 @@ import isPlainObject from 'lodash/isPlainObject';
 import Scope from '../Compiler/Scope';
 import shallowEqual from '../utils/shallowEqual';
 import {
+  formulaSelectorFactory,
+} from '../index';
+import {
   set,
   del,
   push,
   pull,
 } from './actions';
 
-const createFormulaCreator = (context, formulaSelectorFactory) => (expression, handlers) => {
+const createFormulaCreator = context => (expression, handlers) => {
   const factory = formulaSelectorFactory(expression);
   const defaultScope = new Scope();
 
