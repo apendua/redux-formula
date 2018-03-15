@@ -2,6 +2,7 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import map from 'lodash/map';
 import times from 'lodash/times';
+import sum from 'lodash/sum';
 import { Form as F } from '../store/Context';
 
 const Input = F.connect({
@@ -53,7 +54,10 @@ const Field = ({ name, component: Component, ...props }) => (
 Field.propTypes = {
   component: PropTypes.func,
   name: PropTypes.string.isRequired,
-  defaultValue: PropTypes.string,
+  defaultValue: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
 };
 
 Field.defaultProps = {
@@ -61,48 +65,64 @@ Field.defaultProps = {
   component: Input,
 };
 
-const typeOptions = [
+const variantOptions = [
   { value: '', label: 'Default' },
-  { value: 'Mobile', label: 'Mobile' },
-  { value: 'Work', label: 'Work' },
+  { value: '1', label: 'Variant 1' },
+  { value: '2', label: 'Variant 2' },
+  { value: '3', label: 'Variant 3' },
 ];
 
-const Form = F.connect(`
-{
-  a = state.a.value
-  b = state.b.value
-  c = a + b
-  nPhones = state.phones.length OR 0
-}
-`,
+const amountOptions = [
+  { value: 0, label: 'None' },
+  { value: 1, label: 'One' },
+  { value: 2, label: 'Two' },
+  { value: 3, label: 'Three' },
+];
+
+const Item = F.connect(`{
+  price = state.amount.value * 10
+}`)(props => (
+  <Fragment>
+    <Field name="code" />
+    <Field name="amount" component={Select} options={amountOptions} />
+    <Field name="variant" component={Select} options={variantOptions} />
+    <Field name="price" defaultValue={props.price} />
+  </Fragment>
+));
+
+const Form = F.connect(`{
+  nItems = state.items.length OR 0
+  prices = {
+    .. state.items
+    -> {
+      ? item
+      # we need to fetch item price via api
+      = (item.amount.value OR 0) * 10
+    }
+  }
+}`,
   {
     onAppend: ({ $push }) => () => {
-      $push('phones', {});
+      $push('items', {});
     },
   },
 )(props => (
   <div>
-    <Field name="a" />
-    <Field name="b" />
-    <Field name="c" defaultValue={props.c} />
-    {times(props.nPhones, index => (
-      <F.Section key={index} section={`phones.${index}`}>
-        <Field name="number" />
-        <Field name="type" component={Select} options={typeOptions} />
+    {times(props.nItems, index => (
+      <F.Section key={index} section={`items.${index}`}>
+        <Item />
       </F.Section>
     ))}
     <button onClick={props.onAppend}>
-      Append
+      Add item
     </button>
+    <span>Total price: {sum(props.prices)}</span>
   </div>
 ));
 
 export default () => (
   <Fragment>
     <F.Section section="form">
-      <Form />
-    </F.Section>
-    <F.Section section="form2">
       <Form />
     </F.Section>
   </Fragment>
