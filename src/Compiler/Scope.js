@@ -1,9 +1,11 @@
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import mapValues from 'lodash/mapValues';
-import Selector, { constant } from './Selector';
-
-const constant1 = constant(1);
+import Selector from './Selector';
+import {
+  constant,
+  createConstantFunctor,
+} from '../utils/functions';
 
 class Scope {
   constructor(parent, unknowns = []) {
@@ -132,13 +134,13 @@ class Scope {
   }
 
   createConstantSelector(value) {
-    return Selector.relativeTo(this, constant1(value));
+    return Selector.relativeTo(this, constant(value));
   }
 
   createUnknownSelector(name) {
     return new Selector(
       this,
-      constant(this.order)(unknowns => unknowns[name]),
+      createConstantFunctor(this.order)(unknowns => unknowns[name]),
     );
   }
 

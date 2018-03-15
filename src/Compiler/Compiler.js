@@ -110,7 +110,7 @@ class Compiler {
         // If there were any dependencies like $0, $1, etc. interpret them
         // as references to arguments array.
         indexes.forEach(i => newScope.define(`$${i}`, [], scope => scope.relative((...args) => args[i])));
-        return formula.bindTo(newScope).selector;
+        return formula.bindTo(newScope).toRawSelector();
       },
     };
   }

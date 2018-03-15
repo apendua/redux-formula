@@ -1,14 +1,11 @@
 /* eslint-env jest */
 
 import Scope from './Scope';
-import Selector, {
-  lift,
+import Selector from './Selector';
+import {
+  identity,
   constant,
-} from './Selector';
-import { identity } from '../utils';
-
-const constant1 = x => () => x;
-// const identity = x => x;
+} from '../utils/functions';
 
 describe('Test Selector', () => {
   let testContext;
@@ -17,81 +14,27 @@ describe('Test Selector', () => {
     testContext = {};
   });
 
-  describe('Given constant functor', () => {
-    beforeEach(() => {
-      testContext.obj = {};
-    });
-    test('should create constant of order 0', () => {
-      expect(constant(0)(testContext.obj)).toBe(testContext.obj);
-    });
-    test('should create constant of order 1', () => {
-      expect(constant(1)(testContext.obj)()).toBe(testContext.obj);
-    });
-    test('should create constant of order 2', () => {
-      expect(constant(2)(testContext.obj)()()).toBe(testContext.obj);
-    });
-    test('should create constant of order 2', () => {
-      expect(constant(3)(testContext.obj)()()()).toBe(testContext.obj);
-    });
-  });
-
-  describe('Given lift functor', () => {
-    beforeEach(() => {
-      testContext.obj = {};
-      testContext.s1 = x => x;
-      testContext.s2 = x => y => x + y;
-      testContext.s3 = x => y => z => x + y + z;
-    });
-    test('should create lift of order 0, 0', () => {
-      expect(lift(0, 0)(testContext.s1)(1)).toBe(1);
-    });
-    test('should create lift of order 0, 1', () => {
-      expect(lift(0, 1)(testContext.s1)()(1)).toBe(1);
-    });
-    test('should create lift of order 0, 2', () => {
-      expect(lift(0, 2)(testContext.s1)()()(1)).toBe(1);
-    });
-    test('should create lift of order 1, 0', () => {
-      expect(lift(1, 0)(testContext.s2)(1)(2)).toBe(3);
-    });
-    test('should create lift of order 1, 1', () => {
-      expect(lift(1, 1)(testContext.s2)(1)()(2)).toBe(3);
-    });
-    test('should create lift of order 1, 2', () => {
-      expect(lift(1, 2)(testContext.s2)(1)()()(2)).toBe(3);
-    });
-    test('should create lift of order 2, 0', () => {
-      expect(lift(2, 0)(testContext.s2)(1)(2)).toBe(3);
-    });
-    test('should create lift of order 2, 1', () => {
-      expect(lift(2, 1)(testContext.s2)(1)(2)()).toBe(3);
-    });
-    test('should create lift of order 2, 2', () => {
-      expect(lift(2, 2)(testContext.s2)(1)(2)()()).toBe(3);
-    });
-  });
-
   describe('Given a scope without unknowns', () => {
     beforeEach(() => {
       testContext.scope = new Scope();
     });
     test('should select a literal', () => {
-      const selector = Selector.relativeTo(testContext.scope, constant1(1));
-      expect(selector.selector()).toBe(1);
+      const selector = Selector.relativeTo(testContext.scope, constant(1));
+      expect(selector.evaluate()).toBe(1);
     });
     test('should select a specified literal', () => {
       const selector = Selector.relativeTo(
         testContext.scope,
         identity,
       );
-      expect(selector.selector(1)).toBe(1);
+      expect(selector.evaluate(1)).toBe(1);
     });
     test('should select a specified literal indirectly', () => {
       const selector = Selector.relativeTo(
         testContext.scope,
         identity,
       ).indirect();
-      expect(selector.selector(2)()).toBe(2);
+      expect(selector.evaluate(2)()).toBe(2);
     });
   });
 
@@ -102,10 +45,10 @@ describe('Test Selector', () => {
     test('should select a function that returns a literal', () => {
       const selector = Selector.create(
         testContext.scope,
-        constant1(1),
+        constant(1),
         identity,
       );
-      expect(selector.selector()()).toBe(1);
+      expect(selector.evaluate()()).toBe(1);
     });
     test('should select a function that returns a specified literal', () => {
       const selector = Selector.create(
@@ -113,14 +56,14 @@ describe('Test Selector', () => {
         identity,
         identity,
       );
-      expect(selector.selector(2)()).toBe(2);
+      expect(selector.evaluate(2)()).toBe(2);
     });
     test('should select a specified literal indirectly', () => {
       const selector = Selector.relativeTo(
         testContext.scope,
         identity,
       ).indirect();
-      expect(selector.selector(2)()()).toBe(2);
+      expect(selector.evaluate(2)()()).toBe(2);
     });
     test(
       'should select a function that returns a specified variable',
@@ -129,11 +72,11 @@ describe('Test Selector', () => {
           testContext.scope,
           new Selector(
             testContext.scope,
-            constant1(({ x }) => x),
+            constant(({ x }) => x),
           ),
           identity,
         );
-        expect(selector.selector()({ x: 2 })).toBe(2);
+        expect(selector.evaluate()({ x: 2 })).toBe(2);
       },
     );
     test('should select an incrementation function', () => {
@@ -145,7 +88,7 @@ describe('Test Selector', () => {
         ),
         identity,
       );
-      expect(selector.selector(2)({ x: 1 })).toBe(3);
+      expect(selector.evaluate(2)({ x: 1 })).toBe(3);
     });
   });
 
@@ -157,10 +100,10 @@ describe('Test Selector', () => {
     test('should select a function that returns a literal', () => {
       const selector = Selector.create(
         testContext.scope,
-        constant1(1),
+        constant(1),
         identity,
       );
-      expect(selector.selector()()).toBe(1);
+      expect(selector.evaluate()()).toBe(1);
     });
     test('should select a function that returns a specified literal', () => {
       const selector = Selector.create(
@@ -168,14 +111,14 @@ describe('Test Selector', () => {
         identity,
         identity,
       );
-      expect(selector.selector(2)()).toBe(2);
+      expect(selector.evaluate(2)()).toBe(2);
     });
     test('should select a specified literal indirectly', () => {
       const selector = Selector.relativeTo(
         testContext.scope,
         identity,
       ).indirect();
-      expect(selector.selector(2)()()).toBe(2);
+      expect(selector.evaluate(2)()()).toBe(2);
     });
     test(
       'should select a function that returns a specified variable',
@@ -184,11 +127,11 @@ describe('Test Selector', () => {
           testContext.scope,
           new Selector(
             testContext.scope,
-            constant1(({ x }) => x),
+            constant(({ x }) => x),
           ),
           identity,
         );
-        expect(selector.selector()({ x: 2 })).toBe(2);
+        expect(selector.evaluate()({ x: 2 })).toBe(2);
       },
     );
     test('should select an incrementation function', () => {
@@ -200,7 +143,7 @@ describe('Test Selector', () => {
         ),
         identity,
       );
-      expect(selector.selector(2)({ x: 1 })).toBe(3);
+      expect(selector.evaluate(2)({ x: 1 })).toBe(3);
     });
   });
 
@@ -212,10 +155,10 @@ describe('Test Selector', () => {
     test('should select a function that returns a literal', () => {
       const selector = Selector.create(
         testContext.scope,
-        constant1(1),
+        constant(1),
         identity,
       );
-      expect(selector.selector()()()).toBe(1);
+      expect(selector.evaluate()()()).toBe(1);
     });
     test('should select a function that returns a specified literal', () => {
       const selector = Selector.create(
@@ -223,14 +166,14 @@ describe('Test Selector', () => {
         identity,
         identity,
       );
-      expect(selector.selector(2)()()).toBe(2);
+      expect(selector.evaluate(2)()()).toBe(2);
     });
     test('should select a specified literal indirectly', () => {
       const selector = Selector.relativeTo(
         testContext.scope,
         identity,
       ).indirect();
-      expect(selector.selector(2)()()()).toBe(2);
+      expect(selector.evaluate(2)()()()).toBe(2);
     });
     test(
       'should select a function that returns a specified variable',
@@ -239,11 +182,11 @@ describe('Test Selector', () => {
           testContext.scope,
           new Selector(
             testContext.scope,
-            constant1(constant1(({ x }) => x)),
+            constant(constant(({ x }) => x)),
           ),
           identity,
         );
-        expect(selector.selector()()({ x: 2 })).toBe(2);
+        expect(selector.evaluate()()({ x: 2 })).toBe(2);
       },
     );
     test('should select an incrementation function', () => {
@@ -259,7 +202,7 @@ describe('Test Selector', () => {
         ),
         (a, b) => a + b,
       );
-      expect(selector.selector(1)(2)(3)).toBe(9);
+      expect(selector.evaluate(1)(2)(3)).toBe(9);
     });
   });
 });

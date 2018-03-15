@@ -1,33 +1,12 @@
 import {
   createSelector,
 } from 'reselect';
-import { identity } from '../utils';
-
-const constant1 = x => () => x;
-
-export const constant = (order) => {
-  if (order === 0) {
-    return identity;
-  }
-  const next = constant(order - 1);
-  return x => constant1(next(x));
-};
-
-export const lift = (a, b) => {
-  if (b === 0) {
-    return identity;
-  }
-  if (a === 0) {
-    return f => constant(b)(f);
-  }
-  const next = lift(a - 1, b);
-  return f => (...args) => next(f(...args));
-};
-
-const lift2 = g => (...args) => {
-  const v = g(...args);
-  return unknowns => () => v()(unknowns);
-};
+import isArray from 'lodash/isArray';
+import invokeMap from 'lodash/invokeMap';
+import {
+  lift,
+  lift2,
+} from '../utils/functions';
 
 const relativeTo = (targetScope, originalSelector, originalScope) => {
   if (!targetScope ||
@@ -35,7 +14,6 @@ const relativeTo = (targetScope, originalSelector, originalScope) => {
       targetScope.isAncestorOf(originalScope)) {
     return originalSelector;
   }
-  // NOTE: Is this check necessary?
   if (!targetScope.isDescendantOf(originalScope)) {
     throw new Error('Can only bind selectors from related scopes');
   }
@@ -46,12 +24,30 @@ const relativeTo = (targetScope, originalSelector, originalScope) => {
   );
 };
 
+const normalize = (args) => {
+  if (isArray(args[0])) {
+    return [
+      args[0],
+      args[1],
+    ];
+  }
+  return [
+    args.slice(0, args.length - 1),
+    args[args.length - 1],
+  ];
+};
+
 class Selector {
-  constructor(scope, selector) {
-    this.selector = selector;
+  constructor(scope, value) {
+    this.value = value;
     this.scope = scope;
   }
 
+  /**
+   * Create a copy of this Selector, but relative to the given scope.
+   * @param {Scope} scope
+   * @returns {Selector}
+   */
   relativeTo(scope) {
     if (scope === this.scope) {
       return this;
@@ -59,8 +55,14 @@ class Selector {
     return this.constructor.relativeTo(scope, this);
   }
 
+  /**
+   * Create an indirect version of this selector. Optionally, accept
+   * a target scope different from the current one.
+   * @param {Scope} [scope=this.scope]
+   * @returns {Selector}
+   */
   indirect(scope = this.scope) {
-    const { selector } = this.relativeTo(scope);
+    const selector = this.relativeTo(scope).toRawSelector();
     let f = (...args) => () => selector(...args);
     let currentScope = scope;
     while (currentScope) {
@@ -75,6 +77,22 @@ class Selector {
     );
   }
 
+  /**
+   * Returns the actual selector function.
+   * @returns {Function}
+   */
+  toRawSelector() {
+    return this.value;
+  }
+
+  /**
+   * Evaluates the corresponding selector function.
+   * @returns {*}
+   */
+  evaluate(...args) {
+    return this.value(...args);
+  }
+
   static relativeTo(scope, originalSelector) {
     if (typeof originalSelector === 'function') {
       return new Selector(
@@ -87,7 +105,7 @@ class Selector {
         scope,
         relativeTo(
           scope,
-          originalSelector.selector,
+          originalSelector.toRawSelector(),
           originalSelector.scope,
         ),
       );
@@ -96,27 +114,24 @@ class Selector {
   }
 
   static create(scope, ...args) {
-    const isArray = Array.isArray(args[0]);
-    const selectors = isArray
-      ? args[0]
-      : args.slice(0, args.length - 1);
-    const evaluate = isArray
-      ? args[1]
-      : args[args.length - 1];
+    const [selectors, evaluate] = normalize(args);
+
     const newEvaluate = scope && scope.hasOwnUnknowns()
       ? (...values) => unknowns => evaluate(...values.map(v => v(unknowns)))
       : evaluate;
+
     const newSelectors = selectors.map((selector) => {
       if (selector instanceof Selector && selector.scope === scope) {
         return selector;
       }
       return this.relativeTo(scope, selector);
     });
+
     if (!scope.parent) {
       return new Selector(
         scope,
         createSelector(
-          newSelectors.map(selector => selector.selector),
+          invokeMap(newSelectors, 'toRawSelector'),
           newEvaluate,
         ),
       );
@@ -124,7 +139,7 @@ class Selector {
     const selector = this.create(scope.parent, newSelectors, newEvaluate);
     return new Selector(
       scope,
-      selector.selector,
+      selector.toRawSelector(),
     );
   }
 }
