@@ -2,7 +2,6 @@ import Scope from './Parser.Scope';
 import Token from './Parser.Token';
 import Context from './Parser.Context';
 import { TOKEN_TYPE_END } from '../constants';
-import { ParseError } from '../errors';
 
 export default class Parser {
   constructor({ plugins = [] }) {
@@ -41,7 +40,7 @@ export default class Parser {
     });
     const parsed = context.expression();
     if (context.look(1).id !== TOKEN_TYPE_END) {
-      throw new ParseError(`Expected end, got ${context.look(1).id}`);
+      throw context.error(`Expected end, got "${context.look(1).id}".`, context.look(1));
     }
     return parsed;
   }
