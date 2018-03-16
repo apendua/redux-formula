@@ -61,20 +61,6 @@ export const $if = scope => () => (
   (x, y, z) => (x() ? y() : z()),
 );
 
-export const $match = scope => () => (...selectors) => scope.boundSelector(
-  ...selectors.map(selector => scope.indirect(selector)),
-  (...args) => {
-    const n = args.length;
-    for (let i = 0; i < n; i += 2) {
-      if (args[i] && args[i]()) {
-        return args[i + 1] ? args[i + 1]() : null;
-      }
-    }
-    return null;
-  },
-);
-
-
 export const $unless = scope => () => (
   selectX,
   selectY,
@@ -138,7 +124,6 @@ const pluginDefaultOperators = {
     $filter,
     $map,
     $sort,
-    $match,
     ...opearatos,
   }),
 };

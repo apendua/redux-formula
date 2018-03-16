@@ -135,7 +135,7 @@ test('parses pipe operator', () => {
 });
 
 test('parses multi arguments pipe expression', () => {
-  expect(parse('a,b,c|d')).toEqual({
+  expect(parse(':a,b,c|d')).toEqual({
     '??': [
       { $: 'a' },
       { $: 'b' },
@@ -160,7 +160,7 @@ test('parses consecutive pipe operator', () => {
 });
 
 test('parses pipe expression followed by pipe operator', () => {
-  expect(parse('a,b|c|d')).toEqual({
+  expect(parse(':a,b|c|d')).toEqual({
     '??': [
       {
         '??': [
@@ -344,17 +344,19 @@ test('parses @map operator', () => {
 
 test('parses conditional expression', () => {
   expect(parse(`
-if a == 1 => b
-if a == 2 => c
-else d
+@if a == 1, b,
+@if a == 2, c, d
 `)).toEqual({
-    $match: [
+    $if: [
       { $eq: [{ $: 'a' }, { '!': 1 }] },
       { $: 'b' },
-      { $eq: [{ $: 'a' }, { '!': 2 }] },
-      { $: 'c' },
-      { '!': true },
-      { $: 'd' },
+      {
+        $if: [
+          { $eq: [{ $: 'a' }, { '!': 2 }] },
+          { $: 'c' },
+          { $: 'd' },
+        ],
+      },
     ],
   });
 });

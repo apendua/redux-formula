@@ -99,7 +99,6 @@ const genericOperator = bp => (grammar) => {
         const operator = parse.expression();
         parse.advance(']');
         const params = parse.params({
-          bp,
           array: true,
           separator: ',',
         });
@@ -111,7 +110,6 @@ const genericOperator = bp => (grammar) => {
                  parse.look(1).id === TOKEN_TYPE_LITERAL) {
         const name = parse.advance().value;
         const params = parse.params({
-          bp,
           array: true,
           separator: ',',
         });
@@ -120,7 +118,7 @@ const genericOperator = bp => (grammar) => {
           [`$${name}`]: params.array,
         };
       }
-      return undefined;
+      throw parse.error(`Expected "[" or identifier after @, got "${parse.look(1).id}".`);
     })
     .ifUsedAsInfix((parse, token, left) => {
       if (parse.look(1).id === '[') {
@@ -142,7 +140,7 @@ const genericOperator = bp => (grammar) => {
           [`$${name}`]: [left, parse.expression(bp)],
         };
       }
-      return undefined;
+      throw parse.error(`Expected "[" or identifier after @, got "${parse.look(1).id}".`);
     });
 };
 
@@ -164,17 +162,14 @@ const call = bp => (grammar) => {
     }));
 
   grammar
-    .token(',')
+    .token(':')
     .setBindingPower(bp)
-    .ifUsedAsInfix((parse, token, left) => {
-      const args = [
-        left,
-        ...parse.tuple({
-          bp,
-          separator: ',',
-          end: '|',
-        }),
-      ];
+    .ifUsedAsPrefix((parse) => {
+      const args = parse.tuple({
+        bp,
+        separator: ',',
+        end: '|',
+      });
       return {
         '??': args,
         '()': parse.expression(bp),
@@ -200,33 +195,6 @@ const list = () => (grammar) => {
       separator: null,
       end: ']',
     }));
-};
-
-const condition = () => (grammar) => {
-  grammar.token('=>');
-  grammar.token('else');
-
-  grammar
-    .token('if')
-    .ifUsedAsPrefix((parse) => {
-      const $match = [];
-      do {
-        $match.push(parse.expression());
-        parse.advance('=>');
-        $match.push(parse.expression());
-        if (parse.look(1).id === 'if') {
-          parse.advance('if');
-        }
-      } while (parse.look(0).id === 'if');
-      if (parse.look(1).id === 'else') {
-        parse.advance('else');
-        $match.push({ '!': true });
-        $match.push(parse.expression());
-      }
-      return {
-        $match,
-      };
-    });
 };
 
 const binaryRight = (id, alias, bp) => grammar =>
@@ -279,7 +247,6 @@ parser.token(TOKEN_TYPE_IDENTIFIER)
   parenthesis(),
   scopeObject(),
   list(),
-  condition(),
   genericOperator(80),
 
 ].forEach(plugin => plugin(parser));
