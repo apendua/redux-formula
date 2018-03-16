@@ -15,7 +15,6 @@ describe('Test Token; ', () => {
     testContext.s1.ifUsedAsPrefix(i => (i === 2 ? 'prefix_2' : null));
     testContext.s1.ifUsedAsInfix(i => (i === 1 ? 'infix_1' : null));
     testContext.s1.ifUsedAsInfix(i => (i === 2 ? 'infix_2' : null));
-    testContext.s1.ifUsedAsStatement(() => 'statement_1');
 
     testContext.s2 = new Token();
   });
@@ -28,10 +27,6 @@ describe('Test Token; ', () => {
     expect(testContext.s1.canBeUsedAsInfix()).toBe(true);
   });
 
-  test('should know if it can be used as statement', () => {
-    expect(testContext.s1.canBeUsedAsStatement()).toBe(true);
-  });
-
   test('should know if it cannot be used as prefix', () => {
     expect(testContext.s2.canBeUsedAsPrefix()).toBe(false);
   });
@@ -40,20 +35,12 @@ describe('Test Token; ', () => {
     expect(testContext.s2.canBeUsedAsInfix()).toBe(false);
   });
 
-  test('should know if it cannot be used as statement', () => {
-    expect(testContext.s2.canBeUsedAsStatement()).toBe(false);
-  });
-
   test('should resolve at prefix postion', () => {
     expect(testContext.s1.resolve('prefix', 1)).toBe('prefix_1');
   });
 
   test('should resolve at infix postion', () => {
     expect(testContext.s1.resolve('infix', 1)).toBe('infix_1');
-  });
-
-  test('should resolve at statement postion', () => {
-    expect(testContext.s1.resolve('statement')).toBe('statement_1');
   });
 
   test('should find alternative path at prefix postion', () => {

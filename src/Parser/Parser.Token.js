@@ -75,20 +75,12 @@ export default class Token {
     return this.ifUsedAs('infix', rule);
   }
 
-  ifUsedAsStatement(rule) {
-    return this.ifUsedAs('statement', rule);
-  }
-
   canBeUsedAsPrefix() {
     return this.canBeUsedAs('prefix');
   }
 
   canBeUsedAsInfix() {
     return this.canBeUsedAs('infix');
-  }
-
-  canBeUsedAsStatement() {
-    return this.canBeUsedAs('statement');
   }
 
   canBeUsedAs(pos) {

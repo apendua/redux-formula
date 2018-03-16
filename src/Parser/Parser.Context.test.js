@@ -40,16 +40,6 @@ function createGrammar(constants) {
     .setBindingPower(2)
     .ifUsedAsInfix(binary);
 
-  const definition = new Token('let').ifUsedAsStatement((parse) => {
-    const left =
-      parse.advance(TOKEN_TYPE_IDENTIFIER).value;
-    parse.advance('=');
-    const right =
-      parse.expression(0);
-    parse.advance(';');
-    return { value: 'let', left, right };
-  });
-
   return {
     [TOKEN_TYPE_LITERAL]: literal,
     [TOKEN_TYPE_WHITESPACE]: new Token(TOKEN_TYPE_WHITESPACE, { ignored: true }),
@@ -61,7 +51,6 @@ function createGrammar(constants) {
     ',': new Token(','),
     '{': new Token('{'),
     '}': new Token('}'),
-    let: definition,
     and: new Token('and'),
     '+': add,
     '*': mul,
