@@ -5,7 +5,7 @@ import {
   scope,
 } from './actions';
 import shallowEqual from '../utils/shallowEqual';
-import createFormulaCreator from './createFormulaCreator';
+import createConnect from './createConnect';
 
 /*
 EXAMPLE:
@@ -35,7 +35,18 @@ export const createSubStore = (store, section, reducer) => {
   return { dispatch, subscribe, getState };
 };
 
-const createStoreContext = (parent) => {
+const join = (x, y) => {
+  if (!x) {
+    return y;
+  }
+  return `${x}.${y}`;
+};
+
+const createStoreContext = ({
+  parent,
+  defaultName = 'state',
+  rootSection = '',
+} = {}) => {
   const context = createContext({
     store: null,
   });
@@ -63,13 +74,13 @@ const createStoreContext = (parent) => {
           {value => (
             value.store || !parent
             ?
-              <Provider value={{ store: this.getStore(value.store, section, reducer) }} >
+              <Provider value={{ store: this.getStore(value.store, value.store ? section : join(rootSection, section), reducer) }} >
                 {children}
               </Provider>
             :
               <parent.Consumer>
                 {parentValue => (
-                  <Provider value={{ store: this.getStore(parentValue.store, section, reducer) }} >
+                  <Provider value={{ store: this.getStore(parentValue.store, join(rootSection, section), reducer) }} >
                     {children}
                   </Provider>
                 )}
@@ -94,7 +105,7 @@ const createStoreContext = (parent) => {
     Consumer,
     Section,
     context,
-    connect: createFormulaCreator(context),
+    connect: createConnect({ [defaultName]: context }),
   };
 };
 

@@ -127,7 +127,10 @@ const Form = connect(`{
 
 export default () => (
   <Fragment>
-    <F.Section section="form">
+    <F.Section section="cart1">
+      <Form />
+    </F.Section>
+    <F.Section section="cart2">
       <Form />
     </F.Section>
   </Fragment>
