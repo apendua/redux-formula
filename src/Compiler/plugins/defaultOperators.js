@@ -96,6 +96,12 @@ export const $map = scope => selectOptions => (selectInput, selectMapValue) => {
   );
 };
 
+export const $call = scope => () => (selectFunc, ...argsSelectors) => scope.boundSelector(
+  selectFunc,
+  ...argsSelectors,
+  (func, ...args) => func(...args),
+);
+
 const pluginDefaultOperators = {
   createOperators: ({ opearatos }) => ({
     $dot,
@@ -124,6 +130,7 @@ const pluginDefaultOperators = {
     $filter,
     $map,
     $sort,
+    $call,
     ...opearatos,
   }),
 };

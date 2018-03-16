@@ -107,10 +107,10 @@ test('parses evaluate expression', () => {
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
     { type: TOKEN_TYPE_OPERATOR, value: ')' },
   ])).toEqual({
-    '??': [
+    $call: [
+      { $: 'a' },
       { $: 'b' },
     ],
-    '()': { $: 'a' },
   });
 });
 
@@ -120,10 +120,10 @@ test('parses pipe operator', () => {
     { type: TOKEN_TYPE_OPERATOR, value: '|' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
   ])).toEqual({
-    '??': [
+    $call: [
+      { $: 'b' },
       { $: 'a' },
     ],
-    '()': { $: 'b' },
   });
 });
 
@@ -138,12 +138,12 @@ test('parses multi arguments pipe expression', () => {
     { type: TOKEN_TYPE_OPERATOR, value: '|' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'd' },
   ])).toEqual({
-    '??': [
+    $call: [
+      { $: 'd' },
       { $: 'a' },
       { $: 'b' },
       { $: 'c' },
     ],
-    '()': { $: 'd' },
   });
 });
 

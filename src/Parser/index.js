@@ -103,8 +103,11 @@ const genericOperator = bp => (grammar) => {
           separator: ',',
         });
         return {
-          '()': operator,
-          '??': params.array,
+          ...params.object,
+          $call: [
+            operator,
+            ...params.array,
+          ],
         };
       } else if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER ||
                  parse.look(1).id === TOKEN_TYPE_LITERAL) {
@@ -125,11 +128,14 @@ const genericOperator = bp => (grammar) => {
         parse.advance('[');
         const operator = parse.expression();
         parse.advance(']');
-        // const params = parse.params({ array: false });
+        const params = parse.params({ array: false });
         return {
-          // '{}': params.object,
-          '()': operator,
-          '??': [left, parse.expression(bp)],
+          ...params.object,
+          $call: [
+            operator,
+            left,
+            ...parse.expression(bp),
+          ],
         };
       } else if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER ||
                  parse.look(1).id === TOKEN_TYPE_LITERAL) {
@@ -154,11 +160,13 @@ const call = bp => (grammar) => {
     .token('(')
     .setBindingPower(bp)
     .ifUsedAsInfix((parse, token, left) => ({
-      '()': left,
-      '??': parse.tuple({
-        separator: ',',
-        end: ')',
-      }),
+      $call: [
+        left,
+        ...parse.tuple({
+          separator: ',',
+          end: ')',
+        }),
+      ],
     }));
 
   grammar
@@ -171,8 +179,10 @@ const call = bp => (grammar) => {
         end: '|',
       });
       return {
-        '??': args,
-        '()': parse.expression(bp),
+        $call: [
+          parse.expression(bp),
+          ...args,
+        ],
       };
     });
 
@@ -180,8 +190,10 @@ const call = bp => (grammar) => {
     .token('|')
     .setBindingPower(bp)
     .ifUsedAsInfix((parse, token, left) => ({
-      '??': [left],
-      '()': parse.expression(bp),
+      $call: [
+        parse.expression(bp),
+        left,
+      ],
     }));
 };
 

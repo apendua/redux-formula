@@ -29,8 +29,10 @@ const P = (strings, ...values) => {
 };
 
 const F = (args, func) => ({
-  '??': args,
-  '(!': func,
+  $call: [
+    func,
+    ...args,
+  ],
 });
 
 export default parse;

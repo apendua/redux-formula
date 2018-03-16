@@ -440,8 +440,7 @@ describe('Test Compiler', () => {
           '=': { '?': ['a', 'b'], $f: ['b', 'a'] },
         },
         value: {
-          '??': [1, 2],
-          '()': { $swap: 'subtract' },
+          $call: [{ $swap: 'subtract' }, 1, 2],
         },
       });
       const result = formula();
@@ -636,11 +635,12 @@ describe('Test Compiler', () => {
       const func = x => x + 1;
       const formula = testContext.createSelector({
         x: 3,
-        z: { '??': ['x'], '(!': func },
+        z: {
+          $call: [{ '!': func }, 'x'],
+        },
       });
       expect(formula(1)).toEqual({
         x: 3,
-        // y: 4,
         z: 4,
       });
     });
@@ -684,8 +684,7 @@ describe('Test Compiler', () => {
             },
           },
           val: {
-            '??': 1,
-            '()': 'inc',
+            $call: ['inc', 1],
           },
         });
         expect(formula().val).toBe(2);

@@ -118,59 +118,59 @@ test('parses index operator', () => {
 
 test('parses evaluate expression', () => {
   expect(parse('a(b)')).toEqual({
-    '??': [
+    $call: [
+      { $: 'a' },
       { $: 'b' },
     ],
-    '()': { $: 'a' },
   });
 });
 
 test('parses pipe operator', () => {
   expect(parse('a|b')).toEqual({
-    '??': [
+    $call: [
+      { $: 'b' },
       { $: 'a' },
     ],
-    '()': { $: 'b' },
   });
 });
 
 test('parses multi arguments pipe expression', () => {
   expect(parse(':a,b,c|d')).toEqual({
-    '??': [
+    $call: [
+      { $: 'd' },
       { $: 'a' },
       { $: 'b' },
       { $: 'c' },
     ],
-    '()': { $: 'd' },
   });
 });
 
 test('parses consecutive pipe operator', () => {
   expect(parse('a|b|c')).toEqual({
-    '??': [
+    $call: [
+      { $: 'c' },
       {
-        '??': [
+        $call: [
+          { $: 'b' },
           { $: 'a' },
         ],
-        '()': { $: 'b' },
       },
     ],
-    '()': { $: 'c' },
   });
 });
 
 test('parses pipe expression followed by pipe operator', () => {
   expect(parse(':a,b|c|d')).toEqual({
-    '??': [
+    $call: [
+      { $: 'd' },
       {
-        '??': [
+        $call: [
+          { $: 'c' },
           { $: 'a' },
           { $: 'b' },
         ],
-        '()': { $: 'c' },
       },
     ],
-    '()': { $: 'd' },
   });
 });
 
