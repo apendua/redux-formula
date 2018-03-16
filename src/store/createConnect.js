@@ -174,7 +174,7 @@ const createConnect = options => (expression, handlers) => {
 
   Component.defaultProps = {
     ownProps: {},
-    stores: null,
+    stores: {},
   };
 
   return BaseComponent => (props) => {
