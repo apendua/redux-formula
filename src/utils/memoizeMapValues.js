@@ -1,10 +1,8 @@
 import map from 'lodash/map';
 import keyBy from 'lodash/keyBy';
-import stableMapValues from '../utils/stableMapValues';
-import {
-  defaultIsEqual,
-} from '../utils';
-import shallowEqual from '../utils/shallowEqual';
+import stableMapValues from './stableMapValues';
+import defaultIsEqual from './defaultIsEqual';
+import shallowEqual from './shallowEqual';
 
 const memoizeMapValues = (mapOneValue, getKey, isEqual = defaultIsEqual) => {
   let lastInput = null;

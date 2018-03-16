@@ -2,7 +2,7 @@
 
 import Compiler from './Compiler';
 import presetDefault from './presets/default';
-import { identity } from '../utils';
+import { identity } from '../utils/functions';
 
 const constant = x => () => x;
 

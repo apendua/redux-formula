@@ -3,9 +3,7 @@ import map from 'lodash/map';
 import omit from 'lodash/omit';
 import mapValues from 'lodash/mapValues';
 import isArray from 'lodash/isArray';
-import {
-  defaultIsEqual,
-} from './index';
+import defaultIsEqual from './defaultIsEqual';
 
 /**
  * Like lodash/mapValues, but with more caution, e.g. when new value is the
