@@ -3,8 +3,15 @@ import {
   TOKEN_TYPE_LITERAL,
   TOKEN_TYPE_IDENTIFIER,
 } from '../constants';
+import pluginBlock from './plugins/block';
+import pluginParams from './plugins/params';
 
-const parser = new Parser();
+const parser = new Parser({
+  plugins: [
+    pluginBlock,
+    pluginParams,
+  ],
+});
 
 const parenthesis = () => (grammar) => {
   grammar
@@ -53,27 +60,23 @@ const scopeObject = () => (grammar) => {
   grammar.token('=');
   grammar.token(',');
   grammar.token('?');
-  grammar.token('->');
 
   grammar
     .token('{')
-    .ifUsedAsPrefix(parse => parse.block({
-      end: '}',
-    }));
+    .ifUsedAsPrefix(parse => parse.block({ end: '}' }));
 };
 
 const index = (alias, bp) => (grammar) => {
-  grammar
-    .token(']');
+  grammar.token(']');
 
   grammar
     .token('.[')
     .setBindingPower(bp)
     .ifUsedAsInfix((parse, token, left) => {
-      const parsed = parse.expression();
+      const right = parse.expression();
       parse.advance(']');
       return {
-        [`$${alias}`]: [left, parsed],
+        [`$${alias}`]: [left, right],
       };
     });
 };

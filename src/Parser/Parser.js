@@ -5,11 +5,20 @@ import { TOKEN_TYPE_END } from '../constants';
 import { ParseError } from '../errors';
 
 export default class Parser {
-  constructor(plugins = []) {
+  constructor({ plugins = [] }) {
     this.plugins = plugins;
     this.grammar = new Scope();
     this.Context = class ParserContext extends this.constructor.Context {};
     this.plugins.forEach(plugin => plugin(this));
+  }
+
+  utility(name, func) {
+    if (this.Context.prototype[name]) {
+      throw new Error(`Name "${name}" is already reserved by parser context`);
+    }
+    this.Context.prototype[name] = function utility(...args) {
+      return func(this, ...args);
+    };
   }
 
   token(id) {
