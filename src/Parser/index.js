@@ -106,6 +106,72 @@ const index = (alias, bp) => (grammar) => {
     });
 };
 
+const genericOperator = bp => (grammar) => {
+  grammar.token('@');
+  grammar.token(',');
+  grammar.token('(');
+  grammar.token(')');
+  grammar.token('[');
+  grammar.token(']');
+  grammar.token('--');
+
+  grammar
+    .token('@')
+    .setBindingPower(bp)
+    .ifUsedAsPrefix((parse) => {
+      if (parse.look(1).id === '[') {
+        parse.advance('[');
+        const operator = parse.expression();
+        parse.advance(']');
+        const params = parse.params({
+          bp,
+          array: true,
+          separator: ',',
+        });
+        return {
+          '()': operator,
+          '??': params.array,
+        };
+      } else if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER ||
+                 parse.look(1).id === TOKEN_TYPE_LITERAL) {
+        const name = parse.advance().value;
+        const params = parse.params({
+          bp,
+          array: true,
+          separator: ',',
+        });
+        return {
+          ...params.object,
+          [`$${name}`]: params.array,
+        };
+      }
+      return undefined;
+    })
+    .ifUsedAsInfix((parse, token, left) => {
+      if (parse.look(1).id === '[') {
+        parse.advance('[');
+        const operator = parse.expression();
+        parse.advance(']');
+        // const params = parse.params({ array: false });
+        return {
+          // '{}': params.object,
+          '()': operator,
+          '??': [left, parse.expression(bp)],
+        };
+      } else if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER ||
+                 parse.look(1).id === TOKEN_TYPE_LITERAL) {
+        const name = parse.advance().value;
+        const params = parse.params({ array: false });
+        return {
+          ...params.object,
+          [`$${name}`]: [left, parse.expression(bp)],
+        };
+      }
+      return undefined;
+    });
+};
+
+
 const call = bp => (grammar) => {
   grammar.token(')');
   grammar.token('|');
@@ -239,6 +305,7 @@ parser.token(TOKEN_TYPE_IDENTIFIER)
   scopeObject(),
   list(),
   condition(),
+  genericOperator(80),
 
 ].forEach(plugin => plugin(parser));
 

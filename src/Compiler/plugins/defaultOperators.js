@@ -1,4 +1,5 @@
 import filter from 'lodash/filter';
+import reduce from 'lodash/reduce';
 import sortBy from 'lodash/sortBy';
 
 export const createUnary = op => scope =>
@@ -85,6 +86,7 @@ export const $unless = scope => () => (
 );
 
 export const $filter = createBinary((x, y) => filter(x, y));
+export const $reduce = createBinary((x, y) => reduce(x, y));
 export const $sort = scope => selectOptions => selectX => scope.boundSelector(
   selectX,
   selectOptions,
@@ -115,6 +117,7 @@ const pluginDefaultOperators = {
     $or,
     $if,
     $unless,
+    $reduce,
     $filter,
     $sort,
     $match,

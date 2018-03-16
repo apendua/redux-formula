@@ -12,7 +12,7 @@ export default function identifier({
   });
   return {
     accept({ index }, c) {
-      if (c === '_' || c === '$' || c === '@' || c === '^' || c === '~') {
+      if (c === '_' || c === '$' || c === '^' || c === '~') {
         return true;
       }
       if (index > 0 && c >= '0' && c <= '9') {

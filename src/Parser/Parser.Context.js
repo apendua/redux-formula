@@ -51,13 +51,18 @@ export default class Context {
     bp,
     map = ({ value, type }) => ({ value, type }),
   }) {
-    if (!end && !id) {
-      throw new Error('Tuple requires either "end" or "id" specified');
+    if (!end && !id && !separator) {
+      throw new Error('Tuple requires either "end", "separator" or "id" specified');
     }
     const tuple = [];
-    const isEnd = end
-      ? () => this.look(1).id === end
-      : () => this.look(1).id !== id;
+    let isEnd;
+    if (end) {
+      isEnd = () => this.look(1).id === end;
+    } else if (id) {
+      isEnd = () => this.look(1).id !== id;
+    } else {
+      isEnd = () => false;
+    }
     while (!isEnd()) {
       if (id) {
         tuple.push(map(this.advance(id)));
@@ -76,6 +81,73 @@ export default class Context {
       this.advance(end);
     }
     return tuple;
+  }
+
+  params({
+    bp,
+    array = true,
+    separator = ',',
+  }) {
+    const params = {};
+    if (this.look(1).id === '--') {
+      this.advance('--');
+      params.object = this.block({
+        end: '--',
+        pure: true,
+      });
+    }
+    if (array) {
+      if (this.look(1).id === '(') {
+        this.advance('(');
+        params.array = this.tuple({
+          separator: null,
+          end: ')',
+        });
+      } else {
+        params.array = this.tuple({
+          bp,
+          separator,
+        });
+      }
+    }
+    return params;
+  }
+
+  block({
+    end = '}',
+    pure = false,
+  }) {
+    const object = {};
+    while (this.look(1).id !== end) {
+      let key;
+      if (this.look(1).id === '?') {
+        if (pure) {
+          throw new ParseError('Expected pure object, but received "?".');
+        }
+        key = '?';
+        this.advance('?');
+        object[key] = this.tuple({
+          id: TOKEN_TYPE_IDENTIFIER,
+          separator: ',',
+          map: token => token.value,
+        });
+      } else {
+        if (this.look(1).id === '=') {
+          key = '=';
+          if (pure) {
+            throw new ParseError('Expected pure object, but received "=".');
+          }
+        } else if (this.look(1).id === TOKEN_TYPE_LITERAL) {
+          key = this.advance(TOKEN_TYPE_LITERAL).value;
+        } else {
+          key = this.advance(TOKEN_TYPE_IDENTIFIER).value;
+        }
+        this.advance('=');
+        object[key] = this.expression();
+      }
+    }
+    this.advance(end);
+    return object;
   }
 
   /**

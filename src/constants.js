@@ -12,8 +12,8 @@ export const VALUE_TYPE_STRING = 'STRING';
 export const VALUE_TYPE_BOOLEAN = 'BOOLEAN';
 
 export const DEFAULT_OPERATORS = [
-  '+', '-', '*', '/', '|', '!', '..', '=>', '->', '(', ')', '[', ']', '{', '}', '=', '?', '|', ',',
-  '.[', '<=', '>=', '==', '!=',
+  '@', '+', '-', '*', '/', '|', '!', '..', '=>', '->', '(', ')', '[', ']', '{', '}', '=', '?', '|', ',',
+  '.[', '<=', '>=', '==', '!=', '--',
 ];
 
 export const ERROR_UNEXPECTED_CHARACTER = '101';

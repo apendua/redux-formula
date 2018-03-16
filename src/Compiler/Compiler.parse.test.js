@@ -363,3 +363,65 @@ else d
     ],
   });
 });
+
+test('parses generic operator (infix)', () => {
+  expect(parse(`
+array @map -- key = "id" -- { ? item = item.name }
+`)).toEqual({
+    key: { '!': 'id' },
+    $map: [
+      { $: 'array' },
+      {
+        '?': ['item'],
+        '=': { $dot: [{ $: 'item' }, { '!': 'name' }] },
+      },
+    ],
+  });
+});
+
+test('parses generic operator (prefix)', () => {
+  expect(parse(`
+@map -- key = "id" -- array, { ? item = item.name }
+`)).toEqual({
+    key: { '!': 'id' },
+    $map: [
+      { $: 'array' },
+      {
+        '?': ['item'],
+        '=': { $dot: [{ $: 'item' }, { '!': 'name' }] },
+      },
+    ],
+  });
+});
+
+test('parses generic @map operator followed by @reduce', () => {
+  expect(parse(`
+array
+  @map
+    -- key = "id" --
+    { ? item = item.value }
+  @reduce { ? a, b = a + b }
+`)).toEqual({
+    $reduce: [
+      {
+        key: { '!': 'id' },
+        $map: [
+          { $: 'array' },
+          {
+            '?': ['item'],
+            '=': { $dot: [{ $: 'item' }, { '!': 'value' }] },
+          },
+        ],
+      },
+      {
+        '?': ['a', 'b'],
+        '=': {
+          $add: [
+            { $: 'a' },
+            { $: 'b' },
+          ],
+        },
+      },
+    ],
+  });
+});
