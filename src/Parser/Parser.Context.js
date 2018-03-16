@@ -8,9 +8,6 @@ import {
   TOKEN_TYPE_LINE_COMMENT,
   TOKEN_TYPE_END,
 } from '../constants';
-import {
-  constant,
-} from '../utils/functions';
 
 import Token from './Parser.Token';
 import Scope from './Parser.Scope';
@@ -22,9 +19,6 @@ class Context {
     tokens = [],
     symbols = new Scope(),
   } = {}) {
-    this.Token = class ContextToken extends this.constructor.Token {};
-    this.Token.prototype.getContext = constant(this);
-
     Object.assign(this, {
       order,
       lines,
@@ -127,34 +121,34 @@ class Context {
       case TOKEN_TYPE_IDENTIFIER:
         base = this.symbols.lookup(value) ||
                this.symbols.lookup(TOKEN_TYPE_IDENTIFIER) ||
-               new this.Token(TOKEN_TYPE_IDENTIFIER);
+               new Token(TOKEN_TYPE_IDENTIFIER);
         break;
 
       case TOKEN_TYPE_LITERAL:
         base = this.symbols.lookup(TOKEN_TYPE_LITERAL) ||
-               new this.Token(TOKEN_TYPE_LITERAL);
+               new Token(TOKEN_TYPE_LITERAL);
         break;
 
       case TOKEN_TYPE_OPERATOR:
         base = this.symbols.lookup(value) ||
-               new this.Token(value, { unknown: true });
+               new Token(value, { unknown: true });
         break;
 
       case TOKEN_TYPE_LINE_COMMENT:
         base = this.symbols.lookup(TOKEN_TYPE_LINE_COMMENT) ||
-               new this.Token(TOKEN_TYPE_LINE_COMMENT, { ignored: true });
+               new Token(TOKEN_TYPE_LINE_COMMENT, { ignored: true });
         break;
 
       case TOKEN_TYPE_WHITESPACE:
         base = this.symbols.lookup(TOKEN_TYPE_WHITESPACE) ||
-               new this.Token(TOKEN_TYPE_WHITESPACE, { ignored: true });
+               new Token(TOKEN_TYPE_WHITESPACE, { ignored: true });
         break;
 
       default:
         throw this.error(`Unknown token ${type}: ${value}`, other);
     }
 
-    return Object.assign(Object.create(base), { type, value }, other);
+    return Object.assign(Object.create(base), { type, value, context: this }, other);
   }
 
   /**
@@ -241,7 +235,5 @@ class Context {
     });
   }
 }
-
-Context.Token = Token;
 
 export default Context;

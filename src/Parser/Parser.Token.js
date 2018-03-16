@@ -25,9 +25,8 @@ export default class Token {
   }
 
   error(message) {
-    const context = this.getContext();
-    if (context) {
-      return context.error(message, this);
+    if (this.context) {
+      return this.context.error(message, this);
     }
     return new ParseError(message);
   }
@@ -101,10 +100,5 @@ export default class Token {
     }
     this.rules[pos].push(rule);
     return this;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  getContext() {
-    return null;
   }
 }
