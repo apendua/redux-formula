@@ -325,16 +325,11 @@ test('parses a double nested list', () => {
   ]);
 });
 
-test('parses mapping expression', () => {
+test('parses @map operator', () => {
   expect(parse(`
-  {
-    .. points
-    -> { ? p = p.x }
-    ~key = "id"
-  }
+@map -- ~key = "id" -- points, { ? p = p.x }
   `)).toEqual({
-    '..': { $: 'points' },
-    '->': {
+    $map: [{ $: 'points' }, {
       '?': ['p'],
       '=': {
         $dot: [
@@ -342,7 +337,7 @@ test('parses mapping expression', () => {
           { '!': 'x' },
         ],
       },
-    },
+    }],
     '~key': { '!': 'id' },
   });
 });

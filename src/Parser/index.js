@@ -53,41 +53,13 @@ const scopeObject = () => (grammar) => {
   grammar.token('=');
   grammar.token(',');
   grammar.token('?');
-  grammar.token('..');
   grammar.token('->');
 
   grammar
     .token('{')
-    .ifUsedAsPrefix((parse) => {
-      const object = {};
-      while (parse.look(1).id !== '}') {
-        let key;
-        if (parse.look(1).id === '?') {
-          key = '?';
-          parse.advance('?');
-          object[key] = parse.tuple({
-            id: TOKEN_TYPE_IDENTIFIER,
-            separator: ',',
-            map: token => token.value,
-          });
-        } else if (parse.look(1).id === '..' || parse.look(1).id === '->') {
-          key = parse.advance().value;
-          object[key] = parse.expression();
-        } else {
-          if (parse.look(1).id === '=') {
-            key = '=';
-          } else if (parse.look(1).id === TOKEN_TYPE_LITERAL) {
-            key = parse.advance(TOKEN_TYPE_LITERAL).value;
-          } else {
-            key = parse.advance(TOKEN_TYPE_IDENTIFIER).value;
-          }
-          parse.advance('=');
-          object[key] = parse.expression();
-        }
-      }
-      parse.advance('}');
-      return object;
-    });
+    .ifUsedAsPrefix(parse => parse.block({
+      end: '}',
+    }));
 };
 
 const index = (alias, bp) => (grammar) => {

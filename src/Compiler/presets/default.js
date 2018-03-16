@@ -1,6 +1,5 @@
 import pluginLiteral from '../plugins/literal';
 import pluginArray from '../plugins/array';
-import pluginMapping from '../plugins/mapping';
 import pluginReference from '../plugins/reference';
 import pluginFunction from '../plugins/function';
 import pluginMacro from '../plugins/macro';
@@ -12,7 +11,6 @@ import pluginDefaultOperators from '../plugins/defaultOperators';
 const preset = [
   pluginLiteral,
   pluginArray,
-  pluginMapping,
   pluginReference,
   pluginFunction,
   pluginMacro,

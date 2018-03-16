@@ -1,6 +1,7 @@
 import filter from 'lodash/filter';
 import reduce from 'lodash/reduce';
 import sortBy from 'lodash/sortBy';
+import memoizeMapValues from '../../utils/memoizeMapValues';
 
 export const createUnary = op => scope =>
   () => selectX => scope.boundSelector(selectX, op);
@@ -93,6 +94,22 @@ export const $sort = scope => selectOptions => selectX => scope.boundSelector(
   (x, options) => sortBy(x, options.key),
 );
 
+export const $map = scope => selectOptions => (selectInput, selectMapValue) => {
+  const selectMapping = scope.boundSelector(
+    selectMapValue,
+    scope.boundSelector(
+      selectOptions,
+      options => options.key,
+    ),
+    (mapOneValue, getKey) => memoizeMapValues(mapOneValue, getKey),
+  );
+  return scope.boundSelector(
+    selectMapping,
+    selectInput,
+    (x, y) => x(y),
+  );
+};
+
 const pluginDefaultOperators = {
   createOperators: ({ opearatos }) => ({
     $dot,
@@ -119,6 +136,7 @@ const pluginDefaultOperators = {
     $unless,
     $reduce,
     $filter,
+    $map,
     $sort,
     $match,
     ...opearatos,

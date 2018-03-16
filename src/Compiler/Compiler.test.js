@@ -560,14 +560,13 @@ describe('Test Compiler', () => {
   describe('Value mappings', () => {
     test('should map object fields', () => {
       const formula = testContext.createSelector({
-        '..': '$0',
-        '->': {
+        $map: ['$0', {
           '?': ['value', 'key'],
           '=': {
             v: 'value',
             k: 'key',
           },
-        },
+        }],
       });
       expect(formula({ a: 1, b: 2 })).toEqual({
         a: { v: 1, k: 'a' },
@@ -577,14 +576,13 @@ describe('Test Compiler', () => {
 
     test('should map array elements', () => {
       const formula = testContext.createSelector({
-        '..': '$0',
-        '->': {
+        $map: ['$0', {
           '?': ['value', 'key'],
           '=': {
             v: 'value',
             k: 'key',
           },
-        },
+        }],
       });
       expect(formula([1, 2])).toEqual([
         { v: 1, k: 0 },
@@ -594,11 +592,10 @@ describe('Test Compiler', () => {
 
     test('should map array elements with custom caching key', () => {
       const formula = testContext.createSelector({
-        '..': '$0',
-        '->': {
+        $map: ['$0', {
           '?': ['x', 'y'],
           '=': { v: { $sum: ['y', '","', 'x.v'] } },
-        },
+        }],
         '~key': '"id"',
       });
       expect(formula([
@@ -845,14 +842,13 @@ describe('Test Compiler', () => {
 
     test('should persist map values', () => {
       const formula = testContext.createSelector({
-        '..': '$0',
-        '->': {
+        $map: ['$0', {
           '?': ['value', 'index'],
           '=': {
             v: 'value',
             i: 'index',
           },
-        },
+        }],
       });
       const out1 = formula({ a: 1, b: 2 });
       const out2 = formula({ a: 1, b: 2 });
@@ -861,11 +857,10 @@ describe('Test Compiler', () => {
 
     test('should persist map array elements with custom caching key', () => {
       const formula = testContext.createSelector({
-        '..': '$0',
-        '->': {
+        $map: ['$0', {
           '?': ['x'],
           '=': { v: { $dot: ['x', { '!': 'v' }] } },
-        },
+        }],
         '~key': '"id"',
       });
       const doc1 = { id: '1', v: 'a' };
