@@ -8,19 +8,29 @@ import {
   TOKEN_TYPE_LINE_COMMENT,
   TOKEN_TYPE_END,
 } from '../constants';
+import {
+  constant,
+} from '../utils/functions';
 
 import Token from './Parser.Token';
 import Scope from './Parser.Scope';
 
-export default class Context {
+class Context {
   constructor({
     order = 1,
+    lines = [],
     tokens = [],
     symbols = new Scope(),
   } = {}) {
-    this.order = order;
-    this.tokens = tokens;
-    this.symbols = symbols;
+    this.Token = class ContextToken extends this.constructor.Token {};
+    this.Token.prototype.getContext = constant(this);
+
+    Object.assign(this, {
+      order,
+      lines,
+      tokens,
+      symbols,
+    });
 
     this.index = -1;
     this.queue = [null];
@@ -122,7 +132,7 @@ export default class Context {
       let key;
       if (this.look(1).id === '?') {
         if (pure) {
-          throw new ParseError('Expected pure object, but received "?".');
+          throw this.error('Expected pure object, but received "?".');
         }
         key = '?';
         this.advance('?');
@@ -135,7 +145,7 @@ export default class Context {
         if (this.look(1).id === '=') {
           key = '=';
           if (pure) {
-            throw new ParseError('Expected pure object, but received "=".');
+            throw this.error('Expected pure object, but received "=".');
           }
         } else if (this.look(1).id === TOKEN_TYPE_LITERAL) {
           key = this.advance(TOKEN_TYPE_LITERAL).value;
@@ -152,6 +162,8 @@ export default class Context {
 
   /**
    * Consume the expression based on operator precedence.
+   * @param {Number} rbp - right binding power
+   * @returns {*} - parsed ast
    */
   expression(rbp = 0) {
     let left = this
@@ -174,33 +186,42 @@ export default class Context {
    *
    * Throws parse error if token is of unknown type.
    */
-  token({ type, value }) {
+  recognizeToken({ type, value, ...other }) {
+    let base;
+
     switch (type) {
       case TOKEN_TYPE_KEYWORD:
       case TOKEN_TYPE_IDENTIFIER:
-        return this.symbols.lookup(value) ||
+        base = this.symbols.lookup(value) ||
                this.symbols.lookup(TOKEN_TYPE_IDENTIFIER) ||
-               new Token(TOKEN_TYPE_IDENTIFIER);
+               new this.Token(TOKEN_TYPE_IDENTIFIER);
+        break;
 
       case TOKEN_TYPE_LITERAL:
-        return this.symbols.lookup(TOKEN_TYPE_LITERAL) ||
-               new Token(TOKEN_TYPE_LITERAL);
+        base = this.symbols.lookup(TOKEN_TYPE_LITERAL) ||
+               new this.Token(TOKEN_TYPE_LITERAL);
+        break;
 
       case TOKEN_TYPE_OPERATOR:
-        return this.symbols.lookup(value) ||
-               new Token(value, { unknown: true });
+        base = this.symbols.lookup(value) ||
+               new this.Token(value, { unknown: true });
+        break;
 
       case TOKEN_TYPE_LINE_COMMENT:
-        return this.symbols.lookup(TOKEN_TYPE_LINE_COMMENT) ||
-               new Token(TOKEN_TYPE_LINE_COMMENT, { ignored: true });
+        base = this.symbols.lookup(TOKEN_TYPE_LINE_COMMENT) ||
+               new this.Token(TOKEN_TYPE_LINE_COMMENT, { ignored: true });
+        break;
 
       case TOKEN_TYPE_WHITESPACE:
-        return this.symbols.lookup(TOKEN_TYPE_WHITESPACE) ||
-               new Token(TOKEN_TYPE_WHITESPACE, { ignored: true });
+        base = this.symbols.lookup(TOKEN_TYPE_WHITESPACE) ||
+               new this.Token(TOKEN_TYPE_WHITESPACE, { ignored: true });
+        break;
 
       default:
-        throw new ParseError(`Unknown token ${type}: ${value}`);
+        throw this.error(`Unknown token ${type}: ${value}`, other);
     }
+
+    return Object.assign(Object.create(base), { type, value }, other);
   }
 
   /**
@@ -235,16 +256,15 @@ export default class Context {
     // The following condition should be equivalent to saying that
     // this.look(0).id === TOKEN_TYPE_END
     if (this.index > this.tokens.length + this.order) {
-      throw new ParseError('Unexpected end of input.');
+      throw this.error('Unexpected end of input.');
     }
 
     // Analize the new token
     let token;
     if (this.index < this.tokens.length) {
-      const { type, value } = this.tokens[this.index];
-      token = this.token({ type, value }).copy({ type, value });
+      token = this.recognizeToken(this.tokens[this.index]);
     } else if (this.index === this.tokens.length) {
-      token = (this.symbols.lookup(TOKEN_TYPE_END) || new Token(TOKEN_TYPE_END)).copy();
+      token = this.symbols.lookup(TOKEN_TYPE_END) || new Token(TOKEN_TYPE_END);
     } else {
       token = null;
     }
@@ -260,13 +280,35 @@ export default class Context {
 
     if (this.queue[0]) {
       if (id && this.queue[0].id !== id) {
-        throw new ParseError(`Expected ${id}, got ${this.queue[0].id}.`);
+        throw this.error(`Expected ${id}, got ${this.queue[0].id}.`);
       }
 
       if (this.queue[0].unknown) {
-        throw new ParseError(`Unknown symbol: ${this.queue[0].value}.`);
+        throw this.error(`Unknown symbol: ${this.queue[0].value}.`);
       }
     }
     return this.queue[0];
   }
+
+  /**
+   * Creates an instance of ParseError with token metadata.
+   * @param {String} message
+   * @param {Object} options
+   * @param {Number} options.from
+   * @param {Number} options.to
+   * @param {Number} options.line
+   * @returns {ParseError}
+   */
+  error(message, { from, to, line } = this.look(0) || {}) {
+    return new ParseError(message, {
+      from,
+      to,
+      line,
+      lineContent: this.lines[line],
+    });
+  }
 }
+
+Context.Token = Token;
+
+export default Context;

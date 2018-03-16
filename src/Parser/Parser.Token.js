@@ -24,6 +24,14 @@ export default class Token {
     });
   }
 
+  error(message) {
+    const context = this.getContext();
+    if (context) {
+      return context.error(message, this);
+    }
+    return new ParseError(message);
+  }
+
   /**
    * Use rules attached to this token to parse it in the given
    * position. Return the first valid "ast".
@@ -39,7 +47,7 @@ export default class Token {
         }
       }
     }
-    throw new ParseError(`Unexpected ${pos} symbol ${this.id}.`);
+    throw this.error(`Unexpected ${pos} symbol ${this.id}.`);
   }
 
   // TODO: Add tests for this method!
@@ -93,5 +101,10 @@ export default class Token {
     }
     this.rules[pos].push(rule);
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getContext() {
+    return null;
   }
 }

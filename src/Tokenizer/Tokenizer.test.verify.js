@@ -158,7 +158,7 @@ describe('Test Tokenizer', () => {
     jsc.array(arbitrary.token),
     (tokens) => {
       const compiled = compile(tokens);
-      const parsedTokens = tokenizer.tokenize(compiled.code);
+      const parsedTokens = tokenizer.tokenize(compiled.code).tokens;
       expect(parsedTokens).toEqual(compiled.tokens);
       return true;
     }));

@@ -7,8 +7,8 @@ import {
 import { TOKEN_TYPE_LITERAL } from '../constants';
 
 const parse = (code) => {
-  const tokens = tokenizer.tokenize(code);
-  return parser.parse(tokens);
+  const { tokens, lines } = tokenizer.tokenize(code);
+  return parser.parse(tokens, { lines });
 };
 
 const P = (strings, ...values) => {
@@ -16,7 +16,7 @@ const P = (strings, ...values) => {
   const n = strings.length;
   for (let i = 0; i < n; i += 1) {
     if (strings[i]) {
-      tokens.push(...tokenizer.tokenize(strings[i]));
+      tokens.push(...tokenizer.tokenize(strings[i]).tokens);
     }
     if (i < values.length) {
       tokens.push({

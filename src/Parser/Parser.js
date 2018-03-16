@@ -20,9 +20,13 @@ export default class Parser {
     return this.grammar.define(id, new Token(id));
   }
 
-  parse(tokens, globals) {
+  parse(tokens, {
+    lines,
+    globals,
+  } = {}) {
     const symbols = this.grammar.child(globals);
     const context = new this.Context({
+      lines,
       tokens,
       symbols,
     });

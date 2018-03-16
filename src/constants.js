@@ -15,5 +15,3 @@ export const DEFAULT_OPERATORS = [
   '@', '+', '-', '*', '/', '|', '!', '=>', '->', '(', ')', '[', ']', '{', '}', '=', '?', '|', ',',
   '.[', '<=', '>=', '==', '!=', '--',
 ];
-
-export const ERROR_UNEXPECTED_CHARACTER = '101';

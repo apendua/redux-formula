@@ -12,6 +12,24 @@ import {
   TOKEN_TYPE_END,
 } from '../constants';
 
+const { isPrototypeOf } = Object.prototype;
+
+expect.extend({
+  toHavePrototype(received, argument) {
+    const pass = isPrototypeOf.call(argument, received);
+    if (pass) {
+      return {
+        pass: true,
+        message: () => `expected ${received.id} not to have prototype ${argument.id}`,
+      };
+    }
+    return {
+      pass: false,
+      message: () => `expected ${received.id} to have prototype ${argument.id}`,
+    };
+  },
+});
+
 function binary(parse, { value }, left) {
   return {
     value,
@@ -223,43 +241,43 @@ describe('Test Parser.Context;', () => {
     });
 
     test('should recognize a number LITERAL', () => {
-      expect(testContext.context.token({ type: TOKEN_TYPE_LITERAL, value: 1 }))
-        .toBe(testContext.grammar[TOKEN_TYPE_LITERAL]);
+      expect(testContext.context.recognizeToken({ type: TOKEN_TYPE_LITERAL, value: 1 }))
+        .toHavePrototype(testContext.grammar[TOKEN_TYPE_LITERAL]);
     });
 
     test('should recognize a string LITERAL', () => {
-      expect(testContext.context.token({ type: TOKEN_TYPE_LITERAL, value: 'a' }))
-        .toBe(testContext.grammar[TOKEN_TYPE_LITERAL]);
+      expect(testContext.context.recognizeToken({ type: TOKEN_TYPE_LITERAL, value: 'a' }))
+        .toHavePrototype(testContext.grammar[TOKEN_TYPE_LITERAL]);
     });
 
     test('should recognize WHITESPACE', () => {
-      expect(testContext.context.token({ type: TOKEN_TYPE_WHITESPACE, value: ' ' }))
-        .toBe(testContext.grammar[TOKEN_TYPE_WHITESPACE]);
+      expect(testContext.context.recognizeToken({ type: TOKEN_TYPE_WHITESPACE, value: ' ' }))
+        .toHavePrototype(testContext.grammar[TOKEN_TYPE_WHITESPACE]);
     });
 
     test('should recognize COMMENT', () => {
-      expect(testContext.context.token({ type: TOKEN_TYPE_LINE_COMMENT, value: '' }))
-        .toBe(testContext.grammar[TOKEN_TYPE_LINE_COMMENT]);
+      expect(testContext.context.recognizeToken({ type: TOKEN_TYPE_LINE_COMMENT, value: '' }))
+        .toHavePrototype(testContext.grammar[TOKEN_TYPE_LINE_COMMENT]);
     });
 
     test('should recognize OPERATOR', () => {
-      expect(testContext.context.token({ type: TOKEN_TYPE_OPERATOR, value: '+' }))
-        .toBe(testContext.grammar['+']);
+      expect(testContext.context.recognizeToken({ type: TOKEN_TYPE_OPERATOR, value: '+' }))
+        .toHavePrototype(testContext.grammar['+']);
     });
 
     test('should recognize IDENTIFIER', () => {
-      expect(testContext.context.token({ type: TOKEN_TYPE_IDENTIFIER, value: 'name' }))
-        .toBe(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
+      expect(testContext.context.recognizeToken({ type: TOKEN_TYPE_IDENTIFIER, value: 'name' }))
+        .toHavePrototype(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
     });
 
     test('should recognize IDENTIFIER that is an operator', () => {
-      expect(testContext.context.token({ type: TOKEN_TYPE_IDENTIFIER, value: 'and' }))
-        .toBe(testContext.grammar.and);
+      expect(testContext.context.recognizeToken({ type: TOKEN_TYPE_IDENTIFIER, value: 'and' }))
+        .toHavePrototype(testContext.grammar.and);
     });
 
     test('should throw if token type is unknown', () => {
       expect(() => {
-        testContext.context.token({ type: '(unknown)' });
+        testContext.context.recognizeToken({ type: '(unknown)' });
       }).toThrowError('Unknown');
     });
   });
@@ -287,16 +305,16 @@ describe('Test Parser.Context;', () => {
 
       describe('after 1x advance()', () => {
         beforeEach(() => {
-          testContext.symbol = testContext.context.advance();
+          testContext.token = testContext.context.advance();
         });
-        test('should return the right symbol', () => {
-          expect(testContext.symbol.original).toBe(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
+        test('should return the right token', () => {
+          expect(testContext.token).toHavePrototype(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
         });
-        test('look(0) should return this right symbol', () => {
-          expect(testContext.context.look(0).original).toBe(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
+        test('look(0) should return the right token', () => {
+          expect(testContext.context.look(0)).toHavePrototype(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
         });
-        test('look(1) should return this right symbol', () => {
-          expect(testContext.context.look(1).original).toBe(testContext.grammar['+']);
+        test('look(1) should return the right token', () => {
+          expect(testContext.context.look(1)).toHavePrototype(testContext.grammar['+']);
         });
         test('look(2) should throw an error', () => {
           expect(() => {
@@ -308,16 +326,16 @@ describe('Test Parser.Context;', () => {
       describe('after 2x advance()', () => {
         beforeEach(() => {
           testContext.context.advance();
-          testContext.symbol = testContext.context.advance();
+          testContext.token = testContext.context.advance();
         });
-        test('should return the right symbol', () => {
-          expect(testContext.symbol.original).toBe(testContext.grammar['+']);
+        test('should return the right token', () => {
+          expect(testContext.token).toHavePrototype(testContext.grammar['+']);
         });
-        test('look(0) should return this right symbol', () => {
-          expect(testContext.context.look(0).original).toBe(testContext.grammar['+']);
+        test('look(0) should return the right token', () => {
+          expect(testContext.context.look(0)).toHavePrototype(testContext.grammar['+']);
         });
-        test('look(1) should return this right symbol', () => {
-          expect(testContext.context.look(1).original).toBe(testContext.grammar[TOKEN_TYPE_LITERAL]);
+        test('look(1) should return the right token', () => {
+          expect(testContext.context.look(1)).toHavePrototype(testContext.grammar[TOKEN_TYPE_LITERAL]);
         });
       });
 
@@ -325,16 +343,16 @@ describe('Test Parser.Context;', () => {
         beforeEach(() => {
           testContext.context.advance();
           testContext.context.advance();
-          testContext.symbol = testContext.context.advance();
+          testContext.token = testContext.context.advance();
         });
-        test('should return the right symbol', () => {
-          expect(testContext.symbol.original).toBe(testContext.grammar[TOKEN_TYPE_LITERAL]);
+        test('should return the right token', () => {
+          expect(testContext.token).toHavePrototype(testContext.grammar[TOKEN_TYPE_LITERAL]);
         });
-        test('look(0) should return this right symbol', () => {
-          expect(testContext.context.look(0).original).toBe(testContext.grammar[TOKEN_TYPE_LITERAL]);
+        test('look(0) should return the right token', () => {
+          expect(testContext.context.look(0)).toHavePrototype(testContext.grammar[TOKEN_TYPE_LITERAL]);
         });
-        test('look(1) should return this right symbol', () => {
-          expect(testContext.context.look(1).original).toBe(testContext.grammar[TOKEN_TYPE_END]);
+        test('look(1) should return the right token', () => {
+          expect(testContext.context.look(1)).toBe(testContext.grammar[TOKEN_TYPE_END]);
         });
       });
 
@@ -343,15 +361,15 @@ describe('Test Parser.Context;', () => {
           testContext.context.advance();
           testContext.context.advance();
           testContext.context.advance();
-          testContext.symbol = testContext.context.advance();
+          testContext.token = testContext.context.advance();
         });
-        test('should return the right symbol', () => {
-          expect(testContext.symbol.original).toBe(testContext.grammar[TOKEN_TYPE_END]);
+        test('should return the right token', () => {
+          expect(testContext.token).toBe(testContext.grammar[TOKEN_TYPE_END]);
         });
-        test('look(0) should return this right symbol', () => {
-          expect(testContext.context.look(0).original).toBe(testContext.grammar[TOKEN_TYPE_END]);
+        test('look(0) should return the right token', () => {
+          expect(testContext.context.look(0)).toBe(testContext.grammar[TOKEN_TYPE_END]);
         });
-        test('look(1) should return this right symbol', () => {
+        test('look(1) should return the right token', () => {
           expect(testContext.context.look(1)).toBeNull();
         });
         test('should throw on the next advance()', () => {
@@ -379,38 +397,38 @@ describe('Test Parser.Context;', () => {
 
       describe('after 1x advance()', () => {
         beforeEach(() => {
-          testContext.symbol = testContext.context.advance();
+          testContext.token = testContext.context.advance();
         });
-        test('should return the right symbol', () => {
-          expect(testContext.symbol.original).toBe(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
+        test('should return the right token', () => {
+          expect(testContext.token).toHavePrototype(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
         });
-        test('look(0) should return this right symbol', () => {
-          expect(testContext.context.look(0).original).toBe(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
+        test('look(0) should return the right token', () => {
+          expect(testContext.context.look(0)).toHavePrototype(testContext.grammar[TOKEN_TYPE_IDENTIFIER]);
         });
-        test('look(1) should return this right symbol', () => {
-          expect(testContext.context.look(1).original).toBe(testContext.grammar['+']);
+        test('look(1) should return the right token', () => {
+          expect(testContext.context.look(1)).toHavePrototype(testContext.grammar['+']);
         });
-        test('look(2) should return this right symbol', () => {
-          expect(testContext.context.look(2).original).toBe(testContext.grammar[TOKEN_TYPE_LITERAL]);
+        test('look(2) should return the right token', () => {
+          expect(testContext.context.look(2)).toHavePrototype(testContext.grammar[TOKEN_TYPE_LITERAL]);
         });
       });
 
       describe('after 2x advance()', () => {
         beforeEach(() => {
           testContext.context.advance();
-          testContext.symbol = testContext.context.advance();
+          testContext.token = testContext.context.advance();
         });
-        test('should return the right symbol', () => {
-          expect(testContext.symbol.original).toBe(testContext.grammar['+']);
+        test('should return the right token', () => {
+          expect(testContext.token).toHavePrototype(testContext.grammar['+']);
         });
-        test('look(0) should return this right symbol', () => {
-          expect(testContext.context.look(0).original).toBe(testContext.grammar['+']);
+        test('look(0) should return the right token', () => {
+          expect(testContext.context.look(0)).toHavePrototype(testContext.grammar['+']);
         });
-        test('look(1) should return this right symbol', () => {
-          expect(testContext.context.look(1).original).toBe(testContext.grammar[TOKEN_TYPE_LITERAL]);
+        test('look(1) should return the right token', () => {
+          expect(testContext.context.look(1)).toHavePrototype(testContext.grammar[TOKEN_TYPE_LITERAL]);
         });
-        test('look(2) should return this right symbol', () => {
-          expect(testContext.context.look(2).original).toBe(testContext.grammar[TOKEN_TYPE_END]);
+        test('look(2) should return the right token', () => {
+          expect(testContext.context.look(2)).toBe(testContext.grammar[TOKEN_TYPE_END]);
         });
       });
 
@@ -418,18 +436,18 @@ describe('Test Parser.Context;', () => {
         beforeEach(() => {
           testContext.context.advance();
           testContext.context.advance();
-          testContext.symbol = testContext.context.advance();
+          testContext.token = testContext.context.advance();
         });
-        test('should return the right symbol', () => {
-          expect(testContext.symbol.original).toBe(testContext.grammar[TOKEN_TYPE_LITERAL]);
+        test('should return the right token', () => {
+          expect(testContext.token).toHavePrototype(testContext.grammar[TOKEN_TYPE_LITERAL]);
         });
-        test('look(0) should return this right symbol', () => {
-          expect(testContext.context.look(0).original).toBe(testContext.grammar[TOKEN_TYPE_LITERAL]);
+        test('look(0) should return the right token', () => {
+          expect(testContext.context.look(0)).toHavePrototype(testContext.grammar[TOKEN_TYPE_LITERAL]);
         });
-        test('look(1) should return this right symbol', () => {
-          expect(testContext.context.look(1).original).toBe(testContext.grammar[TOKEN_TYPE_END]);
+        test('look(1) should return the right token', () => {
+          expect(testContext.context.look(1)).toBe(testContext.grammar[TOKEN_TYPE_END]);
         });
-        test('look(2) should return this right symbol', () => {
+        test('look(2) should return the right token', () => {
           expect(testContext.context.look(2)).toBeNull();
         });
       });
@@ -439,18 +457,18 @@ describe('Test Parser.Context;', () => {
           testContext.context.advance();
           testContext.context.advance();
           testContext.context.advance();
-          testContext.symbol = testContext.context.advance();
+          testContext.token = testContext.context.advance();
         });
-        test('should return the right symbol', () => {
-          expect(testContext.symbol.original).toBe(testContext.grammar[TOKEN_TYPE_END]);
+        test('should return the right token', () => {
+          expect(testContext.token).toBe(testContext.grammar[TOKEN_TYPE_END]);
         });
-        test('look(0) should return this right symbol', () => {
-          expect(testContext.context.look(0).original).toBe(testContext.grammar[TOKEN_TYPE_END]);
+        test('look(0) should return the right token', () => {
+          expect(testContext.context.look(0)).toBe(testContext.grammar[TOKEN_TYPE_END]);
         });
-        test('look(1) should return this right symbol', () => {
+        test('look(1) should return the right token', () => {
           expect(testContext.context.look(1)).toBeNull();
         });
-        test('look(2) should return this right symbol', () => {
+        test('look(2) should return the right token', () => {
           expect(testContext.context.look(1)).toBeNull();
         });
         test('should throw on the next advance()', () => {
