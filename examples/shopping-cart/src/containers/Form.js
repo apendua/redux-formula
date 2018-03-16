@@ -2,31 +2,35 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import map from 'lodash/map';
 import times from 'lodash/times';
-import sum from 'lodash/sum';
+import createConnect from 'redux-formula/lib/store/createConnect';
 import { Form as F } from '../store/Context';
 
-const Input = F.connect({
+const connect = createConnect({
+  state: F,
+});
+
+const Input = connect({
   value: 'state.value',
   edited: 'state.edited',
 }, {
   onChange: ({ edited, $set }) => (e) => {
-    $set('value', e.target.value);
+    $set('state.value', e.target.value);
     if (!edited) {
-      $set('edited', true);
+      $set('state.edited', true);
     }
   },
 })(props => (
   <input value={(props.edited ? props.value : props.defaultValue) || ''} onChange={props.onChange} />
 ));
 
-const Select = F.connect({
+const Select = connect({
   value: 'state.value',
   edited: 'state.edited',
 }, {
   onChange: ({ edited, $set }) => (e) => {
-    $set('value', e.target.value);
+    $set('state.value', e.target.value);
     if (!edited) {
-      $set('edited', true);
+      $set('state.edited', true);
     }
   },
 })(props => (
@@ -79,8 +83,8 @@ const amountOptions = [
   { value: 3, label: 'Three' },
 ];
 
-const Item = F.connect(`{
-  price = state.amount.value * 10
+const Item = connect(`{
+  price = (state.amount.value OR 0) * 10
 }`)(props => (
   <Fragment>
     <Field name="code" />
@@ -90,20 +94,21 @@ const Item = F.connect(`{
   </Fragment>
 ));
 
-const Form = F.connect(`{
+const Form = connect(`{
   nItems = state.items.length OR 0
-  prices = {
-    .. state.items
-    -> {
+  totalPrice = state.items
+    @map {
       ? item
       # we need to fetch item price via api
       = (item.amount.value OR 0) * 10
     }
-  }
+    @reduce {
+      ? a, b = a + b
+    }
 }`,
   {
     onAppend: ({ $push }) => () => {
-      $push('items', {});
+      $push('state.items', {});
     },
   },
 )(props => (
@@ -116,7 +121,7 @@ const Form = F.connect(`{
     <button onClick={props.onAppend}>
       Add item
     </button>
-    <span>Total price: {sum(props.prices)}</span>
+    <span>Total price: {props.totalPrice}</span>
   </div>
 ));
 
