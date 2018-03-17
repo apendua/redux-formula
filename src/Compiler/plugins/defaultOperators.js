@@ -99,7 +99,12 @@ export const $map = scope => selectOptions => (selectInput, selectMapValue) => {
 export const $call = scope => () => (selectFunc, ...argsSelectors) => scope.boundSelector(
   selectFunc,
   ...argsSelectors,
-  (func, ...args) => func(...args),
+  (func, ...args) => {
+    if (typeof func === 'function') {
+      return func(...args);
+    }
+    return undefined;
+  },
 );
 
 const pluginDefaultOperators = {
