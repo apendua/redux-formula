@@ -3,10 +3,13 @@ import PropTypes from 'prop-types';
 import map from 'lodash/map';
 import times from 'lodash/times';
 import createConnect from 'redux-formula/lib/store/createConnect';
-import { Form as F } from '../store/Context';
+import * as context from '../store/Context';
+
+const FormSection = context.Form.Section;
 
 const connect = createConnect({
-  state: F,
+  api: context.Api,
+  state: context.Form,
 });
 
 const Input = connect({
@@ -47,12 +50,12 @@ const Select = connect({
 ));
 
 const Field = ({ name, component: Component, ...props }) => (
-  <F.Section section={name} reducer="field">
+  <FormSection section={name} reducer="field">
     <div>
       <span>{name}</span>
       <Component {...props} />
     </div>
-  </F.Section>
+  </FormSection>
 );
 
 Field.propTypes = {
@@ -100,6 +103,12 @@ const Form = connect(`{
     @map {
       ? item
       # we need to fetch item price via api
+      # details = @[api.fetch] item.code.value
+      # = (
+      #  @if details.ready
+      #    , (item.amount.value OR 0) * 10
+      #    , 0
+      # )
       = (item.amount.value OR 0) * 10
     }
     @reduce {
@@ -114,9 +123,9 @@ const Form = connect(`{
 )(props => (
   <div>
     {times(props.nItems, index => (
-      <F.Section key={index} section={`items.${index}`}>
+      <FormSection key={index} section={`items.${index}`}>
         <Item />
-      </F.Section>
+      </FormSection>
     ))}
     <button onClick={props.onAppend}>
       Add item
@@ -127,11 +136,11 @@ const Form = connect(`{
 
 export default () => (
   <Fragment>
-    <F.Section section="cart1">
+    <FormSection section="cart1">
       <Form />
-    </F.Section>
-    <F.Section section="cart2">
+    </FormSection>
+    <FormSection section="cart2">
       <Form />
-    </F.Section>
+    </FormSection>
   </Fragment>
 );

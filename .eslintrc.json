@@ -19,6 +19,14 @@
     "react/jsx-filename-extension": "off",
     "function-paren-newline": "off",
     "max-len": ["error", { "code": 120 }],
-    "import/no-extraneous-dependencies": ["error", {"devDependencies": ["**/*.test.js", "**/*.test.verify.js"]}]
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "**/*.test.js",
+          "**/*.test.verify.js"
+        ]
+      }
+    ]
   }
 }
