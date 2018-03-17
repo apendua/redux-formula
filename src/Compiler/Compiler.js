@@ -118,14 +118,6 @@ class Compiler {
   createSelector(expression) {
     return this.createFormula(expression).bindTo();
   }
-
-  static defaultParse(text) {
-    switch (text.charAt(0)) {
-      case '$': return { $: text.substr(1) };
-      case '_': return { '!': text.substr(1) };
-      default: return { '!': text };
-    }
-  }
 }
 
 Compiler.parse = parse;

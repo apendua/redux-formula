@@ -224,12 +224,7 @@ parser.token(TOKEN_TYPE_LITERAL)
 
 parser.token(TOKEN_TYPE_IDENTIFIER)
   .ifUsedAsPrefix((parse, token) => ({
-    $: token.value,
-  }));
-
-parser.token(TOKEN_TYPE_IDENTIFIER)
-  .ifUsedAsPrefix((parse, token) => ({
-    $: token.value,
+    '&': token.value,
   }));
 
 [

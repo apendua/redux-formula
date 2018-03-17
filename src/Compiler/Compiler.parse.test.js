@@ -16,15 +16,15 @@ test('parses a string literal', () => {
 
 test('parses an identifier', () => {
   expect(parse('a')).toEqual({
-    $: 'a',
+    '&': 'a',
   });
 });
 
 test('parses binary plus', () => {
   expect(parse('a+b')).toEqual({
     $add: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -32,8 +32,8 @@ test('parses binary plus', () => {
 test('parses <=', () => {
   expect(parse('a<=b')).toEqual({
     $lte: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -41,8 +41,8 @@ test('parses <=', () => {
 test('parses >=', () => {
   expect(parse('a>=b')).toEqual({
     $gte: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -50,8 +50,8 @@ test('parses >=', () => {
 test('parses <', () => {
   expect(parse('a<b')).toEqual({
     $lt: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -60,8 +60,8 @@ test('parses <', () => {
 test('parses >', () => {
   expect(parse('a>b')).toEqual({
     $gt: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -69,8 +69,8 @@ test('parses >', () => {
 test('parses ==', () => {
   expect(parse('a==b')).toEqual({
     $eq: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -78,8 +78,8 @@ test('parses ==', () => {
 test('parses !=', () => {
   expect(parse('a!=b')).toEqual({
     $neq: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -87,7 +87,7 @@ test('parses !=', () => {
 test('parses dot operator', () => {
   expect(parse('a.b')).toEqual({
     $dot: [
-      { $: 'a' },
+      { '&': 'a' },
       { '!': 'b' },
     ],
   });
@@ -98,7 +98,7 @@ test('parses chained dot operator', () => {
     $dot: [
       {
         $dot: [
-          { $: 'a' },
+          { '&': 'a' },
           { '!': 'b' },
         ],
       },
@@ -110,8 +110,8 @@ test('parses chained dot operator', () => {
 test('parses index operator', () => {
   expect(parse('a.[b]')).toEqual({
     $dot: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -119,8 +119,8 @@ test('parses index operator', () => {
 test('parses evaluate expression', () => {
   expect(parse('a(b)')).toEqual({
     $call: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -128,8 +128,8 @@ test('parses evaluate expression', () => {
 test('parses pipe operator', () => {
   expect(parse('a|b')).toEqual({
     $call: [
-      { $: 'b' },
-      { $: 'a' },
+      { '&': 'b' },
+      { '&': 'a' },
     ],
   });
 });
@@ -137,10 +137,10 @@ test('parses pipe operator', () => {
 test('parses multi arguments pipe expression', () => {
   expect(parse(':a,b,c|d')).toEqual({
     $call: [
-      { $: 'd' },
-      { $: 'a' },
-      { $: 'b' },
-      { $: 'c' },
+      { '&': 'd' },
+      { '&': 'a' },
+      { '&': 'b' },
+      { '&': 'c' },
     ],
   });
 });
@@ -148,11 +148,11 @@ test('parses multi arguments pipe expression', () => {
 test('parses consecutive pipe operator', () => {
   expect(parse('a|b|c')).toEqual({
     $call: [
-      { $: 'c' },
+      { '&': 'c' },
       {
         $call: [
-          { $: 'b' },
-          { $: 'a' },
+          { '&': 'b' },
+          { '&': 'a' },
         ],
       },
     ],
@@ -162,12 +162,12 @@ test('parses consecutive pipe operator', () => {
 test('parses pipe expression followed by pipe operator', () => {
   expect(parse(':a,b|c|d')).toEqual({
     $call: [
-      { $: 'd' },
+      { '&': 'd' },
       {
         $call: [
-          { $: 'c' },
-          { $: 'a' },
-          { $: 'b' },
+          { '&': 'c' },
+          { '&': 'a' },
+          { '&': 'b' },
         ],
       },
     ],
@@ -177,11 +177,11 @@ test('parses pipe expression followed by pipe operator', () => {
 test('respects operator precedence', () => {
   expect(parse('a+b*c')).toEqual({
     $add: [
-      { $: 'a' },
+      { '&': 'a' },
       {
         $mul: [
-          { $: 'b' },
-          { $: 'c' },
+          { '&': 'b' },
+          { '&': 'c' },
         ],
       },
     ],
@@ -193,11 +193,11 @@ test('respects parenthesis', () => {
     $mul: [
       {
         $add: [
-          { $: 'a' },
-          { $: 'b' },
+          { '&': 'a' },
+          { '&': 'b' },
         ],
       },
-      { $: 'c' },
+      { '&': 'c' },
     ],
   });
 });
@@ -205,7 +205,7 @@ test('respects parenthesis', () => {
 test('parses string with custom literals', () => {
   expect(P`a + ${{ x: 1, y: 2 }}`).toEqual({
     $add: [
-      { $: 'a' },
+      { '&': 'a' },
       { '!': { x: 1, y: 2 } },
     ],
   });
@@ -236,7 +236,7 @@ test('parses nested scope object', () => {
     b: {
       c: {
         $add: [
-          { $: 'a' },
+          { '&': 'a' },
           { '!': 1 },
         ],
       },
@@ -254,8 +254,8 @@ test('parses scope with unknowns', () => {
     '?': ['x', 'y'],
     '=': {
       $add: [
-        { $: 'x' },
-        { $: 'y' },
+        { '&': 'x' },
+        { '&': 'y' },
       ],
     },
   });
@@ -272,11 +272,11 @@ test('parses scope with unknowns and helper variables', () => {
     '?': ['x', 'y'],
     result: {
       $add: [
-        { $: 'x' },
-        { $: 'y' },
+        { '&': 'x' },
+        { '&': 'y' },
       ],
     },
-    '=': { $: 'result' },
+    '=': { '&': 'result' },
   });
 });
 
@@ -288,7 +288,7 @@ test('parses a list', () => {
   ]
   `)).toEqual([
     { '!': 1 },
-    { $: 'a' },
+    { '&': 'a' },
   ]);
 });
 
@@ -305,7 +305,7 @@ test('parses a nested list', () => {
     a: { '!': 1 },
     b: [
       { '!': 1 },
-      { $: 'a' },
+      { '&': 'a' },
     ],
   });
 });
@@ -320,7 +320,7 @@ test('parses a double nested list', () => {
     { '!': 1 },
     [
       { '!': 1 },
-      { $: 'a' },
+      { '&': 'a' },
     ],
   ]);
 });
@@ -329,11 +329,11 @@ test('parses @map operator', () => {
   expect(parse(`
 @map -- ~key = "id" -- points, { ? p = p.x }
   `)).toEqual({
-    $map: [{ $: 'points' }, {
+    $map: [{ '&': 'points' }, {
       '?': ['p'],
       '=': {
         $dot: [
-          { $: 'p' },
+          { '&': 'p' },
           { '!': 'x' },
         ],
       },
@@ -348,13 +348,13 @@ test('parses conditional expression', () => {
 @if a == 2, c, d
 `)).toEqual({
     $if: [
-      { $eq: [{ $: 'a' }, { '!': 1 }] },
-      { $: 'b' },
+      { $eq: [{ '&': 'a' }, { '!': 1 }] },
+      { '&': 'b' },
       {
         $if: [
-          { $eq: [{ $: 'a' }, { '!': 2 }] },
-          { $: 'c' },
-          { $: 'd' },
+          { $eq: [{ '&': 'a' }, { '!': 2 }] },
+          { '&': 'c' },
+          { '&': 'd' },
         ],
       },
     ],
@@ -367,10 +367,10 @@ array @map -- key = "id" -- { ? item = item.name }
 `)).toEqual({
     key: { '!': 'id' },
     $map: [
-      { $: 'array' },
+      { '&': 'array' },
       {
         '?': ['item'],
-        '=': { $dot: [{ $: 'item' }, { '!': 'name' }] },
+        '=': { $dot: [{ '&': 'item' }, { '!': 'name' }] },
       },
     ],
   });
@@ -382,10 +382,10 @@ test('parses generic operator (prefix)', () => {
 `)).toEqual({
     key: { '!': 'id' },
     $map: [
-      { $: 'array' },
+      { '&': 'array' },
       {
         '?': ['item'],
-        '=': { $dot: [{ $: 'item' }, { '!': 'name' }] },
+        '=': { $dot: [{ '&': 'item' }, { '!': 'name' }] },
       },
     ],
   });
@@ -403,10 +403,10 @@ array
       {
         key: { '!': 'id' },
         $map: [
-          { $: 'array' },
+          { '&': 'array' },
           {
             '?': ['item'],
-            '=': { $dot: [{ $: 'item' }, { '!': 'value' }] },
+            '=': { $dot: [{ '&': 'item' }, { '!': 'value' }] },
           },
         ],
       },
@@ -414,8 +414,8 @@ array
         '?': ['a', 'b'],
         '=': {
           $add: [
-            { $: 'a' },
-            { $: 'b' },
+            { '&': 'a' },
+            { '&': 'b' },
           ],
         },
       },

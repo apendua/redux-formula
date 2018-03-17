@@ -29,7 +29,7 @@ test('parses an identifier', () => {
   expect(parse([
     { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
   ])).toEqual({
-    $: 'a',
+    '&': 'a',
   });
 });
 
@@ -47,8 +47,8 @@ test('parses binary plus', () => {
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
   ])).toEqual({
     $add: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -60,7 +60,7 @@ test('parses dot operator', () => {
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
   ])).toEqual({
     $dot: [
-      { $: 'a' },
+      { '&': 'a' },
       { '!': 'b' },
     ],
   });
@@ -77,7 +77,7 @@ test('parses chained dot operator', () => {
     $dot: [
       {
         $dot: [
-          { $: 'a' },
+          { '&': 'a' },
           { '!': 'b' },
         ],
       },
@@ -94,8 +94,8 @@ test('parses index operator', () => {
     { type: TOKEN_TYPE_OPERATOR, value: ']' },
   ])).toEqual({
     $dot: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -108,8 +108,8 @@ test('parses evaluate expression', () => {
     { type: TOKEN_TYPE_OPERATOR, value: ')' },
   ])).toEqual({
     $call: [
-      { $: 'a' },
-      { $: 'b' },
+      { '&': 'a' },
+      { '&': 'b' },
     ],
   });
 });
@@ -121,8 +121,8 @@ test('parses pipe operator', () => {
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
   ])).toEqual({
     $call: [
-      { $: 'b' },
-      { $: 'a' },
+      { '&': 'b' },
+      { '&': 'a' },
     ],
   });
 });
@@ -139,10 +139,10 @@ test('parses multi arguments pipe expression', () => {
     { type: TOKEN_TYPE_IDENTIFIER, value: 'd' },
   ])).toEqual({
     $call: [
-      { $: 'd' },
-      { $: 'a' },
-      { $: 'b' },
-      { $: 'c' },
+      { '&': 'd' },
+      { '&': 'a' },
+      { '&': 'b' },
+      { '&': 'c' },
     ],
   });
 });
@@ -157,11 +157,11 @@ test('respects operator precedence', () => {
     { type: TOKEN_TYPE_IDENTIFIER, value: 'c' },
   ])).toEqual({
     $add: [
-      { $: 'a' },
+      { '&': 'a' },
       {
         $mul: [
-          { $: 'b' },
-          { $: 'c' },
+          { '&': 'b' },
+          { '&': 'c' },
         ],
       },
     ],
@@ -181,11 +181,11 @@ test('respects parenthesis', () => {
     $mul: [
       {
         $add: [
-          { $: 'a' },
-          { $: 'b' },
+          { '&': 'a' },
+          { '&': 'b' },
         ],
       },
-      { $: 'c' },
+      { '&': 'c' },
     ],
   });
 });
@@ -214,6 +214,6 @@ test('parses a list', () => {
     { type: TOKEN_TYPE_OPERATOR, value: ']' },
   ])).toEqual([
     { '!': 1 },
-    { $: 'a' },
+    { '&': 'a' },
   ]);
 });
