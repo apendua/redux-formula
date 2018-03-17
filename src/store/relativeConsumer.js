@@ -35,7 +35,7 @@ const relativeConsumer = (Consumer, DefaultConsumer, defaultSection) => {
       return (
         <Consumer>
           {value => (
-            value.store
+            value && value.store
             ?
               this.props.children(value)
             :
