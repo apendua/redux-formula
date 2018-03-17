@@ -1,5 +1,6 @@
 export const identity = x => x;
 export const constant = x => () => x;
+export const argument = i => (...args) => args[i];
 
 export const createConstantFunctor = (order) => {
   if (order === 0) {

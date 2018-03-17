@@ -18,6 +18,7 @@ import {
   push,
   pull,
 } from './actions';
+import composeConsumers from './composeConsumers';
 
 const createConnect = options => (expression, handlers) => {
   const factory = formulaSelectorFactory(expression);
@@ -150,13 +151,14 @@ const createConnect = options => (expression, handlers) => {
         children,
         ownProps,
       } = this.props;
-      return children(
-        this.getValue(
+      return children({
+        ...ownProps,
+        ...this.getValue(
           this.state,
           ownProps,
         ),
-        this.hooks,
-      );
+        ...this.hooks,
+      });
     }
   }
 
@@ -177,22 +179,23 @@ const createConnect = options => (expression, handlers) => {
     stores: {},
   };
 
-  return BaseComponent => (props) => {
-    let render = stores => (
-      <Component stores={stores} ownProps={props} >
-        {(value, hooks) => (
-          <BaseComponent {...props} {...value} {...hooks} />
-        )}
-      </Component>
-    );
+  return (BaseComponent) => {
+    const renderBaseComponent = props => (<BaseComponent {...props} />);
+
+    let ComposedConsumer;
     forEach(options, ({ Consumer }, name) => {
-      render = (currentRender => stores => (
-        <Consumer>
-          {ctx => currentRender({ ...stores, [name]: ctx.store })}
-        </Consumer>
-      ))(render);
+      ComposedConsumer = composeConsumers(ComposedConsumer, Consumer, name);
     });
-    return render({});
+
+    return props => (
+      <ComposedConsumer>
+        {stores => (
+          <Component stores={stores} ownProps={props} >
+            {renderBaseComponent}
+          </Component>
+        )}
+      </ComposedConsumer>
+    );
   };
 };
 

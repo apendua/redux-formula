@@ -4,45 +4,55 @@ import {
   createSelector,
 } from 'reselect';
 import createSubStore from './createSubStore';
+import {
+  argument,
+} from '../utils/functions';
 
-const relativeConsumer = (Consumer, PatentConsumer, rootSection) => {
-  class RelativeConsumer extends React.PureComponent {
+const relativeConsumer = (Consumer, DefaultConsumer, defaultSection) => {
+  class ComposedConsumer extends React.PureComponent {
     constructor(props) {
       super(props);
 
       this.getStore = createSelector(
-        store => store,
-        store => createSubStore(store, rootSection),
+        argument(0),
+        store => createSubStore(store, defaultSection),
       );
 
       this.getChildren = createSelector(
-        children => children,
+        argument(0),
         children => value => children({ store: this.getStore(value.store) }),
       );
     }
 
     render() {
+      if (!DefaultConsumer) {
+        return (
+          <Consumer>
+            {this.props.children}
+          </Consumer>
+        );
+      }
       return (
         <Consumer>
           {value => (
-            value.store || !PatentConsumer
+            value.store
             ?
               this.props.children(value)
             :
-              <PatentConsumer>
+              <DefaultConsumer>
                 {this.getChildren(this.props.children)}
-              </PatentConsumer>
+              </DefaultConsumer>
           )}
         </Consumer>
       );
     }
   }
 
-  RelativeConsumer.propTypes = {
+  ComposedConsumer.propTypes = {
     children: PropTypes.func.isRequired,
   };
 
-  return RelativeConsumer;
+  return ComposedConsumer;
 };
 
 export default relativeConsumer;
