@@ -9,7 +9,19 @@ const pluginReference = {
     const name = expression['&'];
     return {
       deps: { [name]: name },
-      bindTo: scope => scope.relative(scope.resolve(name).selector),
+      meta: {
+        name,
+        type: 'reference',
+      },
+      createSelector: scope => scope.relative(scope.resolve(name).selector),
+      createOperator: (scope) => {
+        const variable = scope.resolve(name);
+        if (!variable.createOperator) {
+          throw new Error(`Variable ${name} cannot be used as operator`);
+        }
+        const operator = variable.createOperator(scope);
+        return (...selectors) => scope.relative(operator(...selectors));
+      },
     };
   },
 };

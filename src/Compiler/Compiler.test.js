@@ -173,7 +173,7 @@ describe('Test Compiler', () => {
           '=': 'x',
         },
         a: {
-          $identity: 2,
+          $call: ['identity', 2],
         },
       });
       expect(formula().a).toEqual(2);
@@ -193,6 +193,62 @@ describe('Test Compiler', () => {
         x: 'y.x',
       });
       expect(formula()({ x: 2 })).toEqual({ x: 2 });
+    });
+  });
+
+  describe('Operators', () => {
+    test('should evaluate function as an operator', () => {
+      const formula = testContext.createSelector({
+        a: {
+          '?': ['x', 'y'],
+          '=': { $add: ['x', 'y'] },
+        },
+        $: ['a', 1, 2],
+      });
+      expect(formula()).toEqual(3);
+    });
+
+    test('should evaluate function as an operator inside another function', () => {
+      const formula = testContext.createSelector({
+        a: {
+          '?': ['x', 'y'],
+          '=': { $add: ['x', 'y'] },
+        },
+        b: {
+          '?': ['x', 'y'],
+          '=': { $: ['a', 'x', 'y'] },
+        },
+        $: ['b', 1, 2],
+      });
+      expect(formula()).toEqual(3);
+    });
+
+    test('should partially evaluate function as an operator', () => {
+      const formula = testContext.createSelector({
+        a: {
+          '?': ['x', 'y'],
+          '=': { $add: ['x', 'y'] },
+        },
+        $: ['a', 1],
+      });
+      expect(formula()(2)).toEqual(3);
+    });
+
+    test('should evaluate recursive function as an operator', () => {
+      const formula = testContext.createSelector({
+        a: {
+          '?': ['x'],
+          '=': {
+            $if: [
+              { $lte: ['x', 0] },
+              0,
+              { $add: [{ $call: ['this', 'x - 1'] }, 'x'] },
+            ],
+          },
+        },
+        $: ['a', '2'],
+      });
+      expect(formula()).toEqual(3);
     });
   });
 
@@ -376,7 +432,7 @@ describe('Test Compiler', () => {
           },
         },
         b: {
-          $a: [2, 3],
+          $call: ['a', 2, 3],
         },
       });
       const result = formula();
@@ -420,7 +476,7 @@ describe('Test Compiler', () => {
             $if: [
               { $lt: ['x', 1] },
               0,
-              { $add: ['x', { $this: { $add: ['x', -1] } }] },
+              { $add: ['x', { $call: ['this', { $add: ['x', -1] }] }] },
             ],
           },
         },
@@ -437,10 +493,10 @@ describe('Test Compiler', () => {
         },
         swap: {
           '?': ['f'],
-          '=': { '?': ['a', 'b'], $f: ['b', 'a'] },
+          '=': { '?': ['a', 'b'], $call: ['f', 'b', 'a'] },
         },
         value: {
-          $call: [{ $swap: 'subtract' }, 1, 2],
+          $call: [{ $call: ['swap', 'subtract'] }, 1, 2],
         },
       });
       const result = formula();
@@ -459,15 +515,15 @@ describe('Test Compiler', () => {
               'node',
               {
                 name: 'node.name',
-                left: { $this: 'node.left' },
-                right: { $this: 'node.right' },
+                left: { $call: ['this', 'node.left'] },
+                right: { $call: ['this', 'node.right'] },
               },
               '"[unknown]"',
             ],
           },
         },
         '=': {
-          $map: '$0',
+          $call: ['map', '$0'],
         },
       });
       const result = formula({
@@ -623,7 +679,7 @@ describe('Test Compiler', () => {
       const func = x => x + 1;
       const formula = testContext.createSelector({
         func: { '!': func },
-        x: { $func: [2] },
+        x: { $call: ['func', 2] },
       });
       expect(formula(1)).toEqual({
         func,
@@ -658,19 +714,6 @@ describe('Test Compiler', () => {
         },
       });
       expect(formula({ value: 2 }).inc(1)).toBe(3);
-    });
-
-    test('should be able to invoke a function via operator notation', () => {
-      const formula = testContext.createSelector({
-        inc: {
-          '?': ['x'],
-          '=': {
-            $add: ['x', 1],
-          },
-        },
-        val: { $inc: [1] },
-      });
-      expect(formula().val).toBe(2);
     });
 
     test(
@@ -756,8 +799,8 @@ describe('Test Compiler', () => {
             '=': { $add: ['x', 'y'] },
           },
         },
-        add1: { $add: [1] },
-        value: { $add1: [4] },
+        add1: { $call: ['add', 1] },
+        value: { $call: ['add1', 4] },
       });
       expect(formula().add1(2)).toBe(3);
       expect(formula().value).toBe(5);
@@ -785,7 +828,7 @@ describe('Test Compiler', () => {
           '?': ['x'],
           v: 'x',
         },
-        a: { $map: '$0.x' },
+        a: { $call: ['map', '$0.x'] },
       });
       expect(formula({ x: 1, y: 1 })).toBe(formula({ x: 1, y: 2 }));
     });

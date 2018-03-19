@@ -163,11 +163,12 @@ describe('Test Default Operators', () => {
 
   test('should use short circuit for $and', () => {
     const formula = testContext.createSelector({
-      $and: ['$0', {
-        '(!': function () {
+      $and: [
+        '$0',
+        function () {
           throw new Error('Should not reach this line.');
         },
-      }],
+      ],
     });
     expect(formula(false)).toBe(false);
     expect(() => {
@@ -177,11 +178,12 @@ describe('Test Default Operators', () => {
 
   test('should use short circuit for $or', () => {
     const formula = testContext.createSelector({
-      $or: ['$0', {
-        '(!': function () {
+      $or: [
+        '$0',
+        function () {
           throw new Error('Should not reach this line.');
         },
-      }],
+      ],
     });
     expect(formula(true)).toBe(true);
     expect(() => {
@@ -207,11 +209,11 @@ describe('Test Default Operators', () => {
 
   test('should use short circuit for $if', () => {
     const formula = testContext.createSelector({
-      $if: ['$0', '$1', {
-        '(!': function () {
+      $if: ['$0', '$1',
+        function () {
           throw new Error('Should not reach this line.');
         },
-      }],
+      ],
     });
     expect(formula(true, 2)).toBe(2);
     expect(() => {
@@ -221,11 +223,11 @@ describe('Test Default Operators', () => {
 
   test('should use short circuit for $unless', () => {
     const formula = testContext.createSelector({
-      $unless: ['$0', '$1', {
-        '(!': function () {
+      $unless: ['$0', '$1',
+        function () {
           throw new Error('Should not reach this line.');
         },
-      }],
+      ],
     });
     expect(formula(false, 2)).toBe(2);
     expect(() => {

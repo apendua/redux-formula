@@ -11,12 +11,15 @@ const pluginFunction = {
     const { '?': params, ...valueExpr } = expression;
     const value = compile(valueExpr);
     const unknowns = [...params, 'this'];
-    return {
+    const variable = {
       deps: omit(value.deps, unknowns),
-      bindTo: (scope) => {
+      meta: {
+        type: 'function',
+      },
+      createSelector: (scope) => {
         const newScope = scope.create(unknowns);
         return scope.boundSelector(
-          value.bindTo(newScope),
+          value.createSelector(newScope),
           (evaluate) => {
             const f = (...args) => {
               const data = { this: f };
@@ -29,7 +32,24 @@ const pluginFunction = {
           },
         );
       },
+      createOperator: scope => (...selectors) => {
+        if (selectors.length > params.length) {
+          throw new Error('Too many arguments provided.');
+        }
+        return scope.boundSelector(
+          variable.createSelector(scope),
+          ...selectors,
+          (func, ...values) => {
+            const f = (...args) => func(...values, ...args);
+            if (selectors.length === params.length) {
+              return f();
+            }
+            return f;
+          },
+        );
+      },
     };
+    return variable;
   },
 };
 

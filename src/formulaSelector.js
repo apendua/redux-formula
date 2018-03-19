@@ -9,7 +9,7 @@ const defaultCompiler = new Compiler({
 const formulaSelector = expression => defaultCompiler.createSelector(expression);
 const formulaSelectorFactory = (expression) => {
   const formula = defaultCompiler.createFormula(expression);
-  return scope => formula.bindTo(scope);
+  return scope => formula.toRawSelector(scope);
 };
 
 export {

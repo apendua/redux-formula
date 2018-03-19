@@ -32,7 +32,7 @@ const destructure = (expression) => {
 
 const pluginSubExpression = {
   createApi: ({ compile }) => ({
-    subExpression: (varsExpr, argsExpr, bindOperator, operatorName) => {
+    subExpression: (varsExpr, argsExpr, createOperator, operatorName) => {
       const vars = mapValues(varsExpr, compile);
       const args = argsExpr
         ? map(argsExpr, compile)
@@ -59,36 +59,29 @@ const pluginSubExpression = {
       });
       return {
         deps,
-        bindTo: (scope) => {
+        meta: {
+          type: 'sub-expression',
+        },
+        createSelector: (scope) => {
           const newScope = scope.create();
           forEach(vars, (variable, name) => {
             newScope.define(
               (name.charAt(0) === '~' || name.charAt(0) === '_') ? name.substr(1) : name,
-              variable.deps,
-              variable.bindTo,
+              variable,
             );
           });
-          if (operatorName) {
-            let selectEvaluate;
-            try {
-              selectEvaluate = newScope.resolve(operatorName).selector;
-              return scope.boundSelector(
-                selectEvaluate,
-                ...invokeMap(args, 'bindTo', newScope),
-                (evaluate, ...rest) => evaluate(...rest),
-              );
-            } catch (err) {
-              const msg = err.toString();
-              if (!/Unknown dependency/.test(msg) &&
-                  !/Circular dependency/.test(msg)
-              ) {
-                throw err;
-              }
-            }
+          if (createOperator) {
+            return createOperator(
+              scope,
+              newScope.variablesSelector(namesPrivate),
+            )(...invokeMap(args, 'createSelector', newScope));
           }
-          if (bindOperator) {
-            return bindOperator(scope)(newScope.variablesSelector(namesPrivate))(
-              ...invokeMap(args, 'bindTo', newScope),
+          if (operatorName === '') {
+            if (!args[0].createOperator) {
+              throw new Error('Value cannot be used as operator.');
+            }
+            return scope.relative(
+              args[0].createOperator(newScope)(...invokeMap(args.slice(1), 'createSelector', newScope)),
             );
           }
           return newScope.variablesSelector(namesPublic, scope);

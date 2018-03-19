@@ -3,19 +3,33 @@ import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import isNaN from 'lodash/isNaN';
 import Scope from './Scope';
+import Selector from './Selector';
 import parse from './Compiler.parse';
+import {
+  argument,
+} from '../utils/functions';
 
 const createCompiler = api => () => (expression) => {
   switch (typeof expression) {
     case 'function':
-      return { bindTo: scope => scope.relative(expression) };
+      return {
+        meta: {
+          type: 'native',
+        },
+        createSelector: scope => scope.relative(expression),
+      };
     case 'string':
       return api.compile(api.parse(expression));
     default: {
       if (api.literal) {
         return api.literal(expression);
       }
-      return { bindTo: scope => scope.createConstantSelector(expression) };
+      return {
+        meta: {
+          type: 'unknown',
+        },
+        createSelector: scope => scope.createConstantSelector(expression),
+      };
     }
   }
 };
@@ -86,7 +100,10 @@ class Compiler {
     const selector = this.createSelector(expression);
     // Let's forget about this selector metadata.
     delete selector.scope;
-    this.scope.define(name, deps, scope => scope.relative(selector));
+    this.scope.define(name, {
+      deps,
+      createSelector: scope => scope.relative(selector),
+    });
   }
 
   parse(text) {
@@ -103,20 +120,28 @@ class Compiler {
       .filter(index => !isNaN(index));
     const otherDeps = omit(formula.deps, indexes.map(i => `$${i}`));
     return {
-      bindTo: (parentScope = this.scope) => {
+      toRawSelector: (parentScope = this.scope) => {
         const newScope = parentScope.create();
         // Ensure all dependencies can be resolved
         keys(otherDeps).forEach(key => newScope.resolve(key));
         // If there were any dependencies like $0, $1, etc. interpret them
         // as references to arguments array.
-        indexes.forEach(i => newScope.define(`$${i}`, [], scope => scope.relative((...args) => args[i])));
-        return formula.bindTo(newScope).toRawSelector();
+        indexes.forEach(i => newScope.define(`$${i}`, {
+          createSelector: scope => scope.relative(argument(i)),
+        }));
+        const selector = formula.createSelector(newScope);
+        if (typeof selector === 'function') {
+          return selector;
+        } else if (selector instanceof Selector) {
+          return selector.toRawSelector();
+        }
+        throw new Error(`Expected selector, got ${typeof bound}`);
       },
     };
   }
 
   createSelector(expression) {
-    return this.createFormula(expression).bindTo();
+    return this.createFormula(expression).toRawSelector();
   }
 }
 

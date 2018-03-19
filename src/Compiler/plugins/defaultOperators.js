@@ -3,17 +3,14 @@ import reduce from 'lodash/reduce';
 import sortBy from 'lodash/sortBy';
 import memoizeMapValues from '../../utils/memoizeMapValues';
 
-export const createUnary = op => scope =>
-  () => selectX => scope.boundSelector(selectX, op);
+export const createUnary = op => scope => selectX => scope.boundSelector(selectX, op);
 
-export const createBinary = op => scope =>
-  () => (selectX, selectY) => scope.boundSelector(selectX, selectY, op);
+export const createBinary = op => scope => (selectX, selectY) => scope.boundSelector(selectX, selectY, op);
 
-export const createAssociative = op => scope =>
-  () => (...selectors) => scope.boundSelector(
-    ...selectors,
-    (...args) => args.reduce(op),
-  );
+export const createAssociative = op => scope => (...selectors) => scope.boundSelector(
+  ...selectors,
+  (...args) => args.reduce(op),
+);
 
 export const $dot = createAssociative((x, y) => x && x[y]);
 export const $sum = createAssociative((x, y) => x + y);
@@ -33,7 +30,7 @@ export const $lte = createBinary((x, y) => x <= y);
 export const $gte = createBinary((x, y) => x >= y);
 export const $not = createUnary(x => !x);
 export const $xor = createBinary((x, y) => (x && !y) || (!x && y));
-export const $and = scope => () => (
+export const $and = scope => (
   selectX,
   selectY,
 ) => scope.boundSelector(
@@ -41,7 +38,7 @@ export const $and = scope => () => (
   scope.indirect(selectY),
   (x, y) => x() && y(),
 );
-export const $or = scope => () => (
+export const $or = scope => (
   selectX,
   selectY,
 ) => scope.boundSelector(
@@ -50,7 +47,7 @@ export const $or = scope => () => (
   (x, y) => x() || y(),
 );
 
-export const $if = scope => () => (
+export const $if = scope => (
   selectX,
   selectY,
   selectZ,
@@ -61,7 +58,7 @@ export const $if = scope => () => (
   (x, y, z) => (x() ? y() : z()),
 );
 
-export const $unless = scope => () => (
+export const $unless = scope => (
   selectX,
   selectY,
   selectZ,
@@ -74,13 +71,13 @@ export const $unless = scope => () => (
 
 export const $filter = createBinary((x, y) => filter(x, y));
 export const $reduce = createBinary((x, y) => reduce(x, y));
-export const $sort = scope => selectOptions => selectX => scope.boundSelector(
+export const $sort = (scope, selectOptions) => selectX => scope.boundSelector(
   selectX,
   selectOptions,
   (x, options) => sortBy(x, options.key),
 );
 
-export const $map = scope => selectOptions => (selectInput, selectMapValue) => {
+export const $map = (scope, selectOptions) => (selectInput, selectMapValue) => {
   const selectMapping = scope.boundSelector(
     selectMapValue,
     scope.boundSelector(
@@ -96,7 +93,7 @@ export const $map = scope => selectOptions => (selectInput, selectMapValue) => {
   );
 };
 
-export const $call = scope => () => (selectFunc, ...argsSelectors) => scope.boundSelector(
+export const $call = scope => (selectFunc, ...argsSelectors) => scope.boundSelector(
   selectFunc,
   ...argsSelectors,
   (func, ...args) => {

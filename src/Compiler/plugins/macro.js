@@ -15,7 +15,7 @@ const pluginMacro = {
         return subExpression(
           varsExpr,
           [valueExpr],
-          scope => () => selectValue => scope.boundSelector(
+          scope => selectValue => scope.boundSelector(
             scope.boundSelector(
               selectValue,
               value => createSelector(value),

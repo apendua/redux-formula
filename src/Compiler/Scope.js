@@ -84,25 +84,24 @@ class Scope {
   }
 
   external(name, selector) {
-    this.define(name, [], () => this.relative(selector));
+    this.define(name, {
+      createSelector: constant(this.relative(selector)),
+    });
   }
 
-  define(name, deps, factory) {
-    if (!factory) {
-      throw new Error(`Missing factory function for variable ${name}`);
+  define(name, variable) {
+    if (!variable) {
+      throw new Error(`Missing configuration object for variable ${name}`);
     }
+    // we allow overwriting unknown variable
     if (this.variables[name]) {
       throw new Error(`${name} defined multiple times`);
     }
-    if (deps && deps.length > 0 && !factory) {
-      throw new Error(`Unknown "${name}" cannot have any dependencies`);
-    }
     this.variables[name] = {
       name,
-      deps,
-      factory,
       scope: this,
       state: 'initial',
+      ...variable,
     };
   }
 
@@ -124,10 +123,20 @@ class Scope {
     }
     if (variable.state === 'initial') {
       variable.state = 'resolving';
-      variable.selector = variable.factory(this, mapValues(
-        variable.deps,
-        depName => this.resolve(depName, [...stack, depName]),
-      ));
+
+      if (variable.createSelector) {
+        variable.selector = variable.createSelector(this, mapValues(
+          variable.deps,
+          depName => this.resolve(depName, [...stack, depName]),
+        ));
+      }
+
+      if (typeof variable.selector === 'function') {
+        variable.selector = this.relative(variable.selector);
+      } else if (!(variable.selector instanceof Selector)) {
+        throw new Error(`Variable requires selector, got ${typeof variable.selector}`);
+      }
+
       variable.state = 'resolved';
     }
     return variable;

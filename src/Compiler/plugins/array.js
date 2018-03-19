@@ -14,8 +14,11 @@ const pluginArray = {
     );
     return {
       deps,
-      bindTo: (scope) => {
-        const selectors = invokeMap(array, 'bindTo', scope);
+      meta: {
+        type: 'array',
+      },
+      createSelector: (scope) => {
+        const selectors = invokeMap(array, 'createSelector', scope);
         return scope.boundSelector(
           ...selectors,
           (...values) => values,

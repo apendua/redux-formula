@@ -3,7 +3,12 @@ import has from 'lodash/has';
 
 const pluginLiteral = {
   createApi: () => ({
-    literal: value => ({ bindTo: scope => scope.createConstantSelector(value) }),
+    literal: value => ({
+      meta: {
+        type: 'literal',
+      },
+      createSelector: scope => scope.createConstantSelector(value),
+    }),
   }),
   createCompiler: ({ literal }) => next => (expression) => {
     switch (typeof expression) {
