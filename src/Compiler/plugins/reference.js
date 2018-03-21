@@ -22,6 +22,15 @@ const pluginReference = {
         const operator = variable.createOperator(scope);
         return (...selectors) => scope.relative(operator(...selectors));
       },
+      createGetProperty: (scope) => {
+        const variable = scope.resolve(name);
+        return (key) => {
+          if (!variable.getProperty) {
+            throw new Error(`Variable ${name} cannot be used as namespace`);
+          }
+          return variable.getProperty(key);
+        };
+      },
     };
   },
 };

@@ -131,6 +131,10 @@ class Scope {
         ));
       }
 
+      if (variable.createGetProperty) {
+        variable.getProperty = variable.createGetProperty(this);
+      }
+
       if (typeof variable.selector === 'function') {
         variable.selector = this.relative(variable.selector);
       } else if (!(variable.selector instanceof Selector)) {

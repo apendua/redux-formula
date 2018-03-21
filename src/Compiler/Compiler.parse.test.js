@@ -391,6 +391,19 @@ test('parses generic operator (prefix)', () => {
   });
 });
 
+test('parses generic operator taken from namespace', () => {
+  expect(parse(`
+@[api::fetch] -- option = 1 -- a, b
+`)).toEqual({
+    option: { '!': 1 },
+    $: [
+      { '&': 'api', ':': 'fetch' },
+      { '&': 'a' },
+      { '&': 'b' },
+    ],
+  });
+});
+
 test('parses generic @map operator followed by @reduce', () => {
   expect(parse(`
 array

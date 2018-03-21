@@ -6,10 +6,12 @@ import pluginMacro from '../plugins/macro';
 import pluginOverwrite from '../plugins/overwrite';
 import pluginSubExpression from '../plugins/subExpression';
 import pluginDefaultOperators from '../plugins/defaultOperators';
+import pluginNamespace from '../plugins/namespace';
 
 const preset = [
   pluginLiteral,
   pluginArray,
+  pluginNamespace,
   pluginReference,
   pluginFunction,
   pluginMacro,

@@ -14,9 +14,15 @@ const relativeTo = (targetScope, originalSelector, originalScope) => {
       targetScope.isAncestorOf(originalScope)) {
     return originalSelector;
   }
-  if (!targetScope.isDescendantOf(originalScope)) {
-    throw new Error('Can only bind selectors from related scopes');
-  }
+  // NOTE: This is no longer the case since we have "namespaces".
+  //       E.g. once scope can use selectors that are defined deep
+  //       within another scope. But this is fine because in none
+  //       of the currently implemented situations we are not crossing
+  //       function boundaries, so intermediate scopes do not introduce
+  //       any new variables.
+  // if (!targetScope.isDescendantOf(originalScope)) {
+  //   throw new Error('Can only bind selectors from related scopes');
+  // }
   const order = (originalScope && originalScope.order) || 0;
   return createSelector(
     originalSelector,

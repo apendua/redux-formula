@@ -41,19 +41,31 @@ const binary = (id, alias, bp) => grammar =>
       [`$${alias}`]: [left, parse.expression(bp)],
     }));
 
-const property = (id, alias, bp) => grammar =>
+const property = bp => (grammar) => {
   grammar
-    .token(id)
+    .token('::')
     .setBindingPower(bp)
     .ifUsedAsInfix((parse, token, left) => {
       const name = parse.advance(TOKEN_TYPE_IDENTIFIER);
       return {
-        [`$${alias}`]: [
+        '&': left['&'] && !left[':'] ? left['&'] : left,
+        ':': name.value,
+      };
+    });
+
+  grammar
+    .token('.')
+    .setBindingPower(bp)
+    .ifUsedAsInfix((parse, token, left) => {
+      const name = parse.advance(TOKEN_TYPE_IDENTIFIER);
+      return {
+        $dot: [
           left,
           { '!': name.value },
         ],
       };
     });
+};
 
 const scopeObject = () => (grammar) => {
   grammar.token('}');
@@ -104,12 +116,30 @@ const genericOperator = bp => (grammar) => {
         });
         return {
           ...params.object,
-          $call: [
+          $: [
             operator,
             ...params.array,
           ],
         };
-      } else if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER ||
+      } else /* if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER) {
+        const names = parse.tuple({
+          separator: '::',
+          id: TOKEN_TYPE_IDENTIFIER,
+          map: token => token.value,
+        });
+        const namespace = names.reduce((object, name) => ({
+          '&': object,
+          ':': name,
+        }));
+        const params = parse.params({
+          array: true,
+          separator: ',',
+        });
+        return {
+          ...params.object,
+          $: [namespace, ...params.array],
+        };
+      } */ if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER ||
                  parse.look(1).id === TOKEN_TYPE_LITERAL) {
         const name = parse.advance().value;
         const params = parse.params({
@@ -243,7 +273,7 @@ parser.token(TOKEN_TYPE_IDENTIFIER)
   binary('==', 'eq', 10),
   binary('!=', 'neq', 10),
 
-  property('.', 'dot', 90),
+  property(90),
 
   binaryRight('AND', 'and', 60),
   binaryRight('XOR', 'xor', 50),

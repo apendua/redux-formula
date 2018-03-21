@@ -807,6 +807,164 @@ describe('Test Compiler', () => {
     });
   });
 
+  describe('Namespaces', () => {
+    test('should extract a property from namespace', () => {
+      const formula = testContext.createSelector({
+        a: {
+          b: 1,
+        },
+        c: { '&': 'a', ':': 'b' },
+      });
+      expect(formula()).toEqual({
+        a: { b: 1 },
+        c: 1,
+      });
+    });
+
+    test('should throw on unknown property', () => {
+      expect(() => {
+        testContext.createSelector({
+          a: {
+            b: 1,
+          },
+          c: { '&': 'a', ':': 'x' },
+        });
+      }).toThrowError(/Unknown/);
+    });
+
+    test('should extract a nested property from namespace', () => {
+      const formula = testContext.createSelector({
+        a: {
+          b: {
+            c: 1,
+          },
+        },
+        c: { '&': { '&': 'a', ':': 'b' }, ':': 'c' },
+      });
+      expect(formula()).toEqual({
+        a: { b: { c: 1 } },
+        c: 1,
+      });
+    });
+
+    test('should extract a nasted property that depends on another property', () => {
+      const formula = testContext.createSelector({
+        a: {
+          b: 1,
+        },
+        c: {
+          d: { '&': 'a', ':': 'b' },
+        },
+        e: { '&': 'c', ':': 'd' },
+      });
+      expect(formula()).toEqual({
+        a: { b: 1 },
+        c: { d: 1 },
+        e: 1,
+      });
+    });
+
+    test('should extract a property from namespace inside a scope', () => {
+      const formula = testContext.createSelector({
+        a: {
+          b: 1,
+        },
+        c: {
+          d: { '&': 'a', ':': 'b' },
+        },
+      });
+      expect(formula()).toEqual({
+        a: { b: 1 },
+        c: { d: 1 },
+      });
+    });
+
+    test('should extract a property from namespace inside a function', () => {
+      const formula = testContext.createSelector({
+        a: {
+          b: 1,
+        },
+        c: {
+          '?': [],
+          '=': { '&': 'a', ':': 'b' },
+        },
+      });
+      expect(formula().c()).toEqual(1);
+    });
+
+    test('should extract an operator from namespace', () => {
+      const formula = testContext.createSelector({
+        '~a': {
+          b: {
+            '?': ['x'],
+            '=': { $add: [{ '&': 'x' }, 1] },
+          },
+        },
+        c: {
+          $: [
+            { '&': 'a', ':': 'b' },
+            1,
+          ],
+        },
+      });
+      expect(formula()).toEqual({
+        c: 2,
+      });
+    });
+
+    test('should extract an operator in a long reference chain', () => {
+      const formula = testContext.createSelector({
+        '~a': {
+          b: {
+            '?': ['x'],
+            '=': { $add: [{ '&': 'x' }, 1] },
+          },
+        },
+        '~c': { '&': 'a', ':': 'b' },
+        d: {
+          $: [
+            { '&': 'c' },
+            1,
+          ],
+        },
+      });
+      expect(formula()).toEqual({
+        d: 2,
+      });
+    });
+
+    test('should not be able to use operator if $dot is used', () => {
+      expect(() => testContext.createSelector({
+        '~a': {
+          b: {
+            '?': ['x'],
+            '=': { $add: [{ '&': 'x' }, 1] },
+          },
+        },
+        c: {
+          $: [
+            { $dot: [{ '&': 'a' }, { '!': 'b' }] },
+            1,
+          ],
+        },
+      })).toThrowError(/operator/);
+    });
+
+    test('should extract a property even if it is overwritten', () => {
+      const formula = testContext.createSelector({
+        a: {
+          b: 1,
+          '=': null,
+        },
+        c: { '&': 'a', ':': 'b' },
+      });
+      expect(formula()).toEqual({
+        a: null,
+        c: 1,
+      });
+    });
+  });
+
   describe('Value persistance', () => {
     test('should persist on constant formula', () => {
       const formula = testContext.createSelector({

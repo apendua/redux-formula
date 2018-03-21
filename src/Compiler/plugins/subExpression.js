@@ -62,6 +62,21 @@ const pluginSubExpression = {
         meta: {
           type: 'sub-expression',
         },
+        createGetProperty: (scope) => {
+          const newScope = scope.create();
+          forEach(vars, (variable, name) => {
+            newScope.define(
+              (name.charAt(0) === '~' || name.charAt(0) === '_') ? name.substr(1) : name,
+              variable,
+            );
+          });
+          return (name) => {
+            if (namesPublic.indexOf(name) < 0) {
+              throw new Error(`Unknown property ${name}`);
+            }
+            return newScope.resolve(name);
+          };
+        },
         createSelector: (scope) => {
           const newScope = scope.create();
           forEach(vars, (variable, name) => {
