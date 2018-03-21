@@ -73,7 +73,12 @@ class Compiler {
 
   extendOperators(plugin) {
     if (plugin.createOperators) {
-      Object.assign(this.operators, plugin.createOperators(this.api));
+      const newOperators = plugin.createOperators(this.api);
+      forEach(newOperators, (createOperator, operator) => {
+        const name = operator.charAt(0) === '$' ? operator.substr(1) : operator;
+        this.scope.operator(name, createOperator);
+        this.operators[name] = createOperator;
+      });
     }
   }
 
@@ -104,6 +109,10 @@ class Compiler {
       deps,
       createSelector: scope => scope.relative(selector),
     });
+  }
+
+  scope(...args) {
+    return this.scope.create(...args);
   }
 
   parse(text) {

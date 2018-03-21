@@ -8,7 +8,7 @@ import {
 } from '../utils/functions';
 
 class Scope {
-  constructor(parent, unknowns = []) {
+  constructor(parent, unknowns = [], operators = {}) {
     this.parent = parent;
     this.variables = {};
 
@@ -21,12 +21,17 @@ class Scope {
 
     forEach(unknowns, (name) => {
       this.variables[name] = {
+        meta: {
+          type: 'unknown',
+        },
         name,
         scope: this,
         state: 'resolved',
         selector: this.createUnknownSelector(name),
       };
     });
+
+    forEach(operators, (operator, name) => this.operator(name, operator));
   }
 
   hasOwnUnknowns() {
@@ -56,8 +61,8 @@ class Scope {
     return !!(scope && scope.isDescendantOf(this));
   }
 
-  create(unknowns) {
-    return new this.constructor(this, unknowns);
+  create(...args) {
+    return new this.constructor(this, ...args);
   }
 
   lookup(name, lookupLevel = 0) {
@@ -87,6 +92,29 @@ class Scope {
     this.define(name, {
       createSelector: constant(this.relative(selector)),
     });
+  }
+
+  operator(name, createOperator) {
+    if (!createOperator) {
+      throw new Error(`Missing operator creator for "${name}"`);
+    }
+    if (this.variables[name] && this.variables[name].createOperator) {
+      throw new Error(`Operator "${name}" defined multiple times`);
+    }
+    if (!this.variables[name]) {
+      this.variables[name] = {
+        meta: {
+          type: 'operator',
+        },
+        name,
+        scope: this,
+        state: 'resolved',
+        selector: () => {
+          throw new Error(`Cannot use operator ${name} as value`);
+        },
+      };
+    }
+    this.variables[name].createOperator = createOperator;
   }
 
   define(name, variable) {

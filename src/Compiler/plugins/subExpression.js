@@ -32,7 +32,7 @@ const destructure = (expression) => {
 
 const pluginSubExpression = {
   createApi: ({ compile }) => ({
-    subExpression: (varsExpr, argsExpr, createOperator, operatorName) => {
+    subExpression: (varsExpr, argsExpr, createOperator, operator) => {
       const vars = mapValues(varsExpr, compile);
       const args = argsExpr
         ? map(argsExpr, compile)
@@ -91,7 +91,7 @@ const pluginSubExpression = {
               newScope.variablesSelector(namesPrivate),
             )(...invokeMap(args, 'createSelector', newScope));
           }
-          if (operatorName === '') {
+          if (operator === '$') {
             if (!args[0].createOperator) {
               throw new Error('Value cannot be used as operator.');
             }
@@ -113,11 +113,12 @@ const pluginSubExpression = {
       operator,
       argsExpr,
     } = destructure(expression);
+    const name = operator && operator.substr(1);
     return subExpression(
       varsExpr,
       operator && !isArray(argsExpr) ? [argsExpr] : argsExpr,
-      operator && operators[operator],
-      operator && operator.substr(1),
+      operator && operators[name],
+      operator,
     );
   },
 };

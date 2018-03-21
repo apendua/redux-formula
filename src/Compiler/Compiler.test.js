@@ -197,6 +197,13 @@ describe('Test Compiler', () => {
   });
 
   describe('Operators', () => {
+    test('should evaluate a native operator', () => {
+      const formula = testContext.createSelector({
+        $: ['lte', 1, 2],
+      });
+      expect(formula()).toEqual(true);
+    });
+
     test('should evaluate function as an operator', () => {
       const formula = testContext.createSelector({
         a: {
