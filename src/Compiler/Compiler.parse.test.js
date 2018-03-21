@@ -135,7 +135,7 @@ test('parses pipe operator', () => {
 });
 
 test('parses multi arguments pipe expression', () => {
-  expect(parse(':a,b,c|d')).toEqual({
+  expect(parse('|a,b,c|d')).toEqual({
     $call: [
       { '&': 'd' },
       { '&': 'a' },
@@ -160,7 +160,7 @@ test('parses consecutive pipe operator', () => {
 });
 
 test('parses pipe expression followed by pipe operator', () => {
-  expect(parse(':a,b|c|d')).toEqual({
+  expect(parse('|a,b|c|d')).toEqual({
     $call: [
       { '&': 'd' },
       {
@@ -329,7 +329,7 @@ test('parses @map operator', () => {
   expect(parse(`
 @map -- ~key = "id" -- points, { ? p = p.x }
   `)).toEqual({
-    $map: [{ '&': 'points' }, {
+    $: ['map', { '&': 'points' }, {
       '?': ['p'],
       '=': {
         $dot: [
@@ -347,11 +347,13 @@ test('parses conditional expression', () => {
 @if a == 1, b,
 @if a == 2, c, d
 `)).toEqual({
-    $if: [
+    $: [
+      'if',
       { $eq: [{ '&': 'a' }, { '!': 1 }] },
       { '&': 'b' },
       {
-        $if: [
+        $: [
+          'if',
           { $eq: [{ '&': 'a' }, { '!': 2 }] },
           { '&': 'c' },
           { '&': 'd' },
@@ -366,7 +368,8 @@ test('parses generic operator (infix)', () => {
 array @map -- key = "id" -- { ? item = item.name }
 `)).toEqual({
     key: { '!': 'id' },
-    $map: [
+    $: [
+      'map',
       { '&': 'array' },
       {
         '?': ['item'],
@@ -381,7 +384,8 @@ test('parses generic operator (prefix)', () => {
 @map -- key = "id" -- array, { ? item = item.name }
 `)).toEqual({
     key: { '!': 'id' },
-    $map: [
+    $: [
+      'map',
       { '&': 'array' },
       {
         '?': ['item'],
@@ -393,11 +397,11 @@ test('parses generic operator (prefix)', () => {
 
 test('parses generic operator taken from namespace', () => {
   expect(parse(`
-@[api::fetch] -- option = 1 -- a, b
+@api:rest:fetch -- option = 1 -- a, b
 `)).toEqual({
     option: { '!': 1 },
     $: [
-      { '&': 'api', ':': 'fetch' },
+      { '&': { '&': 'api', ':': 'rest' }, ':': 'fetch' },
       { '&': 'a' },
       { '&': 'b' },
     ],
@@ -412,10 +416,12 @@ array
     { ? item = item.value }
   @reduce { ? a, b = a + b }
 `)).toEqual({
-    $reduce: [
+    $: [
+      'reduce',
       {
         key: { '!': 'id' },
-        $map: [
+        $: [
+          'map',
           { '&': 'array' },
           {
             '?': ['item'],

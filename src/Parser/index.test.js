@@ -129,7 +129,7 @@ test('parses pipe operator', () => {
 
 test('parses multi arguments pipe expression', () => {
   expect(parse([
-    { type: TOKEN_TYPE_OPERATOR, value: ':' },
+    { type: TOKEN_TYPE_OPERATOR, value: '|' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'a' },
     { type: TOKEN_TYPE_OPERATOR, value: ',' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },

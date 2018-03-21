@@ -7,7 +7,6 @@ const pluginBlock = (grammar) => {
   grammar.token('=');
   grammar.token(',');
   grammar.token('?');
-  grammar.token('->');
 
   grammar.utility('block', (parse, {
     end = '}',

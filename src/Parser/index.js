@@ -43,7 +43,7 @@ const binary = (id, alias, bp) => grammar =>
 
 const property = bp => (grammar) => {
   grammar
-    .token('::')
+    .token(':')
     .setBindingPower(bp)
     .ifUsedAsInfix((parse, token, left) => {
       const name = parse.advance(TOKEN_TYPE_IDENTIFIER);
@@ -121,9 +121,9 @@ const genericOperator = bp => (grammar) => {
             ...params.array,
           ],
         };
-      } else /* if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER) {
+      } else if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER) {
         const names = parse.tuple({
-          separator: '::',
+          separator: ':',
           id: TOKEN_TYPE_IDENTIFIER,
           map: token => token.value,
         });
@@ -139,8 +139,8 @@ const genericOperator = bp => (grammar) => {
           ...params.object,
           $: [namespace, ...params.array],
         };
-      } */ if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER ||
-                 parse.look(1).id === TOKEN_TYPE_LITERAL) {
+      } if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER ||
+            parse.look(1).id === TOKEN_TYPE_LITERAL) {
         const name = parse.advance().value;
         const params = parse.params({
           array: true,
@@ -173,7 +173,7 @@ const genericOperator = bp => (grammar) => {
         const params = parse.params({ array: false });
         return {
           ...params.object,
-          [`$${name}`]: [left, parse.expression(bp)],
+          $: [name, left, parse.expression(bp)],
         };
       }
       throw parse.error(`Expected "[" or identifier after @, got "${parse.look(1).id}".`);
@@ -200,7 +200,7 @@ const call = bp => (grammar) => {
     }));
 
   grammar
-    .token(':')
+    .token('|')
     .setBindingPower(bp)
     .ifUsedAsPrefix((parse) => {
       const args = parse.tuple({
