@@ -2,19 +2,18 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import map from 'lodash/map';
 import times from 'lodash/times';
-import createConnect from 'redux-formula/lib/store/createConnect';
-import * as context from '../store/Context';
+import Context, * as context from '../store/Context';
 
 const FormSection = context.Form.Section;
 
-const connect = createConnect([
+const connect = Context.createConnect([
   {
-    variable: 'api',
-    context: context.Api,
+    name: 'api',
+    scope: context.Api,
   },
   {
-    variable: 'state',
-    context: context.Form,
+    name: 'state',
+    scope: context.Form,
   },
 ]);
 
@@ -23,7 +22,7 @@ const Input = connect({
   edited: 'state.edited',
 }, {
   onChange: ({ edited, $set }) => (e) => {
-    $set('state.value', e.target.value);
+    $set('state.value', parseInt(e.target.value, 10));
     if (!edited) {
       $set('state.edited', true);
     }
@@ -119,12 +118,18 @@ const Form = connect(`{
   totalPrice = state.items
     @map {
       ? item
-      # we need to fetch item price via api
-      details = @api:fetch item.code.value
       = (
-        @if details.ready
-          , (item.amount.value OR 1) * details.price
-          , 0
+        @if item.price.edited
+          , item.price.value
+          , {
+            # we need to fetch item price via api
+            details = @api:fetch item.code.value
+            = (
+              @if details.ready
+                , (item.amount.value OR 1) * details.price
+                , 0
+            )
+          }
       )
     }
     @reduce {

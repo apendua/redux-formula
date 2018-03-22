@@ -1,14 +1,11 @@
-import createStoreContext from 'redux-formula/lib/store/createStoreContext';
+import createContext from 'redux-formula/lib/store/createContext';
 
-const constant = x => () => x;
-const Context = createStoreContext();
+const Context = createContext();
 const pending = {
   ready: false,
 };
 
-export const Api = createStoreContext({
-  parent: Context,
-  rootSection: 'api',
+export const Api = Context.createScope('api', {
   onCreate(scope, {
     $set,
   }) {
@@ -29,23 +26,20 @@ export const Api = createStoreContext({
       return pending;
     };
     scope.namespace('api', (namespace) => {
-      namespace.operator('fetch', target => (selectId) => {
-        return target.boundSelector(
+      namespace.operator('fetch', target => selectId =>
+        target.boundSelector(
           target.boundSelector(
             scope.resolve('^api').selector,
             api => api && api.items,
           ),
           selectId,
           (items, id) => fetch(items, id),
-        );
-      });
+        ),
+      );
     });
   },
 });
 
-export const Form = createStoreContext({
-  parent: Context,
-  rootSection: 'form',
-});
+export const Form = Context.createScope('form');
 
 export default Context;

@@ -4,9 +4,9 @@ import Context from '../store/Context';
 import Form from './Form';
 
 const App = ({ store }) => (
-  <Context.Provider value={{ store }}>
+  <Context.Store store={store}>
     <Form />
-  </Context.Provider>
+  </Context.Store>
 );
 
 App.propTypes = {

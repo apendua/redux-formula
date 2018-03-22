@@ -1,5 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {
+  createStructuredSelector,
+} from 'reselect';
+import map from 'lodash/map';
 import forEach from 'lodash/forEach';
 import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
@@ -20,14 +24,12 @@ import {
   push,
   pull,
 } from './actions';
-import composeConsumers from './composeConsumers';
 
-const createConnect = bindings => (expression, handlers) => {
-
+const createConnectFactory = context => bindings => (expression, handlers) => {
   const factory = formulaSelectorFactory(expression);
   const defaultScope = defaultCompiler.createScope();
 
-  forEach(bindings, ({ variable }, i) => defaultScope.external(variable, argument(i + 1)));
+  forEach(bindings, ({ name }, i) => defaultScope.external(name, argument(i + 1)));
 
   class Component extends React.Component {
     static getDerivedStateFromProps(nextProps) {
@@ -76,11 +78,11 @@ const createConnect = bindings => (expression, handlers) => {
       this.scope = defaultScope.create();
       this.subscriptions = {};
       forEach(bindings, ({
-        context,
+        scope,
         ...options
       }) => {
-        if (typeof context.onCreate === 'function') {
-          context.onCreate(this.scope, {
+        if (scope.options && typeof scope.options.onCreate === 'function') {
+          scope.options.onCreate(this.scope, {
             ...options,
             ...this.utils,
           });
@@ -133,7 +135,7 @@ const createConnect = bindings => (expression, handlers) => {
     getValue(state, props) {
       const value = this.selector(
         props,
-        ...bindings.map(({ variable }) => state[variable]),
+        ...bindings.map(({ name }) => state[name]),
       );
       if (!isPlainObject(value)) {
         throw new Error('Formula value should be an object');
@@ -188,24 +190,26 @@ const createConnect = bindings => (expression, handlers) => {
     stores: {},
   };
 
+  const selectValue = createStructuredSelector(
+    Object.assign(
+      {},
+      ...map(bindings, ({ name, scope }) => ({ [name]: value => value[scope.key] })),
+    ),
+  );
+
   return (BaseComponent) => {
     const renderBaseComponent = props => (<BaseComponent {...props} />);
-
-    let ComposedConsumer;
-    forEach(bindings, ({ variable, context }) => {
-      ComposedConsumer = composeConsumers(ComposedConsumer, context.Consumer, variable);
-    });
-
-    return props => (
-      <ComposedConsumer>
-        {stores => (
-          <Component stores={stores} ownProps={props} >
+    const Connect = props => (
+      <context.Consumer>
+        {value => (
+          <Component stores={selectValue(value)} ownProps={props} >
             {renderBaseComponent}
           </Component>
         )}
-      </ComposedConsumer>
+      </context.Consumer>
     );
+    return Connect;
   };
 };
 
-export default createConnect;
+export default createConnectFactory;
