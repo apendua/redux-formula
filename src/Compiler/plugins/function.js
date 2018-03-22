@@ -32,12 +32,12 @@ const pluginFunction = {
           },
         );
       },
-      createOperator: scope => (...selectors) => {
+      createOperator: (scope, options) => (...selectors) => {
         if (selectors.length > params.length) {
           throw new Error('Too many arguments provided.');
         }
         return scope.boundSelector(
-          variable.createSelector(scope),
+          variable.createSelector(scope, options),
           ...selectors,
           (func, ...values) => {
             const f = (...args) => func(...values, ...args);

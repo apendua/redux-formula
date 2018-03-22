@@ -85,10 +85,11 @@ const pluginSubExpression = {
               variable,
             );
           });
+          const options = newScope.variablesSelector([...namesPublic, ...namesPrivate]);
           if (createOperator) {
             return createOperator(
               scope,
-              newScope.variablesSelector(namesPrivate),
+              options,
             )(...invokeMap(args, 'createSelector', newScope));
           }
           if (operator === '$') {
@@ -96,7 +97,10 @@ const pluginSubExpression = {
               throw new Error('Value cannot be used as operator.');
             }
             return scope.relative(
-              args[0].createOperator(newScope)(...invokeMap(args.slice(1), 'createSelector', newScope)),
+              args[0].createOperator(
+                newScope,
+                options,
+              )(...invokeMap(args.slice(1), 'createSelector', newScope)),
             );
           }
           return newScope.variablesSelector(namesPublic, scope);

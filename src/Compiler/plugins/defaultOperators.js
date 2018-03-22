@@ -71,18 +71,18 @@ export const $unless = scope => (
 
 export const $filter = createBinary((x, y) => filter(x, y));
 export const $reduce = createBinary((x, y) => reduce(x, y));
-export const $sort = (scope, selectOptions) => selectX => scope.boundSelector(
+export const $sort = (scope, options) => selectX => scope.boundSelector(
   selectX,
-  selectOptions,
-  (x, options) => sortBy(x, options.key),
+  options,
+  (x, { key }) => sortBy(x, key),
 );
 
-export const $map = (scope, selectOptions) => (selectInput, selectMapValue) => {
+export const $map = (scope, options) => (selectInput, selectMapValue) => {
   const selectMapping = scope.boundSelector(
     selectMapValue,
     scope.boundSelector(
-      selectOptions,
-      options => options.key,
+      options,
+      ({ key }) => key,
     ),
     (mapOneValue, getKey) => memoizeMapValues(mapOneValue, getKey),
   );
