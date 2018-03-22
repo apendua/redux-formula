@@ -1,15 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import keys from 'lodash/keys';
 import forEach from 'lodash/forEach';
 import mapValues from 'lodash/mapValues';
 import isPlainObject from 'lodash/isPlainObject';
-import Scope from '../Compiler/Scope';
 import shallowEqual from '../utils/shallowEqual';
+import {
+  argument,
+} from '../utils/functions';
 import {
   splitKey,
 } from '../utils/immutable';
 import {
+  defaultCompiler,
   formulaSelectorFactory,
 } from '../index';
 import {
@@ -20,12 +22,12 @@ import {
 } from './actions';
 import composeConsumers from './composeConsumers';
 
-const createConnect = options => (expression, handlers) => {
-  const factory = formulaSelectorFactory(expression);
-  const defaultScope = new Scope();
-  const names = keys(options);
+const createConnect = bindings => (expression, handlers) => {
 
-  forEach(names, (name, i) => defaultScope.external(name, (...args) => args[i + 1]));
+  const factory = formulaSelectorFactory(expression);
+  const defaultScope = defaultCompiler.createScope();
+
+  forEach(bindings, ({ variable }, i) => defaultScope.external(variable, argument(i + 1)));
 
   class Component extends React.Component {
     static getDerivedStateFromProps(nextProps) {
@@ -38,7 +40,6 @@ const createConnect = options => (expression, handlers) => {
     constructor(props) {
       super(props);
       this.empty = {};
-      this.scope = new Scope();
       this.state = {};
       this.utils = {
         $set: (path, value) => {
@@ -57,6 +58,9 @@ const createConnect = options => (expression, handlers) => {
           const [name, key] = splitKey(path);
           this.props.stores[name].dispatch(del(key));
         },
+        $dispatch: (name, action) => {
+          this.props.stores[name].dispatch(action);
+        },
       };
       this.hooks = mapValues(handlers, handler => (...args) => {
         const { stores, ownProps } = this.props;
@@ -69,7 +73,20 @@ const createConnect = options => (expression, handlers) => {
           ...this.utils,
         })(...args);
       });
+      this.scope = defaultScope.create();
       this.subscriptions = {};
+      forEach(bindings, ({
+        context,
+        ...options
+      }) => {
+        if (typeof context.onCreate === 'function') {
+          context.onCreate(this.scope, {
+            ...options,
+            ...this.utils,
+          });
+        }
+      });
+      this.selector = factory(this.scope);
     }
 
     componentDidMount() {
@@ -113,18 +130,10 @@ const createConnect = options => (expression, handlers) => {
       });
     }
 
-    getSelector(scope) {
-      if (this.scope !== scope) {
-        this.scope = scope;
-        this.selector = factory(defaultScope);
-      }
-      return this.selector;
-    }
-
     getValue(state, props) {
-      const value = this.getSelector(defaultScope)(
+      const value = this.selector(
         props,
-        ...names.map(name => state[name]),
+        ...bindings.map(({ variable }) => state[variable]),
       );
       if (!isPlainObject(value)) {
         throw new Error('Formula value should be an object');
@@ -183,8 +192,8 @@ const createConnect = options => (expression, handlers) => {
     const renderBaseComponent = props => (<BaseComponent {...props} />);
 
     let ComposedConsumer;
-    forEach(options, ({ Consumer }, name) => {
-      ComposedConsumer = composeConsumers(ComposedConsumer, Consumer, name);
+    forEach(bindings, ({ variable, context }) => {
+      ComposedConsumer = composeConsumers(ComposedConsumer, context.Consumer, variable);
     });
 
     return props => (

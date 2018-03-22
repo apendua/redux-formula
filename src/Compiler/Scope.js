@@ -117,6 +117,30 @@ class Scope {
     this.variables[name].createOperator = createOperator;
   }
 
+  namespace(name, createProperties) {
+    if (this.variables[name] && this.variables[name].createOperator) {
+      throw new Error(`Operator "${name}" defined multiple times`);
+    }
+    this.define(name, {
+      meta: {
+        type: 'namespace',
+      },
+      createSelector: () => () => {
+        throw new Error('Namespace cannot be used as value');
+      },
+      createGetProperty: (scope) => {
+        const newScope = scope.create();
+        createProperties(newScope);
+        return (propName) => {
+          if (!newScope.variables[propName]) {
+            throw new Error(`Unknown property ${propName}`);
+          }
+          return newScope.resolve(propName);
+        };
+      },     
+    });    
+  }
+
   define(name, variable) {
     if (!variable) {
       throw new Error(`Missing configuration object for variable ${name}`);

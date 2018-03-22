@@ -7,10 +7,16 @@ import * as context from '../store/Context';
 
 const FormSection = context.Form.Section;
 
-const connect = createConnect({
-  api: context.Api,
-  state: context.Form,
-});
+const connect = createConnect([
+  {
+    variable: 'api',
+    context: context.Api,
+  },
+  {
+    variable: 'state',
+    context: context.Form,
+  },
+]);
 
 const Input = connect({
   value: 'state.value',
@@ -72,6 +78,14 @@ Field.defaultProps = {
   component: Input,
 };
 
+const codeOptions = [
+  { value: '', label: 'Please select one' },
+  { value: '1', label: 'Item 1' },
+  { value: '2', label: 'Item 2' },
+  { value: '3', label: 'Item 3' },
+  { value: '4', label: 'Item 4' },
+];
+
 const variantOptions = [
   { value: '', label: 'Default' },
   { value: '1', label: 'Variant 1' },
@@ -87,11 +101,14 @@ const amountOptions = [
 ];
 
 const Item = connect(`{
-  price = (state.amount.value OR 0) * 10
+  price = {
+    details = @api:fetch state.code.value
+    = (state.amount.value OR 1) * (@if details.ready, details.price, 0)
+  }
 }`)(props => (
   <Fragment>
-    <Field name="code" />
-    <Field name="amount" component={Select} options={amountOptions} />
+    <Field name="code" component={Select} options={codeOptions} />
+    <Field name="amount" component={Select} options={amountOptions} defaultValue={1} />
     <Field name="variant" component={Select} options={variantOptions} />
     <Field name="price" defaultValue={props.price} />
   </Fragment>
@@ -103,13 +120,12 @@ const Form = connect(`{
     @map {
       ? item
       # we need to fetch item price via api
-      # details = @[api.fetch] item.code.value
-      # = (
-      #  @if details.ready
-      #    , (item.amount.value OR 0) * 10
-      #    , 0
-      # )
-      = (item.amount.value OR 0) * 10
+      details = @api:fetch item.code.value
+      = (
+        @if details.ready
+          , (item.amount.value OR 1) * details.price
+          , 0
+      )
     }
     @reduce {
       ? a, b = a + b

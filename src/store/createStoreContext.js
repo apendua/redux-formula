@@ -13,8 +13,11 @@ const Store = createStoreContext(store);
 </Store.Section>
 */
 
+const noop = () => {};
+
 const createStoreContext = ({
   parent,
+  onCreate = noop,
   defaultName = 'state',
   rootSection = '',
 } = {}) => {
@@ -63,13 +66,21 @@ const createStoreContext = ({
     children: null,
   };
 
-  return {
+  const storeContext = {
+    onCreate,
     Provider,
     Consumer,
     Section,
-    context,
-    connect: createConnect({ [defaultName]: context }),
   };
+
+  storeContext.connect = createConnect([
+    {
+      variable: defaultName,
+      context: storeContext,
+    },
+  ]);
+
+  return storeContext;
 };
 
 export default createStoreContext;
