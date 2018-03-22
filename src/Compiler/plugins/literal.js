@@ -1,5 +1,8 @@
 import isPlainObject from 'lodash/isPlainObject';
 import has from 'lodash/has';
+import {
+  constant,
+} from '../../utils/functions';
 
 const pluginLiteral = {
   createApi: () => ({
@@ -8,6 +11,12 @@ const pluginLiteral = {
         type: 'literal',
       },
       createSelector: scope => scope.createConstantSelector(value),
+      createOperator: () => {
+        if (typeof value === 'function') {
+          return value;
+        }
+        return constant(constant(value));
+      },
     }),
   }),
   createCompiler: ({ literal }) => next => (expression) => {

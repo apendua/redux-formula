@@ -1,6 +1,7 @@
 /* eslint-env jest */
 
 import Compiler from './Compiler';
+import { P } from './Compiler.parse';
 import presetDefault from './presets/default';
 import { identity } from '../utils/functions';
 
@@ -1086,6 +1087,44 @@ describe('Test Compiler', () => {
       expect(out1[0]).toBe(out2[1]);
       expect(out1[1]).toBe(out2[2]);
       expect(out1[2]).toBe(out2[0]);
+    });
+  });
+
+  describe('Embedding native entities', () => {
+    test('should embed native entities into the code', () => {
+      const { scope } = testContext.compiler;
+      scope.define('a', testContext.compiler.compile(P`
+        {
+          b = 11
+          c = ${13}
+          d = b|${b => b + 1}
+          e = ${(x, y) => scope.boundSelector(x, y, (u, v) => u + v)}
+          f = { ? x, y = x + y }
+        }  
+      `));
+      // const formula = testContext.createSelector({
+      //   x: { '&': 'a', ':': 'b' },
+      //   y: { $: [{ '&': 'a', ':': 'c' }] },
+      //   z: { '&': 'a', ':': 'd' },
+      //   w: { $: [{ '&': 'a', ':': 'e' }, { '&': 'x' }, { '&': 'y' }] },
+      //   t: { $: [{ '&': 'a', ':': 'f' }, { '&': 'x' }, { '&': 'y' }] },
+      // });
+      const formula = testContext.createSelector(`
+        {
+          x = a:b
+          y = @a:c()
+          z = a:d
+          w = @a:e x, y
+          t = @a:f x, y
+        }
+      `);
+      expect(formula()).toEqual({
+        x: 11,
+        y: 13,
+        z: 12,
+        w: 24,
+        t: 24,
+      });
     });
   });
 });

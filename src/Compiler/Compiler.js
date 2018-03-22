@@ -111,7 +111,7 @@ class Compiler {
     });
   }
 
-  scope(...args) {
+  createScope(...args) {
     return this.scope.create(...args);
   }
 
