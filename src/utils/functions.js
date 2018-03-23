@@ -21,7 +21,16 @@ export const lift = (a, b) => {
   return f => (...args) => next(f(...args));
 };
 
-export const lift2 = g => (...args) => {
-  const v = g(...args);
-  return unknowns => () => v()(unknowns);
+/*
+  F0(f) = v => f
+  F1(f) = v => () => f(v)                          // v => F0(f(v))
+  F2(f) = v => x => () => f(v)(x)                  // v => F1(f(v))
+  F3(f) = v => x => y => () => f(v)(x)(y)          // v => F2(f(v))
+  F4(f) = v => x => y => z => () => f(v)(x)(y)(z)
+*/
+export const liftA = (a) => {
+  if (a === 1) {
+    return f => (...args) => () => f(...args);
+  }
+  return f => (...args) => liftA(a - 1)(f(...args));
 };

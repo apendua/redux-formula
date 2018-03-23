@@ -5,7 +5,7 @@ import isArray from 'lodash/isArray';
 import invokeMap from 'lodash/invokeMap';
 import {
   lift,
-  lift2,
+  liftA,
 } from '../utils/functions';
 
 const relativeTo = (targetScope, originalSelector, originalScope) => {
@@ -69,17 +69,9 @@ class Selector {
    */
   indirect(scope = this.scope) {
     const selector = this.relativeTo(scope).toRawSelector();
-    let f = (...args) => () => selector(...args);
-    let currentScope = scope;
-    while (currentScope) {
-      if (currentScope.hasOwnUnknowns()) {
-        f = lift2(f);
-      }
-      currentScope = currentScope.parent;
-    }
     return new Selector(
       scope,
-      f,
+      liftA(scope.order + 1)(selector),
     );
   }
 

@@ -65,6 +65,10 @@ describe('Test Selector', () => {
       ).indirect();
       expect(selector.evaluate(2)()()).toBe(2);
     });
+    test('should select an unknown indirectly', () => {
+      const selector = testContext.scope.resolve('x').selector.indirect();
+      expect(selector.evaluate()({ x: 3 })()).toBe(3);
+    });
     test(
       'should select a function that returns a specified variable',
       () => {
@@ -120,6 +124,10 @@ describe('Test Selector', () => {
       ).indirect();
       expect(selector.evaluate(2)()()).toBe(2);
     });
+    test('should select an unknown from parent scope indirectly', () => {
+      const selector = testContext.scope.resolve('x').selector.relativeTo(testContext.scope).indirect();
+      expect(selector.evaluate()({ x: 3 })()).toBe(3);
+    });
     test(
       'should select a function that returns a specified variable',
       () => {
@@ -174,6 +182,14 @@ describe('Test Selector', () => {
         identity,
       ).indirect();
       expect(selector.evaluate(2)()()()).toBe(2);
+    });
+    test('should select an unknown from parent scope indirectly', () => {
+      const selector = testContext.scope.resolve('x').selector.relativeTo(testContext.scope).indirect();
+      expect(selector.evaluate()({ x: 2 })()()).toBe(2);
+    });
+    test('should select an unknown indirectly', () => {
+      const selector = testContext.scope.resolve('y').selector.indirect();
+      expect(selector.evaluate()()({ y: 2 })()).toBe(2);
     });
     test(
       'should select a function that returns a specified variable',

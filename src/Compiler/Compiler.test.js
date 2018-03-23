@@ -671,6 +671,37 @@ describe('Test Compiler', () => {
         { v: '3,c' },
       ]);
     });
+
+    test('should map values inside a function', () => {
+      const formula = testContext.createSelector(P`
+        {
+          ? array, y
+          = array
+            @map {
+              ? x
+              = x + y
+            }
+        }
+      `);
+      expect(formula()([1, 2, 3], 4)).toEqual([5, 6, 7]);
+    });
+
+    test('should map values inside a function with indirect operator', () => {
+      const formula = testContext.createSelector(`
+        {
+          ? array = @map array, { ? x = x OR -1 }
+        }($0)
+      `);
+      expect(formula([0, 2, 0, 4])).toEqual([-1, 2, -1, 4]);
+    });
+
+    test('should map values with custom transform', () => {
+      const transform = (x, y) => x + y;
+      const formula = testContext.createSelector(P`
+        $0 @map $1
+      `);
+      expect(formula([1, 2, 3], transform)).toEqual([1, 3, 5]);
+    });
   });
 
   describe('Native functions', () => {
@@ -707,6 +738,29 @@ describe('Test Compiler', () => {
         x: 3,
         z: 4,
       });
+    });
+
+    test('should map values inside a function', () => {
+      const transform = (x, y) => x + y;
+      const formula = testContext.createSelector(P`
+        {
+          ? array, value
+          = array
+            @map {
+              ? x
+              = ${transform}(x, value)
+            }
+        }
+      `);
+      expect(formula()([1, 2, 3], 4)).toEqual([5, 6, 7]);
+    });
+
+    test('should map values with custom transform', () => {
+      const transform = (x, y) => x + y;
+      const formula = testContext.createSelector(P`
+        $0 @map ${transform}
+      `);
+      expect(formula([1, 2, 3])).toEqual([1, 3, 5]);
     });
   });
 
@@ -812,6 +866,23 @@ describe('Test Compiler', () => {
       });
       expect(formula().add1(2)).toBe(3);
       expect(formula().value).toBe(5);
+    });
+
+    test('should call function immediately after it is defined', () => {
+      const formula = testContext.createSelector(`
+        {
+          ? x, y
+          = x + y
+        }($0, $1)
+      `);
+      expect(formula(1, 2)).toEqual(3);
+    });
+
+    test('evaluate nested function with indirect operator', () => {
+      const formula = testContext.createSelector(`
+        { ? = { ? x = x OR -1 } }()()
+      `);
+      expect(formula()).toEqual(-1);
     });
   });
 
