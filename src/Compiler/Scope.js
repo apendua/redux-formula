@@ -177,20 +177,26 @@ class Scope {
       variable.state = 'resolving';
 
       if (variable.createSelector) {
-        variable.selector = variable.createSelector(this, mapValues(
-          variable.deps,
-          depName => this.resolve(depName, [...stack, depName]),
-        ));
+        Object.defineProperty(variable, 'selector', {
+          configurable: true,
+          get: () => {
+            let selector = variable.createSelector(this, mapValues(
+              variable.deps,
+              depName => this.resolve(depName, [...stack, depName]),
+            ));
+            if (typeof selector === 'function') {
+              selector = this.relative(selector);
+            } else if (!(selector instanceof Selector)) {
+              throw new Error(`Variable requires selector, got ${typeof selector}`);
+            }            
+            Object.defineProperty(variable, 'selector', { value: selector });
+            return variable.selector;
+          },
+        });
       }
 
       if (variable.createGetProperty) {
         variable.getProperty = variable.createGetProperty(this);
-      }
-
-      if (typeof variable.selector === 'function') {
-        variable.selector = this.relative(variable.selector);
-      } else if (!(variable.selector instanceof Selector)) {
-        throw new Error(`Variable requires selector, got ${typeof variable.selector}`);
       }
 
       variable.state = 'resolved';
