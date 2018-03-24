@@ -85,7 +85,7 @@ const pluginSubExpression = {
               variable,
             );
           });
-          const options = newScope.variablesSelector([...namesPublic, ...namesPrivate]);
+          const options = newScope.variablesSelector(namesPublic);
           if (createOperator) {
             return createOperator(
               scope,
