@@ -242,6 +242,15 @@ describe('Test Compiler', () => {
       expect(formula()(2)).toEqual(3);
     });
 
+    test('should reject if "this" is used as operator', () => {
+      expect(() => testContext.createSelector({
+        $: [{
+          '?': [],
+          '=': { $: ['this'] },
+        }],
+      })).toThrowError(/cannot be used as operator/);;
+    });
+
     test('should evaluate recursive function as an operator', () => {
       const formula = testContext.createSelector({
         a: {
@@ -1158,6 +1167,34 @@ describe('Test Compiler', () => {
       expect(out1[0]).toBe(out2[1]);
       expect(out1[1]).toBe(out2[2]);
       expect(out1[2]).toBe(out2[0]);
+    });
+
+    test('should not persist value when function is called with different arguments', () => {
+      const formula = testContext.createSelector(`
+        {
+          ~a = { ? x = {} }
+          b = a($0)
+        }
+      `);
+      const out1 = formula(1);
+      const out2 = formula(2);
+      expect(out1).toEqual({ b: {} });
+      expect(out2).toEqual({ b: {} });
+      expect(out1).not.toBe(out2);
+    });    
+
+    test('should persist value when function is used as operator with different arguments', () => {
+      const formula = testContext.createSelector(`
+        {
+          ~a = { ? x = {} }
+          b = @a($0)
+        }
+      `);
+      const out1 = formula(1);
+      const out2 = formula(2);
+      expect(out1).toEqual({ b: {} });
+      expect(out2).toEqual({ b: {} });
+      expect(out1).toBe(out2);
     });
   });
 

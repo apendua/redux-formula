@@ -32,18 +32,32 @@ const pluginFunction = {
           },
         );
       },
-      createOperator: (scope, options) => (...selectors) => {
+      createOperator: scope => (...selectors) => {
         if (selectors.length > params.length) {
           throw new Error('Too many arguments provided.');
         }
+        const newScope = scope.create(params.slice(selectors.length));
+        forEach(selectors, (selector, i) => {
+          newScope.define(params[i], {
+            createSelector: targetScope => targetScope.relative(selector),
+          });
+        });
+        // NOTE: Re-using this as operator can result in infinite call loop.
+        newScope.define('this', omit(variable, 'createOperator'));
+        //--------------------------------------------------------
+        if (!newScope.hasOwnUnknowns()) {
+          return scope.relative(value.createSelector(newScope));
+        }
         return scope.boundSelector(
-          variable.createSelector(scope, options),
-          ...selectors,
-          (func, ...values) => {
-            const f = (...args) => func(...values, ...args);
-            if (selectors.length === params.length) {
-              return f();
-            }
+          value.createSelector(newScope),
+          (evaluate) => {
+            const f = (...args) => {
+              const data = {};
+              forEach(args, (v, i) => {
+                data[params[selectors.length + i]] = v;
+              });
+              return evaluate(data);
+            };
             return f;
           },
         );
