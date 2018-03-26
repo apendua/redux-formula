@@ -17,7 +17,7 @@ import {
 import {
   defaultCompiler,
   formulaSelectorFactory,
-} from '../index';
+} from '../formulaSelector';
 import {
   set,
   del,

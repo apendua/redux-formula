@@ -1,5 +1,6 @@
 import Compiler, {
-  Scope,
+  P,
+  parse,
 } from './Compiler';
 import presetDefault from './Compiler/presets/default';
 
@@ -16,6 +17,6 @@ export {
   formulaSelector,
   formulaSelectorFactory,
   defaultCompiler,
-  Compiler,
-  Scope,
+  parse,
+  P,
 };

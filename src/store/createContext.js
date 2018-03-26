@@ -1,28 +1,58 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import map from 'lodash/map';
 import shallowEqual from '../utils/shallowEqual';
 import createConnectFactory from './createConnectFactory';
 import createSubStore from './createSubStore';
-
-/*
-EXAMPLE:
-const Store = createStoreContext(store);
-<Store.Section section="forms" reducer="field">
-  ...
-</Store.Section>
-*/
+import {
+  P,
+  formulaSelector,
+} from '../formulaSelector';
 
 const createContext = ({
   key,
   context = React.createContext({
     store: null,
   }),
+  isAttached = true,
   createScope,
   createConnect,
   options,
 } = {}) => {
   class Section extends React.PureComponent {
+    constructor(props) {
+      super(props);
+
+      this.mapValue = formulaSelector(P`
+        {
+          = $2
+            @map {
+              ? store, key
+              = @if key == ${key}
+                , ${createSubStore}(store, $0, $1)
+                , store
+            }
+        }
+      `);
+
+      // NOTE: For a reference, an exlicit implementation could be something like:
+      //
+      // this.mapValue = createSelector(
+      //   createSelector(
+      //     argument(0),
+      //     argument(1),
+      //     (section, reducer) => memoizeMapValues((store, k) => (k === key
+      //       ? createSubStore(store, section, reducer)
+      //       : store
+      //     )),
+      //   ),
+      //   argument(2),
+      //   (mapValue, value) => mapValue(value),
+      // );
+    }
+
+    componentWillUnmount() {
+    }
+
     getStore(...args) {
       if (!shallowEqual(args, this.storeArgs)) {
         const [store, section, reducer] = args;
@@ -31,6 +61,7 @@ const createContext = ({
       }
       return this.store;
     }
+
     render() {
       const {
         section,
@@ -40,7 +71,7 @@ const createContext = ({
       return (
         <context.Consumer>
           {value => (
-            <context.Provider value={{ ...value, [key]: this.getStore(value[key], section, reducer) }} >
+            <context.Provider value={this.mapValue(section, reducer, value)} >
               {children}
             </context.Provider>
           )}
@@ -61,33 +92,42 @@ const createContext = ({
     children: null,
   };
 
-  const related = {};
+  const children = {};
   const api = {
     key,
     context,
     Section,
     options,
+    isAttached,
     createConnect: createConnect || createConnectFactory(context),
     createScope: createScope
       ? (k, other) => createScope(key ? `${key}:${k}` : k, other)
       : (k, other) => {
-        related[k] = createContext({
+        children[k] = createContext({
           context,
           options: other,
           create: api.create,
           key: key ? `${key}:${k}` : k,
         });
-        return related[k];
+        return children[k];
       },
   };
 
   if (!key) {
-    const Store = ({
-      store,
-      children,
-    }) => (
-      <context.Provider value={Object.assign({}, ...map(related, (value, k) => ({ [k]: createSubStore(store, k) })))}>
-        {children}
+    const mapValue = formulaSelector(P`
+      {
+        = $0
+          @map {
+            ? context, key
+            = @if context.isAttached
+              , ${createSubStore}($1, key)
+              , $1
+          }
+      }
+    `);
+    const Store = props => (
+      <context.Provider value={mapValue(children, props.store)} >
+        {props.children}
       </context.Provider>
     );
 
