@@ -1,7 +1,7 @@
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
-import mapValues from 'lodash/mapValues';
 import Selector from './Selector';
+import Variable from './Variable';
 import {
   constant,
   createConstantFunctor,
@@ -102,17 +102,13 @@ class Scope {
       throw new Error(`Operator "${name}" defined multiple times`);
     }
     if (!this.variables[name]) {
-      this.variables[name] = {
+      this.variables[name] = this.createVariable({
+        name,
         meta: {
           type: 'operator',
         },
-        name,
-        scope: this,
         state: 'resolved',
-        selector: () => {
-          throw new Error(`Cannot use operator ${name} as value`);
-        },
-      };
+      });
     }
     this.variables[name].createOperator = createOperator;
   }
@@ -126,7 +122,7 @@ class Scope {
         type: 'namespace',
       },
       createSelector: () => () => {
-        throw new Error('Namespace cannot be used as value');
+        throw new Error('Namespace cannot be used as selector');
       },
       createGetProperty: (scope) => {
         const newScope = scope.create();
@@ -137,8 +133,8 @@ class Scope {
           }
           return newScope.resolve(propName);
         };
-      },     
-    });    
+      },
+    });
   }
 
   define(name, variable) {
@@ -149,12 +145,12 @@ class Scope {
     if (this.variables[name]) {
       throw new Error(`${name} defined multiple times`);
     }
-    this.variables[name] = {
-      name,
-      scope: this,
-      state: 'initial',
+    this.variables[name] = this.createVariable({
       ...variable,
-    };
+      name,
+      state: 'initial',
+    });
+    return this.variables[name];
   }
 
   resolve(name, stack = [name]) {
@@ -176,28 +172,14 @@ class Scope {
     if (variable.state === 'initial') {
       variable.state = 'resolving';
 
-      if (variable.createSelector) {
-        Object.defineProperty(variable, 'selector', {
-          configurable: true,
-          get: () => {
-            let selector = variable.createSelector(this, mapValues(
-              variable.deps,
-              depName => this.resolve(depName, [...stack, depName]),
-            ));
-            if (typeof selector === 'function') {
-              selector = this.relative(selector);
-            } else if (!(selector instanceof Selector)) {
-              throw new Error(`Variable requires selector, got ${typeof selector}`);
-            }            
-            Object.defineProperty(variable, 'selector', { value: selector });
-            return variable.selector;
-          },
-        });
-      }
-
-      if (variable.createGetProperty) {
-        variable.getProperty = variable.createGetProperty(this);
-      }
+      // First, ensure all dependencies can be resolved ...
+      forEach(
+        variable.deps,
+        depName => this.resolve(
+          depName,
+          [...stack, depName],
+        ),
+      );
 
       variable.state = 'resolved';
     }
@@ -213,6 +195,14 @@ class Scope {
       this,
       createConstantFunctor(this.order)(unknowns => unknowns[name]),
     );
+  }
+
+  createVariable(definition) {
+    const scope = this;
+    return new Variable({
+      scope,
+      ...definition,
+    });
   }
 
   boundSelector(...args) {
