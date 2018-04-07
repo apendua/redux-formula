@@ -1,6 +1,11 @@
 export const identity = x => x;
 export const constant = x => () => x;
-export const argument = i => (...args) => args[i];
+export const argument = (i, k) => {
+  if (!k) {
+    return (...args) => args[i];
+  }
+  return (...args) => args[i] && args[i][k];
+};
 
 export const createConstantFunctor = (order) => {
   if (order === 0) {
