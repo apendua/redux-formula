@@ -11,7 +11,7 @@ const format = (message, details) => {
       //   ruler += '^';
       // }
       const tokenPosition = details.lineContent
-        .split('').map((c, i) => (details.from === i ? `${c}\u0362` : c)).join('');
+        .split('').map((c, i) => (details.from === i ? `${c}\u034E` : c)).join('');
       return `${newMessage}\n${tokenPosition}\n`;
     }
     return newMessage;

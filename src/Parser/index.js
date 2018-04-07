@@ -2,6 +2,9 @@ import Parser from './Parser';
 import {
   TOKEN_TYPE_LITERAL,
   TOKEN_TYPE_IDENTIFIER,
+
+  VALUE_TYPE_INTEGER,
+  VALUE_TYPE_STRING,
 } from '../constants';
 import pluginBlock from './plugins/block';
 import pluginParams from './plugins/params';
@@ -46,10 +49,21 @@ const property = bp => (grammar) => {
     .token(':')
     .setBindingPower(bp)
     .ifUsedAsInfix((parse, token, left) => {
-      const name = parse.advance(TOKEN_TYPE_IDENTIFIER);
+      let name;
+      if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER) {
+        name = parse.advance();
+      } else if (parse.look(1).id === TOKEN_TYPE_LITERAL) {
+        if (parse.look(1).valueType !== VALUE_TYPE_INTEGER && parse.look(1).valueType !== VALUE_TYPE_STRING) {
+          throw parse.error(`Expected integer or string, got ${parse.look(1).valueType}`);
+        } else {
+          name = parse.advance();
+        }
+      } else {
+        throw parse.error(`Expected identifier, integer or string, got ${parse.look(1).id}`);
+      }
       return {
         '&': left['&'] && !left[':'] ? left['&'] : left,
-        ':': name.value,
+        ':': name.value.toString(),
       };
     });
 
@@ -124,8 +138,17 @@ const genericOperator = bp => (grammar) => {
       } else if (parse.look(1).id === TOKEN_TYPE_IDENTIFIER) {
         const names = parse.tuple({
           separator: ':',
-          id: TOKEN_TYPE_IDENTIFIER,
-          map: token => token.value,
+          id: [TOKEN_TYPE_IDENTIFIER, TOKEN_TYPE_LITERAL],
+          map: (token) => {
+            if (
+              token.id !== TOKEN_TYPE_IDENTIFIER &&
+              token.valueType !== VALUE_TYPE_INTEGER &&
+              token.valueType !== VALUE_TYPE_STRING
+            ) {
+              throw parse.error(`Expected integer or string, got ${token.valueType}`);
+            }
+            return token.value.toString();
+          },
         });
         const namespace = names.reduce((object, name) => ({
           '&': object,

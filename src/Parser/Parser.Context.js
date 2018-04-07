@@ -1,3 +1,6 @@
+import isArray from 'lodash/isArray';
+import indexOf from 'lodash/indexOf';
+
 import { ParseError } from '../errors';
 import {
   TOKEN_TYPE_IDENTIFIER,
@@ -63,13 +66,21 @@ class Context {
     if (end) {
       isEnd = () => this.look(1).id === end;
     } else if (id) {
-      isEnd = () => this.look(1).id !== id;
+      if (isArray(id)) {
+        isEnd = () => indexOf(id, this.look(1).id) < 0;
+      } else {
+        isEnd = () => this.look(1).id !== id;
+      }
     } else {
       isEnd = () => false;
     }
     while (!isEnd()) {
       if (id) {
-        tuple.push(map(this.advance(id)));
+        if (isArray(id)) {
+          tuple.push(map(this.advance()));
+        } else {
+          tuple.push(map(this.advance(id)));
+        }
       } else {
         tuple.push(this.expression(bp));
       }
