@@ -75,7 +75,7 @@ class Compiler {
     if (plugin.createOperators) {
       const newOperators = plugin.createOperators(this.api);
       forEach(newOperators, (createOperator, operator) => {
-        const name = operator.charAt(0) === '$' ? operator.substr(1) : operator;
+        const name = operator.charAt(0) === '@' ? operator.substr(1) : operator;
         this.scope.operator(name, createOperator);
         this.operators[name] = createOperator;
       });

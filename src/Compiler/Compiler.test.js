@@ -87,7 +87,7 @@ describe('Test Compiler', () => {
 
     test('should select a unary operator', () => {
       const formula = testContext.createSelector({
-        $neg: 1,
+        '@neg': 1,
       });
       expect(formula()).toEqual(-1);
     });
@@ -97,7 +97,7 @@ describe('Test Compiler', () => {
       () => {
         const formula = testContext.createSelector({
           a: 1,
-          $neg: 'a',
+          '@neg': 'a',
         });
         expect(formula()).toEqual(-1);
       },
@@ -105,7 +105,7 @@ describe('Test Compiler', () => {
 
     test('should select a unary operator inside object', () => {
       const formula = testContext.createSelector({
-        a: { $neg: 1 },
+        a: { '@neg': 1 },
       });
       expect(formula()).toEqual({
         a: -1,
@@ -114,7 +114,7 @@ describe('Test Compiler', () => {
 
     test('should select a binary operator', () => {
       const formula = testContext.createSelector({
-        $sub: [1, 2],
+        '@sub': [1, 2],
       });
       expect(formula()).toEqual(-1);
     });
@@ -125,7 +125,7 @@ describe('Test Compiler', () => {
         const formula = testContext.createSelector({
           a: 1,
           b: 2,
-          $sub: ['a', 'b'],
+          '@sub': ['a', 'b'],
         });
         expect(formula()).toEqual(-1);
       },
@@ -133,7 +133,7 @@ describe('Test Compiler', () => {
 
     test('should select a binary operator inside object', () => {
       const formula = testContext.createSelector({
-        a: { $sub: [1, 2] },
+        a: { '@sub': [1, 2] },
       });
       expect(formula()).toEqual({
         a: -1,
@@ -174,7 +174,7 @@ describe('Test Compiler', () => {
           '=': 'x',
         },
         a: {
-          $call: ['identity', 2],
+          '@call': ['identity', 2],
         },
       });
       expect(formula().a).toEqual(2);
@@ -200,7 +200,7 @@ describe('Test Compiler', () => {
   describe('Operators', () => {
     test('should evaluate a native operator', () => {
       const formula = testContext.createSelector({
-        $: ['lte', 1, 2],
+        '@': ['lte', 1, 2],
       });
       expect(formula()).toEqual(true);
     });
@@ -209,9 +209,9 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         a: {
           '?': ['x', 'y'],
-          '=': { $add: ['x', 'y'] },
+          '=': { '@add': ['x', 'y'] },
         },
-        $: ['a', 1, 2],
+        '@': ['a', 1, 2],
       });
       expect(formula()).toEqual(3);
     });
@@ -220,13 +220,13 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         a: {
           '?': ['x', 'y'],
-          '=': { $add: ['x', 'y'] },
+          '=': { '@add': ['x', 'y'] },
         },
         b: {
           '?': ['x', 'y'],
-          '=': { $: ['a', 'x', 'y'] },
+          '=': { '@': ['a', 'x', 'y'] },
         },
-        $: ['b', 1, 2],
+        '@': ['b', 1, 2],
       });
       expect(formula()).toEqual(3);
     });
@@ -235,18 +235,37 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         a: {
           '?': ['x', 'y'],
-          '=': { $add: ['x', 'y'] },
+          '=': { '@add': ['x', 'y'] },
         },
-        $: ['a', 1],
+        '@': ['a', 1],
       });
       expect(formula()(2)).toEqual(3);
     });
 
+    test('should properly capture operator definition context', () => {
+      const formula = testContext.createSelector({
+        '~a': {
+          b: '11',
+          c: {
+            '?': ['x'],
+            '=': { '@add': ['x', 'b'] },
+          },
+        },
+        x: {
+          b: '12',
+          '@': [{ '&': 'a', ':': 'c' }, 1],
+        },
+      });
+      expect(formula()).toEqual({
+        x: 12,
+      });
+    });
+
     test('should reject if "this" is used as operator', () => {
       expect(() => testContext.createSelector({
-        $: [{
+        '@': [{
           '?': [],
-          '=': { $: ['this'] },
+          '=': { '@': ['this'] },
         }],
       })).toThrowError(/cannot be used as operator/);;
     });
@@ -256,14 +275,14 @@ describe('Test Compiler', () => {
         a: {
           '?': ['x'],
           '=': {
-            $if: [
-              { $lte: ['x', 0] },
+            '@if': [
+              { '@lte': ['x', 0] },
               0,
-              { $add: [{ $call: ['this', 'x - 1'] }, 'x'] },
+              { '@add': [{ '@call': ['this', 'x - 1'] }, 'x'] },
             ],
           },
         },
-        $: ['a', '2'],
+        '@': ['a', '2'],
       });
       expect(formula()).toEqual(3);
     });
@@ -283,7 +302,7 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         '?': ['x'],
         y: identity,
-        '=': { $add: ['x', 'y'] },
+        '=': { '@add': ['x', 'y'] },
       });
       expect(formula(1)(2)).toBe(3);
     });
@@ -372,7 +391,7 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         a: 1,
         b: {
-          a: { $add: ['^a', 1] },
+          a: { '@add': ['^a', 1] },
         },
       });
       expect(formula()).toEqual({
@@ -417,7 +436,7 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         a: [{ x: 1 }, { x: 2 }, { x: 3 }, { x: 4 }],
         b: {
-          $filter: ['a', { x: 1 }],
+          '@filter': ['a', { x: 1 }],
         },
       });
       expect(formula()).toEqual({
@@ -431,7 +450,7 @@ describe('Test Compiler', () => {
         a: {
           '?': ['x', 'y'],
           '=': {
-            $add: ['x', 'y'],
+            '@add': ['x', 'y'],
           },
         },
       });
@@ -445,11 +464,11 @@ describe('Test Compiler', () => {
         a: {
           '?': ['x', 'y'],
           '=': {
-            $add: ['x', 'y'],
+            '@add': ['x', 'y'],
           },
         },
         b: {
-          $call: ['a', 2, 3],
+          '@call': ['a', 2, 3],
         },
       });
       const result = formula();
@@ -459,10 +478,10 @@ describe('Test Compiler', () => {
     test('should evaluate comparision operator', () => {
       const formula = testContext.createSelector({
         a: {
-          $lt: [1, 2],
+          '@lt': [1, 2],
         },
         b: {
-          $lt: [2, 1],
+          '@lt': [2, 1],
         },
       });
       expect(formula()).toEqual({
@@ -476,7 +495,7 @@ describe('Test Compiler', () => {
         min: {
           '?': ['x', 'y'],
           '=': {
-            $if: [{ $lt: ['x', 'y'] }, 'x', 'y'],
+            '@if': [{ '@lt': ['x', 'y'] }, 'x', 'y'],
           },
         },
       });
@@ -490,10 +509,10 @@ describe('Test Compiler', () => {
         triangle: {
           '?': ['x'],
           '=': {
-            $if: [
-              { $lt: ['x', 1] },
+            '@if': [
+              { '@lt': ['x', 1] },
               0,
-              { $add: ['x', { $call: ['this', { $add: ['x', -1] }] }] },
+              { '@add': ['x', { '@call': ['this', { '@add': ['x', -1] }] }] },
             ],
           },
         },
@@ -506,14 +525,14 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         subtract: {
           '?': ['x', 'y'],
-          '=': { $sub: ['x', 'y'] },
+          '=': { '@sub': ['x', 'y'] },
         },
         swap: {
           '?': ['f'],
-          '=': { '?': ['a', 'b'], $call: ['f', 'b', 'a'] },
+          '=': { '?': ['a', 'b'], '@call': ['f', 'b', 'a'] },
         },
         value: {
-          $call: [{ $call: ['swap', 'subtract'] }, 1, 2],
+          '@call': [{ '@call': ['swap', 'subtract'] }, 1, 2],
         },
       });
       const result = formula();
@@ -528,19 +547,19 @@ describe('Test Compiler', () => {
         map: {
           '?': ['node'],
           '=': {
-            $if: [
+            '@if': [
               'node',
               {
                 name: 'node.name',
-                left: { $call: ['this', 'node.left'] },
-                right: { $call: ['this', 'node.right'] },
+                left: { '@call': ['this', 'node.left'] },
+                right: { '@call': ['this', 'node.right'] },
               },
               '"[unknown]"',
             ],
           },
         },
         '=': {
-          $call: ['map', '$0'],
+          '@call': ['map', '$0'],
         },
       });
       const result = formula({
@@ -591,9 +610,9 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         '~selector': {
           '?': ['0', '1'],
-          '=': { $add: ['$0', '$1'] },
+          '=': { '@add': ['$0', '$1'] },
         },
-        a: { ':=': '$selector' },
+        a: { ':=': '@selector' },
       });
       expect(formula(1, 2)).toEqual({
         a: 3,
@@ -603,13 +622,13 @@ describe('Test Compiler', () => {
     test('should create macro from explicit expression', () => {
       const formula = testContext.createSelector({
         selector: {
-          '_=': { _$add: ['_$0', '_$1'] },
+          '_=': { '@add': ['_$0', '_$1'] },
         },
-        a: { ':=': '$selector' },
+        a: { ':=': '@selector' },
       });
       expect(formula(1, 2)).toEqual({
         selector: {
-          '=': { $add: ['$0', '$1'] },
+          '=': { '@add': ['$0', '$1'] },
         },
         a: 3,
       });
@@ -619,9 +638,9 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         '~selector': {
           '?': ['x', 'y'],
-          '_=': { _$add: ['x', 'y'] },
+          '_=': { '@add': ['x', 'y'] },
         },
-        a: { ':=': { $selector: ['$0', '$1'] } },
+        a: { ':=': { '@selector': ['$0', '$1'] } },
       });
       expect(formula(1, 2)).toEqual({
         a: 3,
@@ -632,7 +651,7 @@ describe('Test Compiler', () => {
   describe('Value mappings', () => {
     test('should map object fields', () => {
       const formula = testContext.createSelector({
-        $map: ['$0', {
+        '@map': ['$0', {
           '?': ['value', 'key'],
           '=': {
             v: 'value',
@@ -648,7 +667,7 @@ describe('Test Compiler', () => {
 
     test('should map array elements', () => {
       const formula = testContext.createSelector({
-        $map: ['$0', {
+        '@map': ['$0', {
           '?': ['value', 'key'],
           '=': {
             v: 'value',
@@ -664,9 +683,9 @@ describe('Test Compiler', () => {
 
     test('should map array elements with custom caching key', () => {
       const formula = testContext.createSelector({
-        $map: ['$0', {
+        '@map': ['$0', {
           '?': ['x', 'y'],
-          '=': { v: { $sum: ['y', '","', 'x.v'] } },
+          '=': { v: { '@sum': ['y', '","', 'x.v'] } },
         }],
         key: '"id"',
       });
@@ -727,7 +746,7 @@ describe('Test Compiler', () => {
       const func = x => x + 1;
       const formula = testContext.createSelector({
         func: { '!': func },
-        x: { $call: ['func', 2] },
+        x: { '@call': ['func', 2] },
       });
       expect(formula(1)).toEqual({
         func,
@@ -740,7 +759,7 @@ describe('Test Compiler', () => {
       const formula = testContext.createSelector({
         x: 3,
         z: {
-          $call: [{ '!': func }, 'x'],
+          '@call': [{ '!': func }, 'x'],
         },
       });
       expect(formula(1)).toEqual({
@@ -780,7 +799,7 @@ describe('Test Compiler', () => {
         inc: {
           '?': ['y'],
           '=': {
-            $add: ['x', 'y'],
+            '@add': ['x', 'y'],
           },
         },
       });
@@ -794,11 +813,11 @@ describe('Test Compiler', () => {
           inc: {
             '?': ['x'],
             '=': {
-              $add: ['x', 1],
+              '@add': ['x', 1],
             },
           },
           val: {
-            $call: ['inc', 1],
+            '@call': ['inc', 1],
           },
         });
         expect(formula().val).toBe(2);
@@ -809,8 +828,8 @@ describe('Test Compiler', () => {
       'should be able to invoke an operator with one argument instead of arguments list',
       () => {
         const formula = testContext.createSelector({
-          a: { $not: true },
-          b: { $not: [true] },
+          a: { '@not': true },
+          b: { '@not': [true] },
         });
         expect(formula()).toEqual({
           a: false,
@@ -838,7 +857,7 @@ describe('Test Compiler', () => {
           '?': ['x'],
           '=': {
             '?': ['y'],
-            '=': { $add: ['x', 'y'] },
+            '=': { '@add': ['x', 'y'] },
           },
         },
       });
@@ -853,7 +872,7 @@ describe('Test Compiler', () => {
             '?': ['y'],
             '=': {
               '?': ['z'],
-              '=': { $sum: ['x', 'y', 'z'] },
+              '=': { '@sum': ['x', 'y', 'z'] },
             },
           },
         },
@@ -867,11 +886,11 @@ describe('Test Compiler', () => {
           '?': ['x'],
           '=': {
             '?': ['y'],
-            '=': { $add: ['x', 'y'] },
+            '=': { '@add': ['x', 'y'] },
           },
         },
-        add1: { $call: ['add', 1] },
-        value: { $call: ['add1', 4] },
+        add1: { '@call': ['add', 1] },
+        value: { '@call': ['add1', 4] },
       });
       expect(formula().add1(2)).toBe(3);
       expect(formula().value).toBe(5);
@@ -985,11 +1004,11 @@ describe('Test Compiler', () => {
         '~a': {
           b: {
             '?': ['x'],
-            '=': { $add: [{ '&': 'x' }, 1] },
+            '=': { '@add': [{ '&': 'x' }, 1] },
           },
         },
         c: {
-          $: [
+          '@': [
             { '&': 'a', ':': 'b' },
             1,
           ],
@@ -1005,12 +1024,12 @@ describe('Test Compiler', () => {
         '~a': {
           b: {
             '?': ['x'],
-            '=': { $add: [{ '&': 'x' }, 1] },
+            '=': { '@add': [{ '&': 'x' }, 1] },
           },
         },
         '~c': { '&': 'a', ':': 'b' },
         d: {
-          $: [
+          '@': [
             { '&': 'c' },
             1,
           ],
@@ -1021,17 +1040,17 @@ describe('Test Compiler', () => {
       });
     });
 
-    test('should not be able to use operator if $dot is used', () => {
+    test('should not be able to use operator if @dot is used', () => {
       expect(() => testContext.createSelector({
         '~a': {
           b: {
             '?': ['x'],
-            '=': { $add: [{ '&': 'x' }, 1] },
+            '=': { '@add': [{ '&': 'x' }, 1] },
           },
         },
         c: {
-          $: [
-            { $dot: [{ '&': 'a' }, { '!': 'b' }] },
+          '@': [
+            { '@dot': [{ '&': 'a' }, { '!': 'b' }] },
             1,
           ],
         },
@@ -1074,7 +1093,7 @@ describe('Test Compiler', () => {
           '?': ['x'],
           v: 'x',
         },
-        a: { $call: ['map', '$0.x'] },
+        a: { '@call': ['map', '$0.x'] },
       });
       expect(formula({ x: 1, y: 1 })).toBe(formula({ x: 1, y: 2 }));
     });
@@ -1112,14 +1131,14 @@ describe('Test Compiler', () => {
           '?': ['point'],
           '=': 'point.x',
         },
-        a: { $project: '$0' },
+        a: { '@project': '$0' },
       });
       const out1 = formula({ x: 1, y: 1 });
       const out2 = formula({ x: 1, y: 1 });
       expect(out1).toBe(out2);
     });
 
-    test('should persist value on $dot operator', () => {
+    test('should persist value on @dot operator', () => {
       const formula = testContext.createSelector({
         a: '$0.x',
       });
@@ -1130,7 +1149,7 @@ describe('Test Compiler', () => {
 
     test('should persist map values', () => {
       const formula = testContext.createSelector({
-        $map: ['$0', {
+        '@map': ['$0', {
           '?': ['value', 'index'],
           '=': {
             v: 'value',
@@ -1145,9 +1164,9 @@ describe('Test Compiler', () => {
 
     test('should persist map array elements with custom caching key', () => {
       const formula = testContext.createSelector({
-        $map: ['$0', {
+        '@map': ['$0', {
           '?': ['x'],
-          '=': { v: { $dot: ['x', { '!': 'v' }] } },
+          '=': { v: { '@dot': ['x', { '!': 'v' }] } },
         }],
         key: '"id"',
       });
@@ -1212,10 +1231,10 @@ describe('Test Compiler', () => {
       `));
       // const formula = testContext.createSelector({
       //   x: { '&': 'a', ':': 'b' },
-      //   y: { $: [{ '&': 'a', ':': 'c' }] },
+      //   y: { '@': [{ '&': 'a', ':': 'c' }] },
       //   z: { '&': 'a', ':': 'd' },
-      //   w: { $: [{ '&': 'a', ':': 'e' }, { '&': 'x' }, { '&': 'y' }] },
-      //   t: { $: [{ '&': 'a', ':': 'f' }, { '&': 'x' }, { '&': 'y' }] },
+      //   w: { '@': [{ '&': 'a', ':': 'e' }, { '&': 'x' }, { '&': 'y' }] },
+      //   t: { '@': [{ '&': 'a', ':': 'f' }, { '&': 'x' }, { '&': 'y' }] },
       // });
       const formula = testContext.createSelector(`
         {

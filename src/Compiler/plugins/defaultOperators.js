@@ -12,25 +12,25 @@ export const createAssociative = op => scope => (...selectors) => scope.boundSel
   (...args) => args.reduce(op),
 );
 
-export const $dot = createAssociative((x, y) => x && x[y]);
-export const $sum = createAssociative((x, y) => x + y);
-export const $prod = createAssociative((x, y) => x * y);
-export const $pow = createBinary((x, y) => x ** y);
-export const $neg = createUnary(x => -x);
-export const $add = createBinary((x, y) => x + y);
-export const $sub = createBinary((x, y) => x - y);
-export const $mul = createBinary((x, y) => x * y);
-export const $div = createBinary((x, y) => x / y);
-export const $mod = createBinary((x, y) => x % y);
-export const $eq = createBinary((x, y) => x === y);
-export const $neq = createBinary((x, y) => x !== y);
-export const $lt = createBinary((x, y) => x < y);
-export const $gt = createBinary((x, y) => x > y);
-export const $lte = createBinary((x, y) => x <= y);
-export const $gte = createBinary((x, y) => x >= y);
-export const $not = createUnary(x => !x);
-export const $xor = createBinary((x, y) => (x && !y) || (!x && y));
-export const $and = scope => (
+export const dot = createAssociative((x, y) => x && x[y]);
+export const sum = createAssociative((x, y) => x + y);
+export const prod = createAssociative((x, y) => x * y);
+export const pow = createBinary((x, y) => x ** y);
+export const neg = createUnary(x => -x);
+export const add = createBinary((x, y) => x + y);
+export const sub = createBinary((x, y) => x - y);
+export const mul = createBinary((x, y) => x * y);
+export const div = createBinary((x, y) => x / y);
+export const mod = createBinary((x, y) => x % y);
+export const eq = createBinary((x, y) => x === y);
+export const neq = createBinary((x, y) => x !== y);
+export const lt = createBinary((x, y) => x < y);
+export const gt = createBinary((x, y) => x > y);
+export const lte = createBinary((x, y) => x <= y);
+export const gte = createBinary((x, y) => x >= y);
+export const not = createUnary(x => !x);
+export const xor = createBinary((x, y) => (x && !y) || (!x && y));
+export const and = scope => (
   selectX,
   selectY,
 ) => scope.boundSelector(
@@ -38,7 +38,7 @@ export const $and = scope => (
   scope.indirect(selectY),
   (x, y) => x() && y(),
 );
-export const $or = scope => (
+export const or = scope => (
   selectX,
   selectY,
 ) => scope.boundSelector(
@@ -58,7 +58,7 @@ export const $if = scope => (
   (x, y, z) => (x() ? y() : z()),
 );
 
-export const $unless = scope => (
+export const unless = scope => (
   selectX,
   selectY,
   selectZ,
@@ -71,13 +71,13 @@ export const $unless = scope => (
 
 export const $filter = createBinary((x, y) => filter(x, y));
 export const $reduce = createBinary((x, y) => reduce(x, y));
-export const $sort = (scope, options) => selectX => scope.boundSelector(
+export const sort = (scope, options) => selectX => scope.boundSelector(
   selectX,
   options,
   (x, { key }) => sortBy(x, key),
 );
 
-export const $map = (scope, options) => (selectInput, selectMapValue) => {
+export const map = (scope, options) => (selectInput, selectMapValue) => {
   const selectMapping = scope.boundSelector(
     selectMapValue,
     scope.boundSelector(
@@ -93,7 +93,7 @@ export const $map = (scope, options) => (selectInput, selectMapValue) => {
   );
 };
 
-export const $call = scope => (selectFunc, ...argsSelectors) => scope.boundSelector(
+export const call = scope => (selectFunc, ...argsSelectors) => scope.boundSelector(
   selectFunc,
   ...argsSelectors,
   (func, ...args) => {
@@ -106,33 +106,33 @@ export const $call = scope => (selectFunc, ...argsSelectors) => scope.boundSelec
 
 const pluginDefaultOperators = {
   createOperators: ({ opearatos }) => ({
-    $dot,
-    $sum,
-    $prod,
-    $pow,
-    $neg,
-    $add,
-    $sub,
-    $mul,
-    $div,
-    $mod,
-    $eq,
-    $neq,
-    $lt,
-    $gt,
-    $lte,
-    $gte,
-    $not,
-    $xor,
-    $and,
-    $or,
-    $if,
-    $unless,
-    $reduce,
-    $filter,
-    $map,
-    $sort,
-    $call,
+    dot,
+    sum,
+    prod,
+    pow,
+    neg,
+    add,
+    sub,
+    mul,
+    div,
+    mod,
+    eq,
+    neq,
+    lt,
+    gt,
+    lte,
+    gte,
+    not,
+    xor,
+    and,
+    or,
+    if: $if,
+    unless,
+    reduce: $reduce,
+    filter: $filter,
+    map,
+    sort,
+    call,
     ...opearatos,
   }),
 };

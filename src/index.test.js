@@ -52,11 +52,11 @@ describe('Test Public Api', () => {
     test('should dynamically add a new plugin', () => {
       testContext.compiler.addPlugin({
         createOperators: () => ({
-          $value: scope => selectX => scope.relative(selectX),
+          value: scope => selectX => scope.relative(selectX),
         }),
       });
       const selector = testContext.compiler.createSelector({
-        $value: 1,
+        '@value': 1,
       });
       expect(selector()).toEqual(1);
     });

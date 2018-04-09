@@ -46,7 +46,7 @@ test('parses binary plus', () => {
     { type: TOKEN_TYPE_OPERATOR, value: '+' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
   ])).toEqual({
-    $add: [
+    '@add': [
       { '&': 'a' },
       { '&': 'b' },
     ],
@@ -59,7 +59,7 @@ test('parses dot operator', () => {
     { type: TOKEN_TYPE_OPERATOR, value: '.' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
   ])).toEqual({
-    $dot: [
+    '@dot': [
       { '&': 'a' },
       { '!': 'b' },
     ],
@@ -74,9 +74,9 @@ test('parses chained dot operator', () => {
     { type: TOKEN_TYPE_OPERATOR, value: '.' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'c' },
   ])).toEqual({
-    $dot: [
+    '@dot': [
       {
-        $dot: [
+        '@dot': [
           { '&': 'a' },
           { '!': 'b' },
         ],
@@ -93,7 +93,7 @@ test('parses index operator', () => {
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
     { type: TOKEN_TYPE_OPERATOR, value: ']' },
   ])).toEqual({
-    $dot: [
+    '@dot': [
       { '&': 'a' },
       { '&': 'b' },
     ],
@@ -107,7 +107,7 @@ test('parses evaluate expression', () => {
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
     { type: TOKEN_TYPE_OPERATOR, value: ')' },
   ])).toEqual({
-    $call: [
+    '@call': [
       { '&': 'a' },
       { '&': 'b' },
     ],
@@ -120,7 +120,7 @@ test('parses pipe operator', () => {
     { type: TOKEN_TYPE_OPERATOR, value: '|' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'b' },
   ])).toEqual({
-    $call: [
+    '@call': [
       { '&': 'b' },
       { '&': 'a' },
     ],
@@ -138,7 +138,7 @@ test('parses multi arguments pipe expression', () => {
     { type: TOKEN_TYPE_OPERATOR, value: '|' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'd' },
   ])).toEqual({
-    $call: [
+    '@call': [
       { '&': 'd' },
       { '&': 'a' },
       { '&': 'b' },
@@ -156,10 +156,10 @@ test('respects operator precedence', () => {
     { type: TOKEN_TYPE_OPERATOR, value: '*' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'c' },
   ])).toEqual({
-    $add: [
+    '@add': [
       { '&': 'a' },
       {
-        $mul: [
+        '@mul': [
           { '&': 'b' },
           { '&': 'c' },
         ],
@@ -178,9 +178,9 @@ test('respects parenthesis', () => {
     { type: TOKEN_TYPE_OPERATOR, value: '*' },
     { type: TOKEN_TYPE_IDENTIFIER, value: 'c' },
   ])).toEqual({
-    $mul: [
+    '@mul': [
       {
-        $add: [
+        '@add': [
           { '&': 'a' },
           { '&': 'b' },
         ],

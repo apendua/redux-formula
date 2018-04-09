@@ -12,7 +12,7 @@ const destructure = (expression) => {
   let operator;
   let argsExpr;
   forEach(expression, (value, key) => {
-    if (key.charAt(0) === '$') {
+    if (key.charAt(0) === '@') {
       if (operator) {
         throw new Error(`Multiple operators used in one scope: ${operator}, ${key}`);
       } else {
@@ -92,7 +92,7 @@ const pluginSubExpression = {
               options,
             )(...invokeMap(args, 'createSelector', newScope));
           }
-          if (operator === '$') {
+          if (operator === '@') {
             if (!args[0].createOperator) {
               throw new Error('Value cannot be used as operator.');
             }
