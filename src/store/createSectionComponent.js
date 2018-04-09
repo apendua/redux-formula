@@ -8,6 +8,7 @@ import forEach from 'lodash/forEach';
 import {
   argument,
 } from '../utils/functions';
+import shallowEqual from '../utils/shallowEqual';
 import {
   defaultCompiler,
 } from '../formulaSelector';
@@ -70,8 +71,7 @@ const createSectionComponent = (context) => {
                 createGetProperty: definitionScope => (propName) => {
                   if (isStateMethod(propName)) {
                     return definitionScope.createVariable({
-                      createSelector: refrencingScope =>
-                        refrencingScope.relative(argument(2, propName)),
+                      createSelector: refrencingScope => refrencingScope.relative(argument(2, propName)),
                     });
                   }
                   return createSubState(definitionScope, rootState, propName);
@@ -87,6 +87,7 @@ const createSectionComponent = (context) => {
             });
             return scope;
           },
+          shallowEqual,
         ),
       });
     }

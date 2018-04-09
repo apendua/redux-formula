@@ -90,7 +90,6 @@ const amountOptions = [
 ];
 
 const Item = f.connect`{
-  state = ^state
   price = {
     # details = @api:fetch state.code.value
     details = {
