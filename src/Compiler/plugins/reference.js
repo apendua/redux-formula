@@ -14,12 +14,9 @@ const pluginReference = {
         type: 'reference',
       },
       createSelector: scope => scope.relative(scope.resolve(name).selector),
-      createOperator: (scope, options) => {
-        const variable = scope.resolve(name);
-        if (!variable.createOperator) {
-          throw new Error(`Variable ${name} cannot be used as operator`);
-        }
-        const operator = variable.createOperator(scope, options);
+      createOperator: originalScope => (scope, options) => {
+        const variable = originalScope.resolve(name);
+        const operator = variable.operator(scope, options);
         return (...selectors) => scope.relative(operator(...selectors));
       },
       createGetProperty: (scope) => {

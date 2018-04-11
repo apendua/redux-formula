@@ -24,12 +24,9 @@ const pluginNamespace = {
         type: 'namespace',
       },
       createSelector: scope => scope.relative(createGetProperty(scope)(name).selector),
-      createOperator: (scope, options) => {
-        const property = createGetProperty(scope)(name);
-        if (!property.createOperator) {
-          throw new Error(`Property ${name} cannot be used as operator`);
-        }
-        const operator = property.createOperator(scope, options);
+      createOperator: originalScope => (scope, options) => {
+        const property = createGetProperty(originalScope)(name);
+        const operator = property.operator(scope, options);
         return (...selectors) => scope.relative(operator(...selectors));
       },
       createGetProperty: (scope) => {

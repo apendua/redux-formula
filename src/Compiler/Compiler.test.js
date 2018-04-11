@@ -261,6 +261,25 @@ describe('Test Compiler', () => {
       });
     });
 
+    test('should allow overwriting context variable', () => {
+      const formula = testContext.createSelector({
+        '~a': {
+          $b: '11',
+          c: {
+            '?': ['x'],
+            '=': { '@add': ['x', '$b'] },
+          },
+        },
+        x: {
+          $b: '12',
+          '@': [{ '&': 'a', ':': 'c' }, 1],
+        },
+      });
+      expect(formula()).toEqual({
+        x: 13,
+      });
+    });
+
     test('should reject if "this" is used as operator', () => {
       expect(() => testContext.createSelector({
         '@': [{
@@ -1225,7 +1244,7 @@ describe('Test Compiler', () => {
           b = 11
           c = ${13}
           d = b|${b => b + 1}
-          e = ${(x, y) => scope.boundSelector(x, y, (u, v) => u + v)}
+          e = ${() => (x, y) => scope.boundSelector(x, y, (u, v) => u + v)}
           f = { ? x, y = x + y }
         }  
       `));

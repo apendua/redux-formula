@@ -15,7 +15,7 @@ const pluginLiteral = {
         if (typeof value === 'function') {
           return value;
         }
-        return constant(constant(value));
+        return constant(constant(constant(value)));
       },
     }),
   }),

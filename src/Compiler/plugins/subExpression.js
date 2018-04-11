@@ -87,17 +87,14 @@ const pluginSubExpression = {
           });
           const options = newScope.variablesSelector(namesPublic);
           if (createOperator) {
-            return createOperator(
+            return createOperator()(
               scope,
               options,
             )(...invokeMap(args, 'createSelector', newScope));
           }
           if (operator === '@') {
-            if (!args[0].createOperator) {
-              throw new Error('Value cannot be used as operator.');
-            }
             return scope.relative(
-              args[0].createOperator(
+              newScope.createVariable(args[0]).operator(
                 newScope,
                 options,
               )(...invokeMap(args.slice(1), 'createSelector', newScope)),

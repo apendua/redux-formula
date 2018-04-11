@@ -18,7 +18,7 @@ const pluginOverwrite = {
         return subExpression(
           varsExpr,
           [valueExpr],
-          constant(identity),
+          constant(constant(identity)),
         );
       }
       return next(expression);

@@ -32,11 +32,11 @@ const pluginFunction = {
           },
         );
       },
-      createOperator: scope => (...selectors) => {
+      createOperator: originalScope => scope => (...selectors) => {
         if (selectors.length > params.length) {
           throw new Error('Too many arguments provided.');
         }
-        const newScope = scope.create(params.slice(selectors.length));
+        const newScope = originalScope.create(params.slice(selectors.length), scope);
         forEach(selectors, (selector, i) => {
           newScope.define(params[i], {
             createSelector: targetScope => targetScope.relative(selector),

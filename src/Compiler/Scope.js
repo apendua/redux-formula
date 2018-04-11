@@ -8,8 +8,9 @@ import {
 } from '../utils/functions';
 
 class Scope {
-  constructor(parent, unknowns = [], operators = {}) {
+  constructor(parent, unknowns = [], context) {
     this.parent = parent;
+    this.context = context;
     this.variables = {};
 
     this.parentOrder = (parent && parent.order) || 0;
@@ -30,8 +31,6 @@ class Scope {
         selector: this.createUnknownSelector(name),
       };
     });
-
-    forEach(operators, (operator, name) => this.operator(name, operator));
   }
 
   hasOwnUnknowns() {
@@ -65,17 +64,18 @@ class Scope {
     return new this.constructor(this, ...args);
   }
 
-  lookup(name, lookupLevel = 0) {
-    let level = lookupLevel;
-    let scope = this;
-    while (scope) {
-      if (scope.variables[name]) {
-        if (level === 0) {
-          return scope.variables[name];
-        }
-        level -= 1;
+  lookup(name, level = 0) {
+    if (this.context && name.charAt(0) === '$') {
+      return this.context.lookup(name, level);
+    }
+    if (this.variables[name]) {
+      if (level === 0) {
+        return this.variables[name];
+      } else if (this.parent) {
+        return this.parent.lookup(name, level - 1);
       }
-      scope = scope.parent;
+    } else if (this.parent) {
+      return this.parent.lookup(name, level);
     }
     return null;
   }

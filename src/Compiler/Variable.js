@@ -19,6 +19,15 @@ class Variable {
     return this.selector;
   }
 
+  get operator() {
+    if (!this.createOperator) {
+      throw new Error(`Variable ${this.name} cannot be used as operator`);
+    }
+    const operator = this.createOperator(this.scope);
+    Object.defineProperty(this, 'operator', { value: operator });
+    return this.operator;
+  }
+
   get getProperty() {
     if (!this.createGetProperty) {
       throw new Error(`Variable ${this.name} cannot be used as namepsace`);
