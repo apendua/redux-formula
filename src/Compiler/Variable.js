@@ -11,12 +11,21 @@ class Variable {
     }
     let selector = this.createSelector(this.scope);
     if (typeof selector === 'function') {
-      selector = this.relative(selector);
+      selector = this.scope.relative(selector);
     } else if (!(selector instanceof Selector)) {
       throw new Error(`Expected selector, got ${typeof selector}`);
     }
     Object.defineProperty(this, 'selector', { value: selector });
     return this.selector;
+  }
+
+  get teleport() {
+    if (!this.createTeleport) {
+      throw new Error(`Variable ${this.name} cannot be used as teleport`);
+    }
+    const teleport = this.createTeleport(this.scope);
+    Object.defineProperty(this, 'teleport', { value: teleport });
+    return this.teleport;
   }
 
   get operator() {

@@ -14,6 +14,7 @@ const pluginReference = {
         type: 'reference',
       },
       createSelector: scope => scope.relative(scope.resolve(name).selector),
+      createTeleport: scope => scope.resolve(name).teleport,
       createOperator: originalScope => (scope, options) => {
         const variable = originalScope.resolve(name);
         const operator = variable.operator(scope, options);

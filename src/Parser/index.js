@@ -262,6 +262,25 @@ const list = () => (grammar) => {
     }));
 };
 
+const ellipsis = bp => (grammar) => {
+  grammar
+    .token('<<')
+    .setBindingPower(bp)
+    .ifUsedAsInfix((parse, token, left) => {
+      const key = parse.advance(TOKEN_TYPE_IDENTIFIER).value;
+      return {
+        key,
+        '<<': left,
+      };
+    });
+
+  grammar
+    .token('...')
+    .ifUsedAsPrefix(() => ({
+      '...': true,
+    }));
+};
+
 const binaryRight = (id, alias, bp) => grammar =>
   grammar
     .token(id)
@@ -307,6 +326,7 @@ parser.token(TOKEN_TYPE_IDENTIFIER)
   parenthesis(),
   scopeObject(),
   list(),
+  ellipsis(80),
   genericOperator(80),
 
 ].forEach(plugin => plugin(parser));

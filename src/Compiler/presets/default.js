@@ -1,5 +1,6 @@
 import pluginLiteral from '../plugins/literal';
 import pluginArray from '../plugins/array';
+import pluginEllipsis from '../plugins/ellipsis';
 import pluginReference from '../plugins/reference';
 import pluginFunction from '../plugins/function';
 import pluginMacro from '../plugins/macro';
@@ -15,6 +16,7 @@ const preset = [
   pluginReference,
   pluginFunction,
   pluginMacro,
+  pluginEllipsis,
   pluginOverwrite,
   pluginSubExpression,
   pluginDefaultOperators,

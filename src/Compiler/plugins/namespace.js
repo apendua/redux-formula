@@ -24,6 +24,7 @@ const pluginNamespace = {
         type: 'namespace',
       },
       createSelector: scope => scope.relative(createGetProperty(scope)(name).selector),
+      createTeleport: scope => createGetProperty(scope)(name).teleport,
       createOperator: originalScope => (scope, options) => {
         const property = createGetProperty(originalScope)(name);
         const operator = property.operator(scope, options);

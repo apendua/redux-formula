@@ -286,7 +286,7 @@ describe('Test Compiler', () => {
           '?': [],
           '=': { '@': ['this'] },
         }],
-      })).toThrowError(/cannot be used as operator/);;
+      })).toThrowError(/cannot be used as operator/);
     });
 
     test('should evaluate recursive function as an operator', () => {
@@ -1219,7 +1219,7 @@ describe('Test Compiler', () => {
       expect(out1).toEqual({ b: {} });
       expect(out2).toEqual({ b: {} });
       expect(out1).not.toBe(out2);
-    });    
+    });
 
     test('should persist value when function is used as operator with different arguments', () => {
       const formula = testContext.createSelector(`
@@ -1270,6 +1270,96 @@ describe('Test Compiler', () => {
         z: 12,
         w: 24,
         t: 24,
+      });
+    });
+  });
+
+  describe('Portals', () => {
+    test('should throw if variable is not declared as portal', () => {
+      expect(() => {
+        testContext.createSelector({
+          a: {},
+          b: {
+            x: {
+              '>': { '&': 'a' },
+              '=': 1,
+            },
+          },
+        });
+      }).toThrow(/cannot be used as teleport/);
+    });
+
+    test('should propagate variables via portal', () => {
+      const formula = testContext.createSelector({
+        a: {
+          '...': true,
+        },
+        b: {
+          x: {
+            '>': { '&': 'a' },
+            '=': 1,
+          },
+          y: {
+            '>': { '&': 'a' },
+            '=': { '@add': [{ '&': 'x' }, { '!': 1 }] },
+          },
+        },
+      });
+      expect(formula()).toEqual({
+        a: [1, 2],
+        b: {
+          x: 1,
+          y: 2,
+        },
+      });
+    });
+
+    test('should propagate variables via namespaced portal', () => {
+      const formula = testContext.createSelector({
+        a: {
+          b: {
+            '...': true,
+          },
+        },
+        b: {
+          x: {
+            '>': { '&': 'a', ':': 'b' },
+            '=': 1,
+          },
+          y: {
+            '>': { '&': 'a', ':': 'b' },
+            '=': { '@add': [{ '&': 'x' }, { '!': 1 }] },
+          },
+        },
+      });
+      expect(formula()).toEqual({
+        a: {
+          b: [1, 2],
+        },
+        b: {
+          x: 1,
+          y: 2,
+        },
+      });
+    });
+
+    test('should propagate variables via portal at operator evaluation', () => {
+      const formula = testContext.createSelector({
+        a: { '...': true },
+        b: {
+          '@': [{ '&': 'f' }, { '!': 11 }],
+        },
+        '~f': {
+          '?': ['z'],
+          '=': {
+            '=': { '&': 'z' },
+            '>': { '&': 'a' },
+          },
+        },
+      });
+      expect(formula()).toEqual({
+        a: [11],
+        b: 11,
       });
     });
   });

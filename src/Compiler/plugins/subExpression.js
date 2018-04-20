@@ -114,11 +114,11 @@ const pluginSubExpression = {
       operator,
       argsExpr,
     } = destructure(expression);
-    const name = operator && operator.substr(1);
+    const operatorName = operator && operator.substr(1);
     return subExpression(
       varsExpr,
       operator && !isArray(argsExpr) ? [argsExpr] : argsExpr,
-      operator && operators[name],
+      operator && operators[operatorName],
       operator,
     );
   },
