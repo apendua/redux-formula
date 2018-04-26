@@ -1362,5 +1362,28 @@ describe('Test Compiler', () => {
         b: 11,
       });
     });
+
+    test('should propagate via portal inside conditional expression', () => {
+      const formula = testContext.createSelector({
+        a: { '...': true },
+        b: {
+          '@if': [
+            { '&': '$0' },
+            {
+              '>': { '&': 'a' },
+              '=': { '!': 'TRUE' },
+            },
+            {
+              '>': { '&': 'a' },
+              '=': { '!': 'FALSE' },
+            },
+          ],
+        },
+      });
+      expect(formula(true)).toEqual({
+        a: ['TRUE', 'FALSE'],
+        b: 'TRUE',
+      });
+    });
   });
 });

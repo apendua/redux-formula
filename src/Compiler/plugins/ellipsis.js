@@ -7,6 +7,9 @@ const pluginEllipsis = {
     }
     const selectors = [];
     return {
+      meta: {
+        type: 'ellipsis',
+      },
       createTeleport: scope => (selector) => {
         selectors.push(scope.relative(selector));
       },
