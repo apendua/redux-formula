@@ -3,16 +3,16 @@ const format = (message, details) => {
   if (details) {
     const newMessage = `${message} // at ${details.line + 1}:${details.from + 1}`;
     if (details.lineContent) {
-      // let ruler = '';
-      // while (ruler.length < details.from) {
-      //   ruler += ' ';
-      // }
-      // while (ruler.length <= details.to) {
-      //   ruler += '^';
-      // }
-      const tokenPosition = details.lineContent
-        .split('').map((c, i) => (details.from === i ? `${c}\u034E` : c)).join('');
-      return `${newMessage}\n${tokenPosition}\n`;
+      let ruler = '';
+      while (ruler.length < details.from) {
+        ruler += ' ';
+      }
+      while (ruler.length <= details.to) {
+        ruler += '^';
+      }
+      // const tokenPosition = details.lineContent
+      //   .split('').map((c, i) => (details.from === i ? `${c}\u034E` : c)).join('');
+      return `${newMessage}\n${details.lineContent}\n${ruler}`;
     }
     return newMessage;
   }
